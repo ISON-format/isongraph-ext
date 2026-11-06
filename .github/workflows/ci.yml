@@ -19,7 +19,7 @@ jobs:
       - run: pip install -e ".[dev]"
       - run: pytest
       - run: python -m build
-      - run: pytest tests/test_packaging.py -q --built
+      - run: pytest tests/test_packaging.py tests/test_examples.py -q --built
       - run: pip install dist/*.whl --force-reinstall --no-deps && python -c "import isongraph_ext.igx.baselines as b; print(b.DEFAULT_BASELINE.core_commit)"
 
   # Release verification lane: the embedded baseline must be reproducible from the pinned Core commit,

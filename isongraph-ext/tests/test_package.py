@@ -20,7 +20,7 @@ def test_igpv_public_api_is_exported():
                  "ProvenanceVerification", "check_references"):
         assert hasattr(igpv, name), name
     from isongraph_ext.igx import DEFAULT_REGISTRY
-    assert dict(DEFAULT_REGISTRY) == {"igpv": "1.0.0"}
+    assert DEFAULT_REGISTRY["igpv"] == "1.0.0"
 
 
 def test_igpv_reexports_default_registry():

@@ -7,7 +7,8 @@
 - Node/edge hints (semantic, shape and pattern roles, emphasis, badge, ring, label, visibility/LOD, interaction markers, temporal state, accessibility text/role), groups (`hull` / `hierarchy` / `collapse` / `aggregate` over explicit members, acyclic parent tree, exclusivity and chain rules), layout hints; closed vocabularies plus a preserved-and-reported `x-` namespace; no appearance columns exist (theme separation).
 - `verify()` with byte-budget preflight and D0–D4 (runs IGX/1 verification itself; object resolution reuses IGPV/1's), `bind()`, `verify_and_admit()` (admission is the binding's), CLI `python -m isongraph_ext.igdm verify` (exit 0/1/2, 64 on usage).
 - `igx.DEFAULT_REGISTRY = {"igpv": "1.0.0", "igdm": "1.0.0"}`; `igpv.payload` wire helpers parameterised for reuse (E2 behaviour unchanged).
-- 49 conformance vectors under `vectors/igdm1/` with generator and reference runner.
+- 50 conformance vectors under `vectors/igdm1/` with generator and reference runner.
+- Fix (post-audit, 2026-11-06): a `magnitude` whose `str()` is an exponent form (any float below 1e-4, e.g. `0.00001`) has no numeric wire form (`19` §1.1) and is now rejected at D1 in memory (`MALFORMED_DATAMATICS`), so `to_ison()`/`bind()` can no longer emit a payload and binding that every consumer rejects. Wire grammar and error contract unchanged; vector `reject/magnitude-exponent-form`.
 
 ## [0.2.0] — unreleased — E2 IGPV/1
 - IGPV/1 provenance (`docs/blueprint/18-IGPV1-DESIGN.md`, FROZEN rev 1): companion `<graph>.igpv.ison`, canonical by construction (the canonical writer orders rows), bound through IGX/1 as capability `igpv 1.0.0`.

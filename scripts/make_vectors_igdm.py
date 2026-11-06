@@ -150,6 +150,7 @@ VECTORS = [
     ("reject/role-outside-vocabulary", D, None, mut(bt, "warning inactive null circle", "warning hot null circle"), "reject:MALFORMED_DATAMATICS", "D1", None),
     ("reject/magnitude-out-of-range", D, None, mut(bt, "0 0.8 1 order", "0 1.5 1 order"), "reject:MALFORMED_DATAMATICS", "D1", None),
     ("reject/magnitude-nan", D, None, mut(bt, "0 0.8 1 order", "0 nan 1 order"), "reject:MALFORMED_DATAMATICS", "D1", "nan parses as a string"),
+    ("reject/magnitude-exponent-form", D, None, mut(bt, "0 0.8 1 order", "0 1e-05 1 order"), "reject:MALFORMED_DATAMATICS", "D1", "str(0.00001) is 1e-05, which parses as a string: no numeric wire form"),
     ("reject/lod-negative", D, None, mut(bt, "null null 2 0.1 s1", "null null -1 0.1 s1"), "reject:MALFORMED_DATAMATICS", "D1", None),
     ("reject/boolean-not-token", D, None, mut(bt, '"true" document', "true document"), "reject:MALFORMED_DATAMATICS", "D1", "bare boolean"),
     ("reject/badge-too-long", D, None, mut(bt, 'warning null "3" null', f'warning null {"b" * 17} null'), "reject:MALFORMED_DATAMATICS", "D1", None),

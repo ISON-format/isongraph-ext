@@ -27,7 +27,7 @@ EXPECT_IDS = {
     "reject/group-self-parent", "reject/group-unreachable", "reject/direction-without-family", "reject/node-id-outside-int64",
     "reject/target-sha-mismatch", "reject/target-profile-mismatch", "reject/unknown-parent-group", "reject/member-unknown-group",
     "reject/group-cycle", "reject/group-depth-budget", "reject/unresolved-node", "reject/unresolved-edge", "reject/unresolved-member",
-    "reject/undirected-noncanonical-endpoints", "reject/two-faults-first-wins",
+    "reject/undirected-noncanonical-endpoints", "reject/two-faults-first-wins", "reject/magnitude-exponent-form",
 }
 
 

@@ -124,3 +124,13 @@ def test_bind():
     with pytest.raises(IGDMError) as info:
         bind(T + b"\n", p, serialization_profile="ison-v1", producer_port="python", identity_claim="artifact")
     assert (info.value.code, info.value.step) == ("TARGET_BINDING_MISMATCH", "D2")
+
+
+def test_bind_never_returns_a_binding_for_a_payload_that_fails_its_own_round_trip():
+    from isongraph_ext.igdm.payload import node_key
+    base = real_payload(T)
+    addr = base.nodes[0].node
+    p = real_payload(T, nodes=(NodeHints(addr, magnitude=0.00001),) + base.nodes[1:])
+    with pytest.raises(IGDMError) as info:
+        bind(T, p, serialization_profile="ison-v1", producer_port="python", identity_claim="artifact")
+    assert (info.value.code, info.value.step, info.value.field) == ("MALFORMED_DATAMATICS", "D1", f"table.nodes.{node_key(addr)}.magnitude"), info.value

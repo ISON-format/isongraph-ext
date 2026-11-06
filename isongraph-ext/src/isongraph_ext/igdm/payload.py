@@ -6,6 +6,7 @@ Booleans are "true"/"false" STRING tokens on the wire and bool | None in records
 
 from __future__ import annotations
 
+import re
 import unicodedata
 from dataclasses import dataclass
 from typing import Any
@@ -20,6 +21,7 @@ from .errors import IGDMError
 
 TABLES = (("nodes", R.NODE_FIELDS), ("edges", R.EDGE_FIELDS), ("groups", R.GROUP_FIELDS), ("members", R.MEMBER_FIELDS))
 REQUIRED_BLOCKS = {("meta", "igdm"), ("meta", "layout")} | {("table", n) for n, _f in TABLES}
+_DECIMAL_LITERAL = re.compile(r"-?[0-9]+(\.[0-9]+)?")   # ison-py INTEGER/FLOAT_PATTERN: the only numeric wire forms
 _X_COLUMNS = {"role", "ring", "a11y_role", "shape_role", "pattern_role", "family"}   # the only columns where x- is legal
 _VOCAB = {"role": R.ROLES, "ring": R.ROLES, "a11y_role": R.ROLES, "shape_role": R.SHAPE_ROLES, "pattern_role": R.PATTERN_ROLES,
           "emphasis": R.EMPHASIS, "visibility": R.VISIBILITY, "direction_display": R.DIRECTION_DISPLAY,
@@ -236,7 +238,10 @@ def _common_hints(obj: Any, where: str, cols: tuple[str, ...]) -> None:
                                 and not any(unicodedata.category(c) == "Cc" for c in v)),
                   f"{where}.{col}", f"null or 1..{R.BADGE_MAX} Unicode scalar values, none in category Cc (control)")
         elif col == "magnitude":
-            _need(v is None or ((PR.is_int(v) or isinstance(v, float)) and 0 <= v <= 1), f"{where}.{col}", "numeric literal in [0, 1] or null")
+            # The canonical writer renders str(v) and the reader accepts only -?d+(.d+)? as a number (19 §1.1): a float whose
+            # str() is an exponent form (every value below 1e-4) has no numeric wire form and must fail here, before to_ison().
+            _need(v is None or ((PR.is_int(v) or isinstance(v, float)) and 0 <= v <= 1 and _DECIMAL_LITERAL.fullmatch(str(v)) is not None),
+                  f"{where}.{col}", "numeric literal in [0, 1] or null (decimal form only: exponent forms are not ISON numbers)")
 
 
 def _check_address_utf8(ref: PR.NodeRef, where: str, type_col: str, id_col: str) -> None:

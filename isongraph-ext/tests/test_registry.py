@@ -8,9 +8,19 @@ from isongraph_ext.igx.binding import Capability
 from isongraph_ext.igx.registry import DEFAULT_REGISTRY
 
 
-def test_default_registry_is_exactly_igpv():
-    assert dict(DEFAULT_REGISTRY) == {"igpv": "1.0.0"}
+def test_default_registry_keeps_igpv():
+    assert "igpv" in DEFAULT_REGISTRY and DEFAULT_REGISTRY["igpv"] == "1.0.0"
     assert EMPTY_REGISTRY == {}
+
+
+def test_default_registry_admits_igdm_and_igpv():
+    assert dict(DEFAULT_REGISTRY) == {"igpv": "1.0.0", "igdm": "1.0.0"}
+    src = graph_bytes("ids/positive-int.ison")
+    b = bind(src, serialization_profile="ison-v1", producer_port="python", identity_claim="artifact",
+             capabilities=(Capability("igdm", "^1", "REQUIRED", "cd" * 32), Capability("igpv", "^1", "OPTIONAL", None)))
+    assert verify(b, src).unrecognized_optional == ()
+    with pytest.raises(IGXError):
+        verify(b, src, registry=EMPTY_REGISTRY)
 
 
 def test_required_igpv_row_verifies_under_default_and_fails_under_empty():

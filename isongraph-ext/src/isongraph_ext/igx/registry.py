@@ -7,4 +7,4 @@ from types import MappingProxyType
 
 CapabilityRegistry = Mapping[str, str]
 EMPTY_REGISTRY: CapabilityRegistry = MappingProxyType({})
-DEFAULT_REGISTRY: CapabilityRegistry = MappingProxyType({"igpv": "1.0.0"})
+DEFAULT_REGISTRY: CapabilityRegistry = MappingProxyType({"igpv": "1.0.0", "igdm": "1.0.0"})

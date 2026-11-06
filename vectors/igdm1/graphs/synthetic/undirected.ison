@@ -1,0 +1,13 @@
+edges.knows
+source target
+:order:1 :order:s1
+:order:s1 :order:1
+
+meta.graph
+directed
+false
+
+nodes.order
+id
+1
+s1

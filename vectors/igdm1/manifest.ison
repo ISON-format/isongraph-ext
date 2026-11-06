@@ -1,0 +1,55 @@
+meta.corpus
+datamatics_spec version
+IGDM/1 1
+
+table.vectors
+id binding detail expect payload step target
+ok/edge-hints ok--edge-hints.igx.ison null verify_ok+admit_ok ok--edge-hints.igdm.ison null synthetic/directed.ison
+ok/empty-datamatics ok--empty-datamatics.igx.ison null verify_ok+admit_ok ok--empty-datamatics.igdm.ison null synthetic/directed.ison
+ok/empty-hull-group ok--empty-hull-group.igx.ison "outer has no members but a child with members" verify_ok+admit_ok ok--empty-hull-group.igdm.ison null synthetic/directed.ison
+ok/groups-nested-hull-and-collapse ok--groups-nested-hull-and-collapse.igx.ison null verify_ok+admit_ok ok--groups-nested-hull-and-collapse.igdm.ison null synthetic/directed.ison
+ok/hierarchy-chain ok--hierarchy-chain.igx.ison null verify_ok+admit_ok ok--hierarchy-chain.igdm.ison null synthetic/directed.ison
+ok/igpv-and-igdm-same-binding ok--igpv-and-igdm-same-binding.igx.ison "binding also carries an igpv row" verify_ok+admit_ok ok--igpv-and-igdm-same-binding.igdm.ison null synthetic/directed.ison
+ok/layout-only ok--layout-only.igx.ison null verify_ok+admit_ok ok--layout-only.igdm.ison null synthetic/directed.ison
+ok/limited-runtime-skips-resolution ok--limited-runtime-skips-resolution.igx.ison resolution:skipped verify_ok+admit:STALE_BINDING ok--limited-runtime-skips-resolution.igdm.ison A1 synthetic/directed.ison
+ok/multigraph-edge-ordinal ok--multigraph-edge-ordinal.igx.ison null verify_ok+admit_ok ok--multigraph-edge-ordinal.igdm.ison null synthetic/multi.ison
+ok/node-hints-full-row ok--node-hints-full-row.igx.ison null verify_ok+admit_ok ok--node-hints-full-row.igdm.ison null synthetic/directed.ison
+ok/optional-igdm-row ok--optional-igdm-row.igx.ison null verify_ok+admit_ok ok--optional-igdm-row.igdm.ison null synthetic/directed.ison
+ok/reserialize-stable ok--reserialize-stable.igx.ison null verify_ok+admit_ok ok--reserialize-stable.igdm.ison null synthetic/directed.ison
+ok/undirected-edge-canonical ok--undirected-edge-canonical.igx.ison "canonical endpoint order" verify_ok+admit_ok ok--undirected-edge-canonical.igdm.ison null synthetic/undirected.ison
+ok/x-roles-preserved ok--x-roles-preserved.igx.ison roles:edges.pattern_role:x-wavy,nodes.role:x-betterify-risk verify_ok+admit_ok ok--x-roles-preserved.igdm.ison null synthetic/directed.ison
+reject/all-null-hint-row reject--all-null-hint-row.igx.ison null reject:MALFORMED_DATAMATICS reject--all-null-hint-row.igdm.ison D1 synthetic/directed.ison
+reject/badge-too-long reject--badge-too-long.igx.ison null reject:MALFORMED_DATAMATICS reject--badge-too-long.igdm.ison D1 synthetic/directed.ison
+reject/binding-fails-igx reject--binding-fails-igx.igx.ison "IGXError raised from D0" reject:CORPUS_DIGEST_MISMATCH reject--binding-fails-igx.igdm.ison D0 synthetic/directed.ison
+reject/boolean-not-token reject--boolean-not-token.igx.ison "bare boolean" reject:MALFORMED_DATAMATICS reject--boolean-not-token.igdm.ison D1 synthetic/directed.ison
+reject/collapse-exclusivity reject--collapse-exclusivity.igx.ison null reject:MALFORMED_DATAMATICS reject--collapse-exclusivity.igdm.ison D1 synthetic/directed.ison
+reject/direction-without-family reject--direction-without-family.igx.ison null reject:MALFORMED_DATAMATICS reject--direction-without-family.igdm.ison D1 synthetic/directed.ison
+reject/duplicate-node-row reject--duplicate-node-row.igx.ison null reject:MALFORMED_DATAMATICS reject--duplicate-node-row.igdm.ison D1 synthetic/directed.ison
+reject/group-cycle reject--group-cycle.igx.ison null reject:GROUP_CYCLE reject--group-cycle.igdm.ison D3 synthetic/directed.ison
+reject/group-depth-budget reject--group-depth-budget.igx.ison limits:max_group_depth=2 reject:DATAMATICS_LIMIT_EXCEEDED reject--group-depth-budget.igdm.ison D3 synthetic/directed.ison
+reject/group-self-parent reject--group-self-parent.igx.ison null reject:MALFORMED_DATAMATICS reject--group-self-parent.igdm.ison D1 synthetic/directed.ison
+reject/group-unreachable reject--group-unreachable.igx.ison null reject:MALFORMED_DATAMATICS reject--group-unreachable.igdm.ison D1 synthetic/directed.ison
+reject/hierarchy-not-chain reject--hierarchy-not-chain.igx.ison null reject:MALFORMED_DATAMATICS reject--hierarchy-not-chain.igdm.ison D1 synthetic/directed.ison
+reject/lod-negative reject--lod-negative.igx.ison null reject:MALFORMED_DATAMATICS reject--lod-negative.igdm.ison D1 synthetic/directed.ison
+reject/magnitude-nan reject--magnitude-nan.igx.ison "nan parses as a string" reject:MALFORMED_DATAMATICS reject--magnitude-nan.igdm.ison D1 synthetic/directed.ison
+reject/magnitude-out-of-range reject--magnitude-out-of-range.igx.ison null reject:MALFORMED_DATAMATICS reject--magnitude-out-of-range.igdm.ison D1 synthetic/directed.ison
+reject/member-unknown-group reject--member-unknown-group.igx.ison null reject:UNRESOLVED_REFERENCE reject--member-unknown-group.igdm.ison D3 synthetic/directed.ison
+reject/node-id-outside-int64 reject--node-id-outside-int64.igx.ison null reject:MALFORMED_DATAMATICS reject--node-id-outside-int64.igdm.ison D1 synthetic/directed.ison
+reject/noncanonical-text reject--noncanonical-text.igx.ison "trailing newline" reject:MALFORMED_DATAMATICS reject--noncanonical-text.igdm.ison D1 synthetic/directed.ison
+reject/not-bound reject--not-bound.igx.ison null reject:DATAMATICS_NOT_BOUND reject--not-bound.igdm.ison D0 synthetic/directed.ison
+reject/oversized-payload reject--oversized-payload.igx.ison limits:max_payload_bytes=16 reject:DATAMATICS_LIMIT_EXCEEDED reject--oversized-payload.igdm.ison D1 synthetic/directed.ison
+reject/oversized-target reject--oversized-target.igx.ison limits:max_graph_bytes=16 reject:DATAMATICS_LIMIT_EXCEEDED reject--oversized-target.igdm.ison D1 synthetic/directed.ison
+reject/payload-digest-mismatch reject--payload-digest-mismatch.igx.ison null reject:PAYLOAD_DIGEST_MISMATCH reject--payload-digest-mismatch.igdm.ison D0 synthetic/directed.ison
+reject/role-outside-vocabulary reject--role-outside-vocabulary.igx.ison null reject:MALFORMED_DATAMATICS reject--role-outside-vocabulary.igdm.ison D1 synthetic/directed.ison
+reject/rows-not-sorted reject--rows-not-sorted.igx.ison canonical_form reject:MALFORMED_DATAMATICS reject--rows-not-sorted.igdm.ison D1 synthetic/directed.ison
+reject/target-profile-mismatch reject--target-profile-mismatch.igx.ison null reject:TARGET_BINDING_MISMATCH reject--target-profile-mismatch.igdm.ison D2 synthetic/directed.ison
+reject/target-sha-mismatch reject--target-sha-mismatch.igx.ison null reject:TARGET_BINDING_MISMATCH reject--target-sha-mismatch.igdm.ison D2 synthetic/directed.ison
+reject/twin-ids reject--twin-ids.igx.ison ID-TWIN-INVARIANT reject:MALFORMED_DATAMATICS reject--twin-ids.igdm.ison D1 synthetic/directed.ison
+reject/two-faults-first-wins reject--two-faults-first-wins.igx.ison "wrong target sha and unresolved node" reject:TARGET_BINDING_MISMATCH reject--two-faults-first-wins.igdm.ison D2 synthetic/directed.ison
+reject/undirected-noncanonical-endpoints reject--undirected-noncanonical-endpoints.igx.ison "endpoints not canonical" reject:UNRESOLVED_OBJECT reject--undirected-noncanonical-endpoints.igdm.ison D4 synthetic/undirected.ison
+reject/unexpected-block reject--unexpected-block.igx.ison null reject:MALFORMED_DATAMATICS reject--unexpected-block.igdm.ison D1 synthetic/directed.ison
+reject/unknown-parent-group reject--unknown-parent-group.igx.ison null reject:UNRESOLVED_REFERENCE reject--unknown-parent-group.igdm.ison D3 synthetic/directed.ison
+reject/unresolved-edge reject--unresolved-edge.igx.ison "directed: reversed edge is absent" reject:UNRESOLVED_OBJECT reject--unresolved-edge.igdm.ison D4 synthetic/directed.ison
+reject/unresolved-member reject--unresolved-member.igx.ison null reject:UNRESOLVED_OBJECT reject--unresolved-member.igdm.ison D4 synthetic/directed.ison
+reject/unresolved-node reject--unresolved-node.igx.ison null reject:UNRESOLVED_OBJECT reject--unresolved-node.igdm.ison D4 synthetic/directed.ison
+reject/version-range-excludes reject--version-range-excludes.igx.ison null reject:DATAMATICS_VERSION_UNSUPPORTED reject--version-range-excludes.igdm.ison D0 synthetic/directed.ison

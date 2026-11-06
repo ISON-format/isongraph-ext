@@ -1,0 +1,13 @@
+edges.r
+key source target
+0 :order:1 :order:2
+10 :order:1 :order:2
+
+meta.graph
+directed format version
+true ison-graph-multigraph-v1 1
+
+nodes.order
+id
+1
+2

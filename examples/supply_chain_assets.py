@@ -158,6 +158,8 @@ with tempfile.TemporaryDirectory() as td:
 
 # 7b. optional: leave the three artifacts on disk (supply_chain_assets.py --write DIR), e.g. as input for igdm_to_svg.py
 if "--write" in sys.argv:
+    if sys.argv.index("--write") + 1 >= len(sys.argv):
+        sys.exit("usage: supply_chain_assets.py [--write DIR]")
     out = pathlib.Path(sys.argv[sys.argv.index("--write") + 1])
     out.mkdir(parents=True, exist_ok=True)
     (out / "assets.ison").write_bytes(G)

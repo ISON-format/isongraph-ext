@@ -11,7 +11,7 @@ _RANGE = re.compile(r"^(=|>=|\^|~)((?:0|[1-9][0-9]*)(?:\.(?:0|[1-9][0-9]*)){0,2}
 
 
 def parse_version(text: str) -> Version:
-    m = _VERSION.match(text)
+    m = _VERSION.fullmatch(text)   # fullmatch: `$` alone would accept a trailing newline
     if not m:
         raise ValueError(f"not a version X.Y.Z: {text!r}")
     return (int(m.group(1)), int(m.group(2)), int(m.group(3)))
@@ -24,7 +24,7 @@ class Range:
 
 
 def parse_range(text: str) -> Range:
-    m = _RANGE.match(text)
+    m = _RANGE.fullmatch(text)
     if not m:
         raise ValueError(f"not a version range: {text!r}")
     op, parts = m.group(1), tuple(int(p) for p in m.group(2).split("."))

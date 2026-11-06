@@ -26,7 +26,13 @@ def test_range_boundaries(rng, version, ok):
     assert range_admits(parse_range(rng), version) is ok
 
 
-@pytest.mark.parametrize("bad", ["1.2", ">=1.2", "=1", "~1", "^", "<1.0.0", "^1.2.3.4", " ^1", "1.0.0"])
+@pytest.mark.parametrize("bad", ["1.2", ">=1.2", "=1", "~1", "^", "<1.0.0", "^1.2.3.4", " ^1", "1.0.0", "^1\n", "=1.0.0\n"])
 def test_bad_ranges(bad):
     with pytest.raises(ValueError):
         parse_range(bad)
+
+
+def test_trailing_newline_is_not_a_version():
+    # Python's `$` matches before a final newline; the grammar must use a full match.
+    with pytest.raises(ValueError):
+        parse_version("1.0.0\n")

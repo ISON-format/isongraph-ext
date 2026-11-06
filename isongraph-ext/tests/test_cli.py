@@ -12,9 +12,25 @@ SRC_DIR = ROOT / "isongraph-ext" / "src"
 
 
 def run(*args):
-    env = {**os.environ, "PYTHONPATH": str(SRC_DIR), "PYTHONIOENCODING": "utf-8"}
-    p = subprocess.run([sys.executable, "-m", "isongraph_ext.igx", *map(str, args)], capture_output=True, text=True, env=env)
-    return p.returncode, p.stdout
+    # Deliberately NOT forcing PYTHONIOENCODING: the CLI must emit UTF-8 on its own, even when stdout is a
+    # pipe on a cp1252 Windows console (reviewer finding: UnicodeEncodeError -> exit 1 with empty stdout).
+    env = {k: v for k, v in os.environ.items() if k not in ("PYTHONIOENCODING", "PYTHONUTF8")}
+    env.update({"PYTHONPATH": str(SRC_DIR), "PYTHONUTF8": "0"})
+    p = subprocess.run([sys.executable, "-m", "isongraph_ext.igx", *map(str, args)], capture_output=True, env=env)
+    return p.returncode, p.stdout.decode("utf-8")
+
+
+def test_non_ascii_output_is_utf8_not_a_crash(tmp_path):
+    from isongraph_ext.igx.binding import Capability
+    g = tmp_path / "g.ison"
+    g.write_bytes(graph_bytes("ids/positive-int.ison"))
+    b = bind(g.read_bytes(), serialization_profile="ison-v1", producer_port="python", identity_claim="producer_bound",
+             capabilities=(Capability("x-中文", "^1", "OPTIONAL", None),))
+    bf = tmp_path / "g.igx.ison"
+    bf.write_bytes(b.to_ison().encode("utf-8"))
+    code, out = run("verify", g, bf)
+    assert code == 0, out
+    assert _row(out, "verification")["unrecognized_optional"] == "x-中文"
 
 
 def _row(stdout, name):

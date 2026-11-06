@@ -37,7 +37,17 @@ def _joined(items) -> str | None:
     return ",".join(items) if items else None
 
 
+def _utf8_streams() -> None:
+    """Output is UTF-8, LF-terminated ISON regardless of console locale or platform: a cp1252 pipe on Windows
+    must not crash or transcode, and text-mode newline translation must not turn the ISON into CRLF."""
+    for stream in (sys.stdout, sys.stderr):
+        reconfigure = getattr(stream, "reconfigure", None)
+        if reconfigure is not None:
+            reconfigure(encoding="utf-8", errors="strict", newline="\n")
+
+
 def main(argv: list[str]) -> int:
+    _utf8_streams()
     ap = _Parser(prog="python -m isongraph_ext.igx")
     sub = ap.add_subparsers(dest="cmd", required=True)
     for name in ("verify", "admit"):

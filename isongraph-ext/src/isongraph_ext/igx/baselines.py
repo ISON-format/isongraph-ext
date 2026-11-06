@@ -4,20 +4,17 @@ from __future__ import annotations
 
 import importlib.metadata
 import importlib.resources
-from collections.abc import Mapping
+from collections.abc import Iterable, Mapping
 from dataclasses import dataclass
 from pathlib import Path
 
 from ison_parser import loads
 
 from .digest import normalize_newlines, sha256_hex
+from .receipt_rules import ReceiptContentError, validate_receipt_row
 
 PORTS = ("python", "ts", "js", "rust", "cs", "cpp")
 CORE_MODULES = ("__init__.py", "multigraph.py", "query.py", "schema.py", "structural.py", "viz.py")
-POSTURES = ("FULL", "LOSSY_KNOWN", "KNOWN_DEFECT", "PARTIAL", "INCONCLUSIVE", "NONCONFORMANT")
-COUNTERS = ("pass", "canonicalized", "lossy", "defect", "rejected_as_expected", "todo")
-
-
 class BaselineDataError(RuntimeError):
     """The package's baseline data does not hash to its own MANIFEST or is internally inconsistent - an install problem, not a binding fault."""
 
@@ -50,6 +47,7 @@ class Baseline:
     domains: Mapping[str, frozenset[str]]
     core_runtime: Mapping[str, str]
     core_runtime_dist: tuple[str, str]
+    canonical_writer_dist: tuple[str, str]     # ison-py: the writer both canonicality verdicts run through (17 §4 V0)
     retired: bool
     adopted: str
 
@@ -60,28 +58,11 @@ def _blocks(path: Path) -> dict[tuple[str, str], list[dict]]:
 
 
 def _validate_receipt(baseline_name: str, port: str, r: dict) -> None:
-    """A hash-valid receipt can still be internally inconsistent (17 §6). Mirror Core's corpus_receipt.py posture rules."""
-    where = f"{baseline_name}/receipts/{port}.ison"
-    if r.get("port") != port:
-        raise BaselineDataError(f"{where}: port {r.get('port')!r} != file name")
-    if r.get("posture") not in POSTURES:
-        raise BaselineDataError(f"{where}: posture {r.get('posture')!r}")
-    counts = {k: r.get(k) for k in COUNTERS + ("total",)}
-    if any(not isinstance(v, int) or isinstance(v, bool) or v < 0 for v in counts.values()):
-        raise BaselineDataError(f"{where}: counters must be non-negative integers: {counts}")
-    if sum(counts[k] for k in COUNTERS) != counts["total"]:
-        raise BaselineDataError(f"{where}: counters do not sum to total: {counts}")
-    p, todo, lossy, defect, total = r["posture"], counts["todo"], counts["lossy"], counts["defect"], counts["total"]
-    ok = {
-        "FULL": todo == 0 and lossy == 0 and defect == 0,
-        "LOSSY_KNOWN": todo == 0 and defect == 0 and lossy > 0,
-        "KNOWN_DEFECT": todo == 0 and defect > 0,
-        "PARTIAL": todo == total,
-        "INCONCLUSIVE": todo > 0,
-        "NONCONFORMANT": True,
-    }[p]
-    if not ok:
-        raise BaselineDataError(f"{where}: posture {p} inconsistent with counters {counts}")
+    """A hash-valid receipt can still be internally inconsistent (17 §6); rules live in receipt_rules."""
+    try:
+        validate_receipt_row(f"{baseline_name}/receipts/{port}.ison", port, r)
+    except ReceiptContentError as e:
+        raise BaselineDataError(str(e)) from None
 
 
 def load_baseline(directory: Path, *, retired: bool, adopted: str) -> Baseline:
@@ -113,6 +94,7 @@ def load_baseline(directory: Path, *, retired: bool, adopted: str) -> Baseline:
         receipts=receipts, domains={p: frozenset(t) for p, t in domains.items()},
         core_runtime={r["module"]: r["sha256"] for r in blocks[("table", "core_runtime")]},
         core_runtime_dist=(meta["core_runtime_dist"], str(meta["core_runtime_dist_version"])),
+        canonical_writer_dist=(meta["canonical_writer_dist"], str(meta["canonical_writer_dist_version"])),
         retired=retired, adopted=adopted,
     )
 
@@ -123,12 +105,27 @@ def load_registry(root: Path) -> dict[str, Baseline]:
     return {r["core_commit"]: load_baseline(root / r["core_commit"], retired=bool(r["retired"]), adopted=str(r["adopted"])) for r in rows}
 
 
-def installed_core_runtime() -> tuple[tuple[str, str], dict[str, str]]:
+def _dist_version(name: str) -> str | None:
+    try:
+        return importlib.metadata.version(name)
+    except importlib.metadata.PackageNotFoundError:
+        return None   # e.g. a source checkout on sys.path: classify as a mismatch, never raise (17 §4 V0)
+
+
+def installed_core_runtime(modules: Mapping[str, str] | Iterable[str]) -> tuple[tuple[str, str | None], dict[str, str | None], tuple[str, str | None]]:
+    """What is installed, measured against the module list THE BASELINE names.
+
+    Returns ((dist, version), {module: sha256 | None if the file is absent}, (writer dist, version)).
+    Never raises for a missing module or missing distribution metadata: the caller decides what a mismatch means.
+    """
     import ison_graph
 
     pkg = Path(ison_graph.__file__).parent
-    hashes = {f"ison_graph/{m}": sha256_hex(normalize_newlines((pkg / m).read_bytes())) for m in CORE_MODULES}
-    return ("ison-graph", importlib.metadata.version("ison-graph")), hashes
+    hashes: dict[str, str | None] = {}
+    for module in modules:
+        path = pkg / module.removeprefix("ison_graph/")
+        hashes[module] = sha256_hex(normalize_newlines(path.read_bytes())) if path.is_file() else None
+    return ("ison-graph", _dist_version("ison-graph")), hashes, ("ison-py", _dist_version("ison-py"))
 
 
 _ROOT = Path(str(importlib.resources.files("isongraph_ext") / "baselines"))

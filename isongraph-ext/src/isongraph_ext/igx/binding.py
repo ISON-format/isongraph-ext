@@ -114,6 +114,11 @@ class ExtensionBinding:
                 text = text.decode("utf-8")
             except UnicodeDecodeError as e:
                 raise _err("document", f"not UTF-8: {e}") from None
+        try:
+            text.encode("utf-8")
+        except UnicodeEncodeError as e:
+            # A str with no UTF-8 encoding has no bytes and therefore no digest: it cannot be a binding.
+            raise _err("document", f"text is not UTF-8-encodable: {e}") from None
         if "\r" in text:
             # ison-py would keep the CR inside the last field name and report a confusing "missing field";
             # the real fault is the line ending, which is a canonical-form fault (17 §2.1).
@@ -186,7 +191,7 @@ def check_shape(b: ExtensionBinding) -> None:
 
     need(b.binding_spec == BINDING_SPEC, "meta.igx.binding_spec", f"must be {BINDING_SPEC}")
     need(b.identity_claim in IDENTITY_CLAIMS, "meta.igx.identity_claim", f"not one of {IDENTITY_CLAIMS}")
-    need(_is_str(b.artifact_sha256) and HEX64.match(b.artifact_sha256) is not None, "meta.source.artifact_sha256", "64 lowercase hex")
+    need(_is_str(b.artifact_sha256) and HEX64.fullmatch(b.artifact_sha256) is not None, "meta.source.artifact_sha256", "64 lowercase hex")
     need(b.serialization_profile in PROFILES, "meta.source.serialization_profile", f"not one of {PROFILES}")
     need(_is_str(b.source_canonical) and b.source_canonical in CANONICAL_TOKENS, "meta.source.source_canonical", f"not one of {CANONICAL_TOKENS}")
     need(b.source_semantic_eligibility in ELIGIBILITY, "meta.source.source_semantic_eligibility", f"not one of {ELIGIBILITY}")
@@ -206,15 +211,15 @@ def check_shape(b: ExtensionBinding) -> None:
          'python producers carry "true", others "unverified"')
     for f in ("core_format", "core_version", "core_semantic_spec"):
         need(_is_str(getattr(b, f)), f"meta.core_baseline.{f}", "string")
-    need(_is_str(b.core_commit) and HEX40.match(b.core_commit) is not None, "meta.core_baseline.core_commit", "40 lowercase hex")
+    need(_is_str(b.core_commit) and HEX40.fullmatch(b.core_commit) is not None, "meta.core_baseline.core_commit", "40 lowercase hex")
     need(isinstance(b.core_vector_corpus_version, int) and not isinstance(b.core_vector_corpus_version, bool),
          "meta.core_baseline.core_vector_corpus_version", "integer")
-    need(_is_str(b.core_vector_corpus_commit) and HEX40.match(b.core_vector_corpus_commit) is not None,
+    need(_is_str(b.core_vector_corpus_commit) and HEX40.fullmatch(b.core_vector_corpus_commit) is not None,
          "meta.core_baseline.core_vector_corpus_commit", "40 lowercase hex")
-    need(_is_str(b.core_vector_corpus_digest) and HEX64.match(b.core_vector_corpus_digest) is not None,
+    need(_is_str(b.core_vector_corpus_digest) and HEX64.fullmatch(b.core_vector_corpus_digest) is not None,
          "meta.core_baseline.core_vector_corpus_digest", "64 lowercase hex")
     need(b.producer_core_posture in POSTURES, "meta.core_baseline.producer_core_posture", f"not one of {POSTURES}")
-    need(_is_str(b.core_conformance_receipt) and HEX64.match(b.core_conformance_receipt) is not None,
+    need(_is_str(b.core_conformance_receipt) and HEX64.fullmatch(b.core_conformance_receipt) is not None,
          "meta.core_baseline.core_conformance_receipt", "64 lowercase hex")
     seen: set[str] = set()
     for c in b.capabilities:
@@ -226,11 +231,11 @@ def check_shape(b: ExtensionBinding) -> None:
             raise _err("table.capabilities.version_range", str(e)) from None
         need(_is_str(c.version_range), "table.capabilities.version_range", "string")
         need(c.requirement in REQUIREMENTS, "table.capabilities.requirement", f"not one of {REQUIREMENTS}")
-        need(c.payload_sha256 is None or (_is_str(c.payload_sha256) and HEX64.match(c.payload_sha256) is not None),
+        need(c.payload_sha256 is None or (_is_str(c.payload_sha256) and HEX64.fullmatch(c.payload_sha256) is not None),
              "table.capabilities.payload_sha256", "null or 64 lowercase hex")
     if b.consumer is not None:
         c = b.consumer
         need(c.port in PORTS, "meta.consumer.consumer_port", f"not one of {PORTS}")
         need(_is_str(c.port_version), "meta.consumer.consumer_port_version", "string")
         need(c.posture in POSTURES, "meta.consumer.consumer_core_posture", f"not one of {POSTURES}")
-        need(_is_str(c.receipt_sha256) and HEX64.match(c.receipt_sha256) is not None, "meta.consumer.consumer_conformance_receipt", "64 lowercase hex")
+        need(_is_str(c.receipt_sha256) and HEX64.fullmatch(c.receipt_sha256) is not None, "meta.consumer.consumer_conformance_receipt", "64 lowercase hex")

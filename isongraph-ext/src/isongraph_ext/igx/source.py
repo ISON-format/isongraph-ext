@@ -11,12 +11,20 @@ from ison_graph import MULTIGRAPH_FORMAT, ISONGraph
 from ison_graph.multigraph import MultiGraph
 from ison_parser import loads, loads_isonl
 
+from .errors import IGXError
+
 INT64_MIN = -(2**63)
 INT64_MAX = 2**63 - 1
 
 
 def as_bytes(source: str | bytes) -> bytes:
-    return source.encode("utf-8") if isinstance(source, str) else source
+    """A str is UTF-8 encoded as given; a str with no UTF-8 encoding (lone surrogates) has no bytes to bind."""
+    if isinstance(source, str):
+        try:
+            return source.encode("utf-8")
+        except UnicodeEncodeError as e:
+            raise IGXError("SOURCE_BINDING_MISMATCH", "source", f"source text is not UTF-8-encodable: {e}", "V4") from None
+    return source
 
 
 def _parse(text: str, profile: str):

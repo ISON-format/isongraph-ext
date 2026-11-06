@@ -37,12 +37,14 @@ def resolve_baseline(binding: ExtensionBinding, baselines: Mapping[str, Baseline
 
 def _runtime_mismatch(baseline: Baseline) -> tuple[str, str] | None:
     """(field, detail) of the first difference between the installed Core and the baseline's recorded runtime, or None."""
-    dist, hashes = installed_core_runtime()
+    dist, hashes, writer = installed_core_runtime(baseline.core_runtime)
     if dist != baseline.core_runtime_dist:
         return ("ison-graph", f"installed {dist} != baseline {baseline.core_runtime_dist}")
     for module, expected in baseline.core_runtime.items():
         if hashes.get(module) != expected:
             return (module, f"installed {hashes.get(module)} != baseline {expected}")
+    if writer != baseline.canonical_writer_dist:
+        return ("ison-py", f"installed {writer} != baseline {baseline.canonical_writer_dist}")
     return None
 
 

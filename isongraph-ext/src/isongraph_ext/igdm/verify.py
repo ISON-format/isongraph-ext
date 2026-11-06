@@ -68,6 +68,8 @@ def verify(payload: str | bytes | DatamaticsPayload, binding: ExtensionBinding, 
     target_bytes = as_bytes(target)
     if len(target_bytes) > limits.max_graph_bytes:                                            # preflight
         raise _limit("max_graph_bytes", f"target {len(target_bytes)} > {limits.max_graph_bytes}")
+    # Known deviation (ledgered, as 18): an in-memory DatamaticsPayload is serialised here, which runs its D1 check()
+    # before D0 — its bytes do not exist until then. Wire payloads follow the spec order exactly.
     payload_bytes = _payload_bytes(payload)
     if len(payload_bytes) > limits.max_payload_bytes:
         raise _limit("max_payload_bytes", f"payload {len(payload_bytes)} > {limits.max_payload_bytes}")

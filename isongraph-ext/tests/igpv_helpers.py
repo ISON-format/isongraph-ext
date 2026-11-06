@@ -66,3 +66,54 @@ REFERENCE_TEXT = (
     "ext extractor null x0 null 1.0.0\n"
     f"isongraph-ext transformation {SHA_P} t0 IGDAG/1 0.2.0"
 )
+
+
+# ---- real-bytes helpers (Task 7+) ----------------------------------------------------------------------------
+import hashlib  # noqa: E402
+
+from ison_graph import ISONGraph  # noqa: E402
+
+from isongraph_ext.igx.bind import bind as igx_bind  # noqa: E402
+from isongraph_ext.igx.binding import Capability  # noqa: E402
+
+
+def sha(data: bytes) -> str:
+    return hashlib.sha256(data).hexdigest()
+
+
+def target_graph() -> bytes:
+    g = ISONGraph()
+    g.add_node("p", 1, name="one"); g.add_node("p", "s1"); g.add_edge("knows", ("p", 1), ("p", "s1"))
+    return g.to_ison().encode("utf-8")
+
+
+def origin_graph() -> bytes:
+    g = ISONGraph()
+    g.add_node("p", 7); g.add_node("p", 8); g.add_node("p", 1); g.add_edge("knows", ("p", 7), ("p", 8))
+    return g.to_ison().encode("utf-8")
+
+
+def doc_bytes() -> bytes:
+    return b"# orders\n\nline two\nline three\n"
+
+
+def real_payload(target: bytes, origin: bytes, doc: bytes, **overrides) -> ProvenancePayload:
+    base = dict(
+        target_artifact_sha256=sha(target),
+        artifacts=(Artifact("src0", sha(doc), "document", len(doc), media_type="text/markdown"),
+                   Artifact("g0", sha(origin), "isongraph", len(origin), serialization_profile="ison-v1")),
+        attributions=(Attribution("a0", "n1", "src0", "x0", Locator("bytes/1", 2, 8)),
+                      Attribution("a1", "n2", "src0", "x0"),
+                      Attribution("a2", "e1", "src0", "x0", Locator("lines/1", 2, 3)),
+                      Attribution("a3", "G", "src0", "x0")),
+    )
+    base.update(overrides)
+    return payload(**base)
+
+
+def bound(p: ProvenancePayload, target: bytes, requirement: str = "REQUIRED", **kw):
+    kw.setdefault("serialization_profile", "ison-v1")
+    kw.setdefault("producer_port", "python")
+    kw.setdefault("identity_claim", "artifact")
+    caps = tuple(kw.pop("capabilities", ())) + (Capability("igpv", "^1", requirement, p.digest),)
+    return igx_bind(target, capabilities=caps, **kw)

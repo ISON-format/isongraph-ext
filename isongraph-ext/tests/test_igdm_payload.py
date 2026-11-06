@@ -99,3 +99,17 @@ def test_budgets():
     text = payload().to_ison()
     assert _rejects(text, code="DATAMATICS_LIMIT_EXCEEDED", limits=Limits(max_payload_bytes=8)).field == "max_payload_bytes"
     assert _rejects(text, code="DATAMATICS_LIMIT_EXCEEDED", limits=Limits(max_rows_per_table=2)).field == "max_rows_per_table"
+
+
+def test_magnitude_exponent_form_is_malformed_before_the_wire():
+    """The writer renders str(v); the reader accepts only -?d+(.d+)? as numeric. A magnitude whose str() is an exponent
+    form (every float below 1e-4) therefore has no numeric wire form: it must fail D1 in memory, never reach to_ison()."""
+    n1 = payload().nodes[1]
+    for v in (0.00001, 5e-05, 1e-07):
+        with pytest.raises(IGDMError) as info:
+            payload(nodes=(NodeHints(NodeRef("order", 1), magnitude=v), n1)).to_ison()
+        assert (info.value.code, info.value.step, info.value.field) == ("MALFORMED_DATAMATICS", "D1", "table.nodes.order:1.magnitude"), info.value
+    for v in (0, 1, 0.0, 1.0, 0.0001, 0.5, 0.1 + 0.2):
+        p = payload(nodes=(NodeHints(NodeRef("order", 1), magnitude=v), n1))
+        q = DatamaticsPayload.from_ison(p.to_ison())
+        assert q == p and q.nodes[0].magnitude == v, v

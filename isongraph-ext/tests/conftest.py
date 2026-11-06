@@ -34,3 +34,25 @@ def baseline():
     from isongraph_ext.igx.baselines import DEFAULT_BASELINE
 
     return DEFAULT_BASELINE
+
+
+def make_binding(**overrides):
+    from isongraph_ext.igx.binding import ExtensionBinding
+    from isongraph_ext.igx.digest import sha256_file
+
+    base = dict(
+        identity_claim="producer_bound",
+        artifact_sha256=sha256_file(CORE_REPO / "vectors" / "ids" / "positive-int.ison"),
+        serialization_profile="ison-v1", source_canonical="true",
+        source_semantic_eligibility="eligible", source_semantic_reason=None,
+        core_writer_implementation="isongraph-python", core_writer_version="1.4.1",
+        semantic_digest=None, semantic_digest_algorithm=None,
+        core_format="isongraph", core_version="1.4.1", core_commit=CORE_COMMIT,
+        core_semantic_spec="ISONGraph-Semantic/2-draft", core_vector_corpus_version=1,
+        core_vector_corpus_commit="f88af8bd29680e7b6e7716585be936d5738eb55f",
+        core_vector_corpus_digest="1d1a6648abeeadece24b43a163949d02241911706866236cc32bd6b61745bcb0",
+        producer_port="python", producer_port_version="1.4.1", producer_core_posture="FULL",
+        core_conformance_receipt=RECEIPT_SHA["python"], capabilities=(), consumer=None,
+    )
+    base.update(overrides)
+    return ExtensionBinding(**base)

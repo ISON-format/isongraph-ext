@@ -1,0 +1,7 @@
+* text=auto
+*.yml text eol=lf
+*.sh text eol=lf
+# Byte-exact artifacts: digests and canonical-form checks depend on every byte.
+vectors/** -text
+isongraph-ext/src/isongraph_ext/baselines/** -text
+isongraph-ext/tests/fixtures/** -text

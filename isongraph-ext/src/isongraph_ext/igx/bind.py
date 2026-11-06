@@ -10,12 +10,12 @@ from .binding import IDENTITY_CLAIMS, PORTS, PROFILES, WRITER_OF_PORT, Capabilit
 from .digest import sha256_hex
 from .errors import IGXError
 from .source import as_bytes, classify_eligibility, derive_canonical
-from .verify import EMPTY_REGISTRY, CapabilityRegistry, _runtime_mismatch, verify
+from .verify import DEFAULT_REGISTRY, CapabilityRegistry, _runtime_mismatch, verify
 
 
 def bind(source: str | bytes, *, serialization_profile: str, producer_port: str, identity_claim: str,
          capabilities: Sequence[Capability] = (), consumer: Consumer | None = None, baseline: Baseline = DEFAULT_BASELINE,
-         registry: CapabilityRegistry = EMPTY_REGISTRY, policy: AdmissionPolicy = DEFAULT_POLICY) -> ExtensionBinding:
+         registry: CapabilityRegistry = DEFAULT_REGISTRY, policy: AdmissionPolicy = DEFAULT_POLICY) -> ExtensionBinding:
     data = as_bytes(source)
     # Argument shape is V1 territory - the same enum rule check_shape() applies to a parsed binding (17 §4 V1).
     if producer_port not in PORTS:

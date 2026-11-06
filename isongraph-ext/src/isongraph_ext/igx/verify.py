@@ -10,10 +10,8 @@ from .binding import Capability, ExtensionBinding, check_shape
 from .digest import sha256_hex
 from .errors import IGXError
 from .source import as_bytes, classify_eligibility, derive_canonical
+from .registry import DEFAULT_REGISTRY, EMPTY_REGISTRY, CapabilityRegistry  # noqa: F401  (re-exported)
 from .versions import parse_range, parse_version, range_admits
-
-CapabilityRegistry = Mapping[str, str]
-EMPTY_REGISTRY: CapabilityRegistry = {}
 
 
 @dataclass(frozen=True)
@@ -130,7 +128,7 @@ def _v5(b: ExtensionBinding, registry: CapabilityRegistry) -> tuple[Capability, 
 
 
 def verify(binding: ExtensionBinding, source: str | bytes, *, baselines: Mapping[str, Baseline] = BASELINES,
-           registry: CapabilityRegistry = EMPTY_REGISTRY) -> VerificationResult:
+           registry: CapabilityRegistry = DEFAULT_REGISTRY) -> VerificationResult:
     base = resolve_baseline(binding, baselines)      # unknown commit -> V2 (no baseline to run V0 against)
     mode = _v0(base)
     check_shape(binding)                              # V1 on programmatic bindings; from_ison already ran it on parsed ones

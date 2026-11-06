@@ -55,3 +55,36 @@ REFERENCE_TEXT = (
     "warning null \"3\" null medium null null null null null 2 0.1 s1 order warning inactive null circle null null collapsed\n"
     "null \"Order 1 (active)\" null null high \"true\" null \"Order #1\" \"true\" 0 0 0.8 1 order null active \"true\" document 3 changed visible"
 )
+
+
+# ---- real-bytes helpers (Task 5+) ----------------------------------------------------------------------------
+import hashlib  # noqa: E402
+
+from ison_graph import ISONGraph  # noqa: E402
+
+from isongraph_ext.igx.bind import bind as igx_bind  # noqa: E402
+from isongraph_ext.igx.binding import Capability  # noqa: E402
+
+
+def sha(data: bytes) -> str:
+    return hashlib.sha256(data).hexdigest()
+
+
+def target_graph() -> bytes:
+    g = ISONGraph()
+    g.add_node("order", 1, name="one"); g.add_node("order", "s1"); g.add_edge("knows", ("order", 1), ("order", "s1"))
+    return g.to_ison().encode("utf-8")
+
+
+def real_payload(target: bytes, **overrides) -> DatamaticsPayload:
+    base = {"target_artifact_sha256": sha(target)}
+    base.update(overrides)                      # an override of the target digest must win, not raise TypeError
+    return payload(**base)
+
+
+def bound(p: DatamaticsPayload, target: bytes, requirement: str = "REQUIRED", **kw):
+    kw.setdefault("serialization_profile", "ison-v1")
+    kw.setdefault("producer_port", "python")
+    kw.setdefault("identity_claim", "artifact")
+    caps = tuple(kw.pop("capabilities", ())) + (Capability("igdm", "^1", requirement, p.digest),)
+    return igx_bind(target, capabilities=caps, **kw)

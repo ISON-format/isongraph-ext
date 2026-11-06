@@ -1,0 +1,40 @@
+meta.corpus
+binding_spec version
+IGX/1 1
+
+table.vectors
+id binding detail expect graph registry step
+admit/consumer-known-defect-reported admit--consumer-known-defect-reported.igx.ison null verify_ok+admit_ok+admit_posture:CORE_BLOCKING_DIVERGENCE ids/positive-int.ison empty A3
+admit/cross-port-reserved admit--cross-port-reserved.igx.ison reason:SEMANTIC2_NOT_FROZEN verify_ok+admit:IDENTITY_CLAIM_INADMISSIBLE ids/positive-int.ison empty A2
+admit/ineligible-source-producer-bound admit--ineligible-source-producer-bound.igx.ison reason:SOURCE_NOT_ELIGIBLE:INTEGER_OUT_OF_INT64 verify_ok+admit:IDENTITY_CLAIM_INADMISSIBLE values/int-beyond-int64.ison empty A2
+admit/known-defect-producer-bound admit--known-defect-producer-bound.igx.ison reason:CORE_BLOCKING_DIVERGENCE verify_ok+admit:IDENTITY_CLAIM_INADMISSIBLE ids/positive-int.ison empty A2
+admit/lossy-policy-field-ignored admit--lossy-policy-field-ignored.igx.ison reason:LOSSY_PRODUCER_BOUND_RESERVED verify_ok+admit:IDENTITY_CLAIM_INADMISSIBLE ids/positive-int.ison empty A2
+admit/lossy-producer-bound-reserved admit--lossy-producer-bound-reserved.igx.ison reason:LOSSY_PRODUCER_BOUND_RESERVED verify_ok+admit:IDENTITY_CLAIM_INADMISSIBLE ids/positive-int.ison empty A2
+admit/multigraph-source-producer-bound admit--multigraph-source-producer-bound.igx.ison reason:SOURCE_NOT_ELIGIBLE:MULTIGRAPH_DOCUMENT verify_ok+admit:IDENTITY_CLAIM_INADMISSIBLE structure/multigraph-document.ison empty A2
+admit/retired-limited-producer-bound admit--retired-limited-producer-bound.igx.ison "limited; reason:SEMANTIC_REVERIFICATION_UNAVAILABLE" verify_ok+retired:IDENTITY_CLAIM_INADMISSIBLE ids/positive-int.ison empty A2
+ok/claim-none ok--claim-none.igx.ison null verify_ok+admit_ok ids/positive-int.ison empty null
+ok/empty-capabilities ok--empty-capabilities.igx.ison "table.capabilities header only" verify_ok+admit_ok ids/positive-int.ison empty null
+ok/ineligible-source-artifact-claim ok--ineligible-source-artifact-claim.igx.ison "eligibility ineligible INTEGER_OUT_OF_INT64 stored and re-derived" verify_ok+admit_ok values/int-beyond-int64.ison empty null
+ok/known-test-capability-required ok--known-test-capability-required.igx.ison null verify_ok+admit_ok ids/positive-int.ison test null
+ok/optional-unknown-preserved ok--optional-unknown-preserved.igx.ison "unrecognized_optional has one entry" verify_ok+admit_ok ids/positive-int.ison empty null
+ok/python-full-artifact-claim ok--python-full-artifact-claim.igx.ison null verify_ok+admit_ok ids/positive-int.ison empty null
+ok/python-full-producer-bound ok--python-full-producer-bound.igx.ison null verify_ok+admit_ok+admit_posture:OK ids/positive-int.ison empty null
+ok/retired-baseline-verifies ok--retired-baseline-verifies.igx.ison "limited: retired baseline runtime not installed" verify_ok+admit:STALE_BINDING+retired_ok ids/positive-int.ison empty A1
+reject/duplicate-igx-block reject--duplicate-igx-block.igx.ison null reject:MALFORMED_BINDING ids/positive-int.ison empty V1
+reject/eligibility-stored-mismatch reject--eligibility-stored-mismatch.igx.ison null reject:SOURCE_ELIGIBILITY_MISMATCH values/int-beyond-int64.ison empty V4
+reject/noncanonical-binding-text reject--noncanonical-binding-text.igx.ison "trailing newline" reject:MALFORMED_BINDING ids/positive-int.ison empty V1
+reject/posture-not-in-receipt reject--posture-not-in-receipt.igx.ison "binding says FULL, ts receipt says KNOWN_DEFECT" reject:RECEIPT_REFERENCE_INVALID ids/positive-int.ison empty V3
+reject/python-claim-crlf-bytes reject--python-claim-crlf-bytes.igx.ison "CRLF-rewritten artifact; sha matches, writer does not" reject:SOURCE_WRITER_MISMATCH synthetic/positive-int-crlf.ison empty V4
+reject/python-writer-noncanonical-bytes reject--python-writer-noncanonical-bytes.igx.ison null reject:SOURCE_WRITER_MISMATCH serialization/non-canonical-order.ison empty V4
+reject/receipt-crossfield-mismatch reject--receipt-crossfield-mismatch.igx.ison "receipt.core_commit" reject:RECEIPT_REFERENCE_INVALID ids/positive-int.ison empty V3
+reject/required-range-excludes-registered reject--required-range-excludes-registered.igx.ison null reject:UNSUPPORTED_CAPABILITY ids/positive-int.ison test V5
+reject/semantic-digest-set reject--semantic-digest-set.igx.ison null reject:MALFORMED_BINDING ids/positive-int.ison empty V1
+reject/source-canonical-token-disallowed reject--source-canonical-token-disallowed.igx.ison null reject:MALFORMED_BINDING ids/positive-int.ison empty V1
+reject/two-faults-first-wins reject--two-faults-first-wins.igx.ison null reject:CORPUS_DIGEST_MISMATCH ids/positive-int.ison empty V2
+reject/unexpected-block reject--unexpected-block.igx.ison null reject:MALFORMED_BINDING ids/positive-int.ison empty V1
+reject/unknown-required reject--unknown-required.igx.ison null reject:UNSUPPORTED_CAPABILITY ids/positive-int.ison empty V5
+reject/writer-port-mismatch reject--writer-port-mismatch.igx.ison null reject:MALFORMED_BINDING ids/positive-int.ison empty V1
+reject/wrong-artifact-sha reject--wrong-artifact-sha.igx.ison null reject:SOURCE_BINDING_MISMATCH ids/positive-int.ison empty V4
+reject/wrong-core-commit reject--wrong-core-commit.igx.ison null reject:CORE_BASELINE_UNSUPPORTED ids/positive-int.ison empty V2
+reject/wrong-corpus-digest reject--wrong-corpus-digest.igx.ison null reject:CORPUS_DIGEST_MISMATCH ids/positive-int.ison empty V2
+reject/wrong-receipt-digest reject--wrong-receipt-digest.igx.ison null reject:RECEIPT_REFERENCE_INVALID ids/positive-int.ison empty V3

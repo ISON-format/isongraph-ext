@@ -2,6 +2,13 @@
 
 ## [Unreleased]
 
+## [0.3.0] — unreleased — E4 IGDM/1
+- IGDM/1 datamatics (`docs/blueprint/19-IGDM1-DESIGN.md`, FROZEN rev 1): companion `<graph>.igdm.ison` of renderer-neutral presentation and interaction intent, canonical by construction, bound through IGX/1 as capability `igdm 1.0.0`.
+- Node/edge hints (semantic, shape and pattern roles, emphasis, badge, ring, label, visibility/LOD, interaction markers, temporal state, accessibility text/role), groups (`hull` / `hierarchy` / `collapse` / `aggregate` over explicit members, acyclic parent tree, exclusivity and chain rules), layout hints; closed vocabularies plus a preserved-and-reported `x-` namespace; no appearance columns exist (theme separation).
+- `verify()` with byte-budget preflight and D0–D4 (runs IGX/1 verification itself; object resolution reuses IGPV/1's), `bind()`, `verify_and_admit()` (admission is the binding's), CLI `python -m isongraph_ext.igdm verify` (exit 0/1/2, 64 on usage).
+- `igx.DEFAULT_REGISTRY = {"igpv": "1.0.0", "igdm": "1.0.0"}`; `igpv.payload` wire helpers parameterised for reuse (E2 behaviour unchanged).
+- 49 conformance vectors under `vectors/igdm1/` with generator and reference runner.
+
 ## [0.2.0] — unreleased — E2 IGPV/1
 - IGPV/1 provenance (`docs/blueprint/18-IGPV1-DESIGN.md`, FROZEN rev 1): companion `<graph>.igpv.ison`, canonical by construction (the canonical writer orders rows), bound through IGX/1 as capability `igpv 1.0.0`.
 - Source attribution (SHA-256 artifacts, optional `bytes/1` / `lines/1` / `x-*` locators with runtime-derived `VERIFIED`/`UNVERIFIED` posture), producer attribution, graph/node/edge objects addressed by `NodeRef/2` / `EdgeAddress/2` (INT64 ids, ID-TWIN-INVARIANT), derivation lineage (`identity` / `collapse` / `rewrite`, artifact-to-artifact).

@@ -3,7 +3,7 @@ from isongraph_ext.igx.errors import IGXError
 
 
 def test_version():
-    assert __version__ == "0.2.0"
+    assert __version__ == "0.3.0"
 
 
 def test_igxerror_carries_code_field_detail_step():
@@ -27,3 +27,12 @@ def test_igpv_reexports_default_registry():
     from isongraph_ext.igpv import DEFAULT_REGISTRY as R1
     from isongraph_ext.igx.registry import DEFAULT_REGISTRY as R2
     assert R1 is R2
+
+
+def test_igdm_public_api_is_exported():
+    import isongraph_ext.igdm as igdm
+    for name in ("IGDMError", "DatamaticsPayload", "verify", "bind", "verify_and_admit", "check_references", "unrecognized_roles",
+                 "DatamaticsVerification", "NodeHints", "EdgeHints", "Group", "Member", "LayoutHints", "Limits", "DEFAULT_LIMITS",
+                 "DEFAULT_REGISTRY", "NodeRef", "EdgeAddress"):
+        assert hasattr(igdm, name), name
+    assert dict(igdm.DEFAULT_REGISTRY) == {"igpv": "1.0.0", "igdm": "1.0.0"}

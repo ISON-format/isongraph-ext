@@ -1,0 +1,76 @@
+meta.corpus
+provenance_spec version
+IGPV/1 1
+
+table.vectors
+id binding detail expect payload sources step target
+lineage/ambiguous-target none query:n1 lineage:LINEAGE_AMBIGUOUS lineage--ambiguous-target-0.igpv.ison+lineage--ambiguous-target-1.igpv.ison none L none
+lineage/chain-two-hops none query:n1;origins:3;terminal:no_derivation_record lineage_ok lineage--chain-two-hops-0.igpv.ison+lineage--chain-two-hops-1.igpv.ison none null none
+lineage/cycle-detected none query:n1 lineage:DERIVATION_CYCLE lineage--cycle-detected-0.igpv.ison+lineage--cycle-detected-1.igpv.ison none L none
+lineage/depth-budget none query:n1;limits:max_lineage_depth=1 lineage:LINEAGE_BUDGET_EXCEEDED lineage--depth-budget-0.igpv.ison+lineage--depth-budget-1.igpv.ison none L none
+lineage/graph-revisited-different-object none query:n1;origins:2;terminal:no_derivation_record lineage_ok lineage--graph-revisited-different-object-0.igpv.ison+lineage--graph-revisited-different-object-1.igpv.ison none null none
+lineage/no-derivation-record-terminal none query:n1;origins:3;terminal:no_derivation_record lineage_ok lineage--no-derivation-record-terminal-0.igpv.ison+lineage--no-derivation-record-terminal-1.igpv.ison none null none
+lineage/payload-unavailable-terminal none query:n1;origins:2;terminal:payload_unavailable lineage_ok lineage--payload-unavailable-terminal-0.igpv.ison none null none
+ok/attribution-bytes-locator-unverified ok--attribution-bytes-locator-unverified.igx.ison locator:a0=UNVERIFIED verify_ok+admit_ok ok--attribution-bytes-locator-unverified.igpv.ison none null synthetic/directed.ison
+ok/attribution-bytes-locator-verified ok--attribution-bytes-locator-verified.igx.ison locator:a0=VERIFIED verify_ok+admit_ok ok--attribution-bytes-locator-verified.igpv.ison 6d1741a2430047dc745704eae963adc94a4dca70a7e2168b49ac63960b216dd5 null synthetic/directed.ison
+ok/attribution-lines-locator-verified ok--attribution-lines-locator-verified.igx.ison "locator:a0=VERIFIED;CRLF document, CR stays in the line" verify_ok+admit_ok ok--attribution-lines-locator-verified.igpv.ison 2bddb5a6460093a8b1e8deb236865ce4c6469c6068000cb5d5e1aa8f46989d87 null synthetic/directed.ison
+ok/attribution-whole-artifact ok--attribution-whole-artifact.igx.ison null verify_ok+admit_ok ok--attribution-whole-artifact.igpv.ison none null synthetic/directed.ison
+ok/attribution-x-locator-stays-unverified ok--attribution-x-locator-stays-unverified.igx.ison locator:a0=UNVERIFIED verify_ok+admit_ok ok--attribution-x-locator-stays-unverified.igpv.ison 6d1741a2430047dc745704eae963adc94a4dca70a7e2168b49ac63960b216dd5 null synthetic/directed.ison
+ok/derivation-collapse-many-to-one ok--derivation-collapse-many-to-one.igx.ison origin:g0=verified verify_ok+admit_ok ok--derivation-collapse-many-to-one.igpv.ison 520bb3cc3d1d5bb4a3d9eb8561235e3df237418bfb69ce5d76fada8891bb03f0 null synthetic/directed.ison
+ok/derivation-identity ok--derivation-identity.igx.ison origin:g0=verified verify_ok+admit_ok ok--derivation-identity.igpv.ison 520bb3cc3d1d5bb4a3d9eb8561235e3df237418bfb69ce5d76fada8891bb03f0 null synthetic/directed.ison
+ok/derivation-origin-unverified ok--derivation-origin-unverified.igx.ison origin:g0=unverified verify_ok+admit_ok ok--derivation-origin-unverified.igpv.ison none null synthetic/directed.ison
+ok/derivation-rewrite-edge ok--derivation-rewrite-edge.igx.ison origin:g0=verified verify_ok+admit_ok ok--derivation-rewrite-edge.igpv.ison 520bb3cc3d1d5bb4a3d9eb8561235e3df237418bfb69ce5d76fada8891bb03f0 null synthetic/directed.ison
+ok/edge-int-and-string-endpoints ok--edge-int-and-string-endpoints.igx.ison null verify_ok+admit_ok ok--edge-int-and-string-endpoints.igpv.ison none null synthetic/directed.ison
+ok/empty-provenance ok--empty-provenance.igx.ison "all five tables empty" verify_ok+admit_ok ok--empty-provenance.igpv.ison none null synthetic/directed.ison
+ok/graph-scope-attribution ok--graph-scope-attribution.igx.ison null verify_ok+admit_ok ok--graph-scope-attribution.igpv.ison none null synthetic/directed.ison
+ok/limited-runtime-skips-resolution ok--limited-runtime-skips-resolution.igx.ison "resolution:skipped;retired baseline runtime not installed" verify_ok+admit:STALE_BINDING ok--limited-runtime-skips-resolution.igpv.ison none A1 synthetic/directed.ison
+ok/locator-lines-counting ok--locator-lines-counting.igx.ison "locator:a0=VERIFIED;lines/1 [2,4] over 4 lines" verify_ok+admit_ok ok--locator-lines-counting.igpv.ison 6d1741a2430047dc745704eae963adc94a4dca70a7e2168b49ac63960b216dd5 null synthetic/directed.ison
+ok/multigraph-ordinals ok--multigraph-ordinals.igx.ison null verify_ok+admit_ok ok--multigraph-ordinals.igpv.ison none null synthetic/multi.ison
+ok/multiple-sources-one-object ok--multiple-sources-one-object.igx.ison null verify_ok+admit_ok ok--multiple-sources-one-object.igpv.ison none null synthetic/directed.ison
+ok/optional-igpv-row ok--optional-igpv-row.igx.ison null verify_ok+admit_ok ok--optional-igpv-row.igpv.ison none null synthetic/directed.ison
+ok/origin-artifact-reached-via-objects-graph ok--origin-artifact-reached-via-objects-graph.igx.ison "g0 referenced only through objects.graph" verify_ok+admit_ok ok--origin-artifact-reached-via-objects-graph.igpv.ison none null synthetic/directed.ison
+ok/reserialize-stable ok--reserialize-stable.igx.ison "from_ison(to_ison(p)).to_ison() == bytes; digest == sha256(bytes)" verify_ok+admit_ok ok--reserialize-stable.igpv.ison none null synthetic/directed.ison
+ok/typed-ids-distinct-across-graphs ok--typed-ids-distinct-across-graphs.igx.ison "STRING \"1\" resolves where the graph holds \"1\"; reject/unresolved-node is the INT64 twin case" verify_ok+admit_ok ok--typed-ids-distinct-across-graphs.igpv.ison none null synthetic/string-one.ison
+ok/undirected-logical-edge ok--undirected-logical-edge.igx.ison "canonical endpoint order (p 1, p s1)" verify_ok+admit_ok ok--undirected-logical-edge.igpv.ison none null synthetic/undirected.ison
+reject/binding-fails-igx reject--binding-fails-igx.igx.ison "IGXError raised from P0" reject:CORPUS_DIGEST_MISMATCH reject--binding-fails-igx.igpv.ison none P0 synthetic/directed.ison
+reject/dangling-artifact-row reject--dangling-artifact-row.igx.ison null reject:MALFORMED_PROVENANCE reject--dangling-artifact-row.igpv.ison none P1 synthetic/directed.ison
+reject/derivation-kind-mismatch reject--derivation-kind-mismatch.igx.ison "node derived from an edge" reject:INVALID_DERIVATION reject--derivation-kind-mismatch.igpv.ison none P3 synthetic/directed.ison
+reject/document-size-wrong reject--document-size-wrong.igx.ison null reject:SOURCE_ARTIFACT_MISMATCH reject--document-size-wrong.igpv.ison 6d1741a2430047dc745704eae963adc94a4dca70a7e2168b49ac63960b216dd5 P5 synthetic/directed.ison
+reject/duplicate-artifact-digest reject--duplicate-artifact-digest.igx.ison null reject:MALFORMED_PROVENANCE reject--duplicate-artifact-digest.igpv.ison none P1 synthetic/directed.ison
+reject/duplicate-block reject--duplicate-block.igx.ison null reject:MALFORMED_PROVENANCE reject--duplicate-block.igpv.ison none P1 synthetic/directed.ison
+reject/extractor-with-policy reject--extractor-with-policy.igx.ison null reject:MALFORMED_PROVENANCE reject--extractor-with-policy.igpv.ison none P1 synthetic/directed.ison
+reject/float-node-id reject--float-node-id.igx.ison null reject:MALFORMED_PROVENANCE reject--float-node-id.igpv.ison none P1 synthetic/directed.ison
+reject/identifier-unrepresentable reject--identifier-unrepresentable.igx.ison null reject:MALFORMED_PROVENANCE reject--identifier-unrepresentable.igpv.ison none P1 synthetic/directed.ison
+reject/identity-address-differs reject--identity-address-differs.igx.ison null reject:INVALID_DERIVATION reject--identity-address-differs.igpv.ison none P3 synthetic/directed.ison
+reject/identity-with-two-origins reject--identity-with-two-origins.igx.ison null reject:INVALID_DERIVATION reject--identity-with-two-origins.igpv.ison none P3 synthetic/directed.ison
+reject/locator-lines-past-end reject--locator-lines-past-end.igx.ison "end 5 <= size but > 4 lines" reject:LOCATOR_INVALID reject--locator-lines-past-end.igpv.ison 6d1741a2430047dc745704eae963adc94a4dca70a7e2168b49ac63960b216dd5 P5 synthetic/directed.ison
+reject/locator-past-size reject--locator-past-size.igx.ison null reject:MALFORMED_PROVENANCE reject--locator-past-size.igpv.ison none P1 synthetic/directed.ison
+reject/locator-shape reject--locator-shape.igx.ison null reject:MALFORMED_PROVENANCE reject--locator-shape.igpv.ison none P1 synthetic/directed.ison
+reject/node-id-outside-int64 reject--node-id-outside-int64.igx.ison null reject:MALFORMED_PROVENANCE reject--node-id-outside-int64.igpv.ison none P1 synthetic/directed.ison
+reject/noncanonical-payload-text reject--noncanonical-payload-text.igx.ison "trailing newline" reject:MALFORMED_PROVENANCE reject--noncanonical-payload-text.igpv.ison none P1 synthetic/directed.ison
+reject/not-bound reject--not-bound.igx.ison null reject:PROVENANCE_NOT_BOUND reject--not-bound.igpv.ison none P0 synthetic/directed.ison
+reject/object-null-pattern reject--object-null-pattern.igx.ison null reject:MALFORMED_PROVENANCE reject--object-null-pattern.igpv.ison none P1 synthetic/directed.ison
+reject/ordinal-not-decimal reject--ordinal-not-decimal.igx.ison null reject:MALFORMED_PROVENANCE reject--ordinal-not-decimal.igpv.ison none P1 synthetic/directed.ison
+reject/origin-graph-is-target reject--origin-graph-is-target.igx.ison null reject:INVALID_DERIVATION reject--origin-graph-is-target.igpv.ison none P3 synthetic/directed.ison
+reject/origin-not-isongraph reject--origin-not-isongraph.igx.ison null reject:UNRESOLVED_REFERENCE reject--origin-not-isongraph.igpv.ison none P3 synthetic/directed.ison
+reject/origin-object-missing reject--origin-object-missing.igx.ison null reject:UNRESOLVED_OBJECT reject--origin-object-missing.igpv.ison 520bb3cc3d1d5bb4a3d9eb8561235e3df237418bfb69ce5d76fada8891bb03f0 P4 synthetic/directed.ison
+reject/origin-size-wrong reject--origin-size-wrong.igx.ison "digest matches, declared size lies" reject:SOURCE_ARTIFACT_MISMATCH reject--origin-size-wrong.igpv.ison 520bb3cc3d1d5bb4a3d9eb8561235e3df237418bfb69ce5d76fada8891bb03f0 P4 synthetic/directed.ison
+reject/oversized-payload reject--oversized-payload.igx.ison limits:max_payload_bytes=16 reject:PROVENANCE_LIMIT_EXCEEDED reject--oversized-payload.igpv.ison none P1 synthetic/directed.ison
+reject/oversized-sources reject--oversized-sources.igx.ison limits:max_sources_bytes=30 reject:PROVENANCE_LIMIT_EXCEEDED reject--oversized-sources.igpv.ison 6d1741a2430047dc745704eae963adc94a4dca70a7e2168b49ac63960b216dd5+520bb3cc3d1d5bb4a3d9eb8561235e3df237418bfb69ce5d76fada8891bb03f0 P1 synthetic/directed.ison
+reject/oversized-target reject--oversized-target.igx.ison limits:max_graph_bytes=16 reject:PROVENANCE_LIMIT_EXCEEDED reject--oversized-target.igpv.ison none P1 synthetic/directed.ison
+reject/oversized-target-and-bad-binding reject--oversized-target-and-bad-binding.igx.ison "limits:max_graph_bytes=16;preflight wins" reject:PROVENANCE_LIMIT_EXCEEDED reject--oversized-target-and-bad-binding.igpv.ison none P1 synthetic/directed.ison
+reject/payload-digest-mismatch reject--payload-digest-mismatch.igx.ison null reject:PAYLOAD_DIGEST_MISMATCH reject--payload-digest-mismatch.igpv.ison none P0 synthetic/directed.ison
+reject/payload-digest-null reject--payload-digest-null.igx.ison null reject:PROVENANCE_NOT_BOUND reject--payload-digest-null.igpv.ison none P0 synthetic/directed.ison
+reject/rows-not-sorted reject--rows-not-sorted.igx.ison canonical_form reject:MALFORMED_PROVENANCE reject--rows-not-sorted.igpv.ison none P1 synthetic/directed.ison
+reject/self-derivation reject--self-derivation.igx.ison "origin object sits in the target graph" reject:INVALID_DERIVATION reject--self-derivation.igpv.ison none P3 synthetic/directed.ison
+reject/semantic-digest-set reject--semantic-digest-set.igx.ison null reject:MALFORMED_PROVENANCE reject--semantic-digest-set.igpv.ison none P1 synthetic/directed.ison
+reject/target-profile-mismatch reject--target-profile-mismatch.igx.ison null reject:TARGET_BINDING_MISMATCH reject--target-profile-mismatch.igpv.ison none P2 synthetic/directed.ison
+reject/target-sha-mismatch reject--target-sha-mismatch.igx.ison "payload names another graph" reject:TARGET_BINDING_MISMATCH reject--target-sha-mismatch.igpv.ison none P2 synthetic/directed.ison
+reject/twin-ids-in-one-graph reject--twin-ids-in-one-graph.igx.ison ID-TWIN-INVARIANT reject:MALFORMED_PROVENANCE reject--twin-ids-in-one-graph.igpv.ison none P1 synthetic/directed.ison
+reject/two-faults-first-wins reject--two-faults-first-wins.igx.ison "wrong target sha and unresolved node: P2 fires first" reject:TARGET_BINDING_MISMATCH reject--two-faults-first-wins.igpv.ison none P2 synthetic/directed.ison
+reject/undirected-noncanonical-endpoints reject--undirected-noncanonical-endpoints.igx.ison "endpoints not canonical" reject:UNRESOLVED_OBJECT reject--undirected-noncanonical-endpoints.igpv.ison none P4 synthetic/undirected.ison
+reject/unexpected-block reject--unexpected-block.igx.ison null reject:MALFORMED_PROVENANCE reject--unexpected-block.igpv.ison none P1 synthetic/directed.ison
+reject/unresolved-edge-ordinal reject--unresolved-edge-ordinal.igx.ison null reject:UNRESOLVED_OBJECT reject--unresolved-edge-ordinal.igpv.ison none P4 synthetic/directed.ison
+reject/unresolved-node reject--unresolved-node.igx.ison "STRING \"1\" where the graph holds INT64 1" reject:UNRESOLVED_OBJECT reject--unresolved-node.igpv.ison none P4 synthetic/directed.ison
+reject/unresolved-producer reject--unresolved-producer.igx.ison "x0 stays reachable through a0, so P1 passes and P3 fires" reject:UNRESOLVED_REFERENCE reject--unresolved-producer.igpv.ison none P3 synthetic/directed.ison
+reject/version-range-excludes reject--version-range-excludes.igx.ison null reject:PROVENANCE_VERSION_UNSUPPORTED reject--version-range-excludes.igpv.ison none P0 synthetic/directed.ison

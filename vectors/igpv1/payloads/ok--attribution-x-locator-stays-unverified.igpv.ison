@@ -1,0 +1,22 @@
+meta.igpv
+provenance_spec target_artifact_sha256 target_semantic_digest target_semantic_digest_algorithm target_serialization_profile
+IGPV/1 56c3e718f82f6a07c7c5356823ffe9261e8cff98e9f2c45aad99f24708cadbb7 null null ison-v1
+
+table.artifacts
+artifact_id artifact_sha256 kind media_type revision serialization_profile size uri
+src0 6d1741a2430047dc745704eae963adc94a4dca70a7e2168b49ac63960b216dd5 document text/markdown null null 30 null
+
+table.attributions
+artifact_id attribution_id locator_end locator_start locator_text locator_type object_id producer_id
+src0 a0 null null "7" x-pdf-page/1 n1 x0
+
+table.derivations
+derivation_id derived_object_id kind origin_object_id producer_id
+
+table.objects
+graph kind node_id node_type object_id ordinal relation source_id source_type target_id target_type
+null node 1 p n1 null null null null null null
+
+table.producers
+implementation kind policy_sha256 producer_id spec version
+betterify-ri-extractor extractor null x0 null 2.3.0

@@ -40,11 +40,12 @@ def check_locator_shape(loc: R.Locator | None, size: int, where: str) -> None:
         bad("locator_type", "null, bytes/1, lines/1 or x-<name>/<n>")
 
 
-def locator_posture(loc: R.Locator, data: bytes | None, where: str) -> str:
-    """P5. `data` is the artifact's bytes when supplied (already digest/size-checked by the caller), else None."""
+def locator_posture(loc: R.Locator, data: bytes | None, where: str, *, line_total: int | None = None) -> str:
+    """P5. `data` is the artifact's bytes when supplied (already digest/size-checked by the caller), else None.
+    `line_total` lets the caller cache line_count(data) across the attributions of one artifact."""
     if data is None or loc.type not in R.LOCATOR_SPAN_TYPES:
         return "UNVERIFIED"
-    limit = len(data) if loc.type == "bytes/1" else line_count(data)
+    limit = len(data) if loc.type == "bytes/1" else (line_count(data) if line_total is None else line_total)
     if loc.end > limit:
         raise IGPVError("LOCATOR_INVALID", f"{where}.locator_end", f"{loc.type} end {loc.end} > {limit}", "P5")
     return "VERIFIED"

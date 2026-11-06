@@ -62,6 +62,7 @@ reject/oversized-target-and-bad-binding reject--oversized-target-and-bad-binding
 reject/payload-digest-mismatch reject--payload-digest-mismatch.igx.ison null reject:PAYLOAD_DIGEST_MISMATCH reject--payload-digest-mismatch.igpv.ison none P0 synthetic/directed.ison
 reject/payload-digest-null reject--payload-digest-null.igx.ison null reject:PROVENANCE_NOT_BOUND reject--payload-digest-null.igpv.ison none P0 synthetic/directed.ison
 reject/rows-not-sorted reject--rows-not-sorted.igx.ison canonical_form reject:MALFORMED_PROVENANCE reject--rows-not-sorted.igpv.ison none P1 synthetic/directed.ison
+reject/self-artifact-document-kind reject--self-artifact-document-kind.igx.ison "an artifact carrying the target's digest must be isongraph (18 §1.1)" reject:MALFORMED_PROVENANCE reject--self-artifact-document-kind.igpv.ison none P1 synthetic/directed.ison
 reject/self-derivation reject--self-derivation.igx.ison "origin object sits in the target graph" reject:INVALID_DERIVATION reject--self-derivation.igpv.ison none P3 synthetic/directed.ison
 reject/semantic-digest-set reject--semantic-digest-set.igx.ison null reject:MALFORMED_PROVENANCE reject--semantic-digest-set.igpv.ison none P1 synthetic/directed.ison
 reject/target-profile-mismatch reject--target-profile-mismatch.igx.ison null reject:TARGET_BINDING_MISMATCH reject--target-profile-mismatch.igpv.ison none P2 synthetic/directed.ison

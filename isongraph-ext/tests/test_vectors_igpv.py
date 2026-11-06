@@ -29,6 +29,7 @@ EXPECT_IDS = {
     "reject/node-id-outside-int64", "reject/twin-ids-in-one-graph", "reject/duplicate-block", "reject/unexpected-block",
     "reject/semantic-digest-set", "reject/object-null-pattern", "reject/float-node-id", "reject/ordinal-not-decimal",
     "reject/identifier-unrepresentable", "reject/locator-past-size", "reject/locator-shape", "reject/dangling-artifact-row",
+    "reject/self-artifact-document-kind",
     "reject/extractor-with-policy", "reject/target-sha-mismatch", "reject/target-profile-mismatch", "reject/unresolved-producer",
     "reject/origin-not-isongraph", "reject/self-derivation", "reject/origin-graph-is-target", "reject/derivation-kind-mismatch",
     "reject/identity-with-two-origins", "reject/identity-address-differs", "reject/unresolved-node", "reject/unresolved-edge-ordinal",

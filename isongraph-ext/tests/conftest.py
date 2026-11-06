@@ -63,3 +63,15 @@ GRAPHS = ROOT / "vectors" / "igx1" / "graphs"
 
 def graph_bytes(rel: str) -> bytes:
     return (GRAPHS / rel).read_bytes()
+
+
+TEST_REGISTRY = {"x-igx-test": "1.0.0"}
+FIXTURES = ROOT / "isongraph-ext" / "tests" / "fixtures" / "baselines"
+RETIRED, LOSSY, FOREIGN = "1" * 40, "2" * 40, "3" * 40
+
+
+def all_baselines():
+    """Real BASELINES plus the synthetic fixtures; the test-side view of the registry."""
+    from isongraph_ext.igx.baselines import BASELINES, load_registry
+
+    return {**BASELINES, **load_registry(FIXTURES)}

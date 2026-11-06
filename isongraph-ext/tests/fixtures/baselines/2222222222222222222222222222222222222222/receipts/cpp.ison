@@ -1,0 +1,3 @@
+meta.core_conformance_receipt
+canonicalized core_commit core_format core_version corpus_commit corpus_digest corpus_version defect lossy pass port port_version posture rejected_as_expected semantic_spec todo total
+0 "2222222222222222222222222222222222222222" isongraph 1.4.1 f88af8bd29680e7b6e7716585be936d5738eb55f 1d1a6648abeeadece24b43a163949d02241911706866236cc32bd6b61745bcb0 1 0 0 0 cpp 1.4.1 PARTIAL 0 ISONGraph-Semantic/2-draft 32 32

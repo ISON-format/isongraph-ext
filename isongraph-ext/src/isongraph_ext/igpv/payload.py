@@ -324,9 +324,135 @@ def _check_fields(p: ProvenancePayload) -> None:
         _need(d.kind in R.DERIVATION_KINDS, f"{w}.kind", f"not one of {R.DERIVATION_KINDS}")
 
 
+def address_key(o: R.GraphObject) -> tuple:
+    """Hashable address of an object inside its graph (18 §1.2): the lineage identity is (artifact_sha256, address_key)."""
+    if o.kind == "node":
+        return ("node", o.node)
+    if o.kind == "edge":
+        return ("edge", o.edge)
+    return ("graph",)
+
+
+def _sorted_by(rows, key):
+    return sorted(rows, key=lambda r: _key_bytes(key(r)))
+
+
 def _check_relations(p: ProvenancePayload) -> None:
-    """Relation rules. Task 5 replaces this body; until then only the locator shape (it needs the artifact size)."""
+    """Relation rules (18 §1.1): uniqueness, twins, locator shape, duplicates, reachability."""
+    for name, col, rows in (("artifacts", "artifact_id", p.artifacts), ("producers", "producer_id", p.producers),
+                            ("objects", "object_id", p.objects), ("attributions", "attribution_id", p.attributions),
+                            ("derivations", "derivation_id", p.derivations)):
+        seen: set = set()
+        for r in rows:
+            k = getattr(r, col)
+            _need(k not in seen, f"table.{name}.{k}.{col}", "duplicate key")
+            seen.add(k)
+    digests: dict[str, str] = {}
+    for a in p.artifacts:
+        _need(a.artifact_sha256 not in digests, f"table.artifacts.{a.artifact_id}.artifact_sha256",
+              f"same digest as {digests.get(a.artifact_sha256)}: one artifact record per content digest")
+        digests[a.artifact_sha256] = a.artifact_id
+    # object addresses unique per graph; twin ids per (graph, node_type) over object rows and edge endpoints
+    addresses: dict[tuple, str] = {}
+    ints: dict[tuple, str] = {}     # (graph, type, decimal spelling) -> object_id that mentioned the INT64 id
+    strs: dict[tuple, str] = {}     # (graph, type, string)           -> object_id that mentioned the STRING id
+    for o in _sorted_by(p.objects, lambda o: o.object_id):
+        w = f"table.objects.{o.object_id}"
+        key = (o.graph,) + address_key(o)
+        col = "node_id" if o.kind == "node" else "relation" if o.kind == "edge" else "kind"
+        _need(key not in addresses, f"{w}.{col}", f"same address as {addresses.get(key)}")
+        addresses[key] = o.object_id
+        refs = ([(o.node, "node_id")] if o.kind == "node"
+                else [(o.edge.source, "source_id"), (o.edge.target, "target_id")] if o.kind == "edge" else [])
+        for ref, col in refs:
+            if R.is_int(ref.node_id):
+                k = (o.graph, ref.node_type, str(ref.node_id))
+                _need(k not in strs, f"{w}.{col}", f"INT64 id {ref.node_id} is a twin of a STRING id in {strs.get(k)} (ID-TWIN-INVARIANT)")
+                ints.setdefault(k, o.object_id)
+            else:
+                k = (o.graph, ref.node_type, ref.node_id)
+                _need(k not in ints, f"{w}.{col}", f"STRING id {ref.node_id!r} is a twin of an INT64 id in {ints.get(k)} (ID-TWIN-INVARIANT)")
+                strs.setdefault(k, o.object_id)
     sizes = {a.artifact_id: a.size for a in p.artifacts}
-    for at in p.attributions:
+    seen_at: set = set()
+    for at in _sorted_by(p.attributions, lambda a: a.attribution_id):
+        w = f"table.attributions.{at.attribution_id}"
         if at.artifact_id in sizes:
-            check_locator_shape(at.locator, sizes[at.artifact_id], f"table.attributions.{at.attribution_id}")
+            check_locator_shape(at.locator, sizes[at.artifact_id], w)
+        k = (at.object_id, at.artifact_id, at.producer_id, at.locator)
+        _need(k not in seen_at, f"{w}.attribution_id", "duplicate attribution (same object, artifact, producer, locator)")
+        seen_at.add(k)
+    seen_d: set = set()
+    for d in _sorted_by(p.derivations, lambda d: d.derivation_id):
+        k = (d.derived_object_id, d.origin_object_id)
+        _need(k not in seen_d, f"table.derivations.{d.derivation_id}.origin_object_id", "duplicate (derived, origin) pair")
+        seen_d.add(k)
+    # reachability (18 §1.1)
+    reach_obj = ({a.object_id for a in p.attributions} | {d.derived_object_id for d in p.derivations}
+                 | {d.origin_object_id for d in p.derivations})
+    reach_prod = {a.producer_id for a in p.attributions} | {d.producer_id for d in p.derivations}
+    reach_art = ({a.artifact_id for a in p.attributions}
+                 | {o.graph for o in p.objects if o.object_id in reach_obj and o.graph is not None})
+    for a in _sorted_by(p.artifacts, lambda a: a.artifact_id):
+        _need(a.artifact_id in reach_art, f"table.artifacts.{a.artifact_id}.artifact_id",
+              "unreachable: no attribution or reachable object references it")
+    for pr in _sorted_by(p.producers, lambda x: x.producer_id):
+        _need(pr.producer_id in reach_prod, f"table.producers.{pr.producer_id}.producer_id",
+              "unreachable: no attribution or derivation references it")
+    for o in _sorted_by(p.objects, lambda o: o.object_id):
+        _need(o.object_id in reach_obj, f"table.objects.{o.object_id}.object_id",
+              "unreachable: no attribution or derivation references it")
+
+
+def check_references(p: ProvenancePayload) -> None:
+    """P3 (18 §4.1): every reference resolves inside the payload; the derivation rules of §3 hold."""
+    arts = {a.artifact_id: a for a in p.artifacts}
+    prods = {x.producer_id for x in p.producers}
+    objs = {o.object_id: o for o in p.objects}
+
+    def unresolved(field: str, detail: str) -> None:
+        raise IGPVError("UNRESOLVED_REFERENCE", field, detail, "P3")
+
+    def invalid(field: str, detail: str) -> None:
+        raise IGPVError("INVALID_DERIVATION", field, detail, "P3")
+
+    for o in _sorted_by(p.objects, lambda o: o.object_id):
+        if o.graph is not None:
+            a = arts.get(o.graph)
+            if a is None:
+                unresolved(f"table.objects.{o.object_id}.graph", f"unknown artifact {o.graph!r}")
+            if a.kind != "isongraph":
+                unresolved(f"table.objects.{o.object_id}.graph", f"artifact {o.graph!r} is {a.kind}, not isongraph")
+    for at in _sorted_by(p.attributions, lambda a: a.attribution_id):
+        w = f"table.attributions.{at.attribution_id}"
+        if at.object_id not in objs:
+            unresolved(f"{w}.object_id", f"unknown object {at.object_id!r}")
+        if at.artifact_id not in arts:
+            unresolved(f"{w}.artifact_id", f"unknown artifact {at.artifact_id!r}")
+        if at.producer_id not in prods:
+            unresolved(f"{w}.producer_id", f"unknown producer {at.producer_id!r}")
+    per_derived: dict[str, int] = {}
+    for d in p.derivations:
+        per_derived[d.derived_object_id] = per_derived.get(d.derived_object_id, 0) + 1
+    for d in _sorted_by(p.derivations, lambda d: d.derivation_id):
+        w = f"table.derivations.{d.derivation_id}"
+        if d.derived_object_id not in objs:
+            unresolved(f"{w}.derived_object_id", f"unknown object {d.derived_object_id!r}")
+        if d.origin_object_id not in objs:
+            unresolved(f"{w}.origin_object_id", f"unknown object {d.origin_object_id!r}")
+        if d.producer_id not in prods:
+            unresolved(f"{w}.producer_id", f"unknown producer {d.producer_id!r}")
+        der, ori = objs[d.derived_object_id], objs[d.origin_object_id]
+        if der.graph is not None:
+            invalid(f"{w}.derived_object_id", "derived object must be in the target graph (graph null)")
+        if ori.graph is None:
+            invalid(f"{w}.origin_object_id", "origin object must be in an origin graph (self-derivation)")
+        if arts[ori.graph].artifact_sha256 == p.target_artifact_sha256:
+            invalid(f"{w}.origin_object_id", "origin graph is the target graph itself")
+        if der.kind != ori.kind:
+            invalid(f"{w}.origin_object_id", f"derived {der.kind} from origin {ori.kind}: kinds must match")
+        if d.kind == "identity":
+            if per_derived[d.derived_object_id] != 1:
+                invalid(f"{w}.kind", "identity requires exactly one derivation row for the derived object")
+            if address_key(der) != address_key(ori):
+                invalid(f"{w}.kind", "identity requires equal addresses in origin and target")

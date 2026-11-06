@@ -31,6 +31,7 @@ reject/group-self-parent reject--group-self-parent.igx.ison null reject:MALFORME
 reject/group-unreachable reject--group-unreachable.igx.ison null reject:MALFORMED_DATAMATICS reject--group-unreachable.igdm.ison D1 synthetic/directed.ison
 reject/hierarchy-not-chain reject--hierarchy-not-chain.igx.ison null reject:MALFORMED_DATAMATICS reject--hierarchy-not-chain.igdm.ison D1 synthetic/directed.ison
 reject/lod-negative reject--lod-negative.igx.ison null reject:MALFORMED_DATAMATICS reject--lod-negative.igdm.ison D1 synthetic/directed.ison
+reject/magnitude-exponent-form reject--magnitude-exponent-form.igx.ison "str(0.00001) is 1e-05, which parses as a string: no numeric wire form" reject:MALFORMED_DATAMATICS reject--magnitude-exponent-form.igdm.ison D1 synthetic/directed.ison
 reject/magnitude-nan reject--magnitude-nan.igx.ison "nan parses as a string" reject:MALFORMED_DATAMATICS reject--magnitude-nan.igdm.ison D1 synthetic/directed.ison
 reject/magnitude-out-of-range reject--magnitude-out-of-range.igx.ison null reject:MALFORMED_DATAMATICS reject--magnitude-out-of-range.igdm.ison D1 synthetic/directed.ison
 reject/member-unknown-group reject--member-unknown-group.igx.ison null reject:UNRESOLVED_REFERENCE reject--member-unknown-group.igdm.ison D3 synthetic/directed.ison

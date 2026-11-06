@@ -271,5 +271,132 @@ def _check_fields(p: DatamaticsPayload) -> None:
         _check_node_ref(m.node, w, "node_type", "node_id", _err)
 
 
+def _twin_and_unique(p: DatamaticsPayload) -> None:
+    ints: dict[tuple, str] = {}
+    strs: dict[tuple, str] = {}
+
+    def see(ref: PR.NodeRef, field: str) -> None:
+        if PR.is_int(ref.node_id):
+            k = (ref.node_type, str(ref.node_id))
+            _need(k not in strs, field, f"INT64 id {ref.node_id} is a twin of a STRING id at {strs.get(k)} (ID-TWIN-INVARIANT)")
+            ints.setdefault(k, field)
+        else:
+            k = (ref.node_type, ref.node_id)
+            _need(k not in ints, field, f"STRING id {ref.node_id!r} is a twin of an INT64 id at {ints.get(k)} (ID-TWIN-INVARIANT)")
+            strs.setdefault(k, field)
+
+    seen_n: set = set()
+    for n in p.nodes:
+        w = f"table.nodes.{node_key(n.node)}"
+        _need(n.node not in seen_n, f"{w}.node_id", "duplicate node row")
+        seen_n.add(n.node)
+        see(n.node, f"{w}.node_id")
+        _need(any(getattr(n, c) is not None for c in R.NODE_HINTS), f"{w}.node_id", "a row with no hint is noise, not intent")
+    seen_e: set = set()
+    for e in p.edges:
+        w = f"table.edges.{edge_key(e.edge)}"
+        _need(e.edge not in seen_e, f"{w}.relation", "duplicate edge row")
+        seen_e.add(e.edge)
+        see(e.edge.source, f"{w}.source_id")
+        see(e.edge.target, f"{w}.target_id")
+        _need(any(getattr(e, c) is not None for c in R.EDGE_HINTS), f"{w}.relation", "a row with no hint is noise, not intent")
+    seen_g: set = set()
+    for g in p.groups:
+        _need(g.group_id not in seen_g, f"table.groups.{g.group_id}.group_id", "duplicate group id")
+        seen_g.add(g.group_id)
+    seen_m: set = set()
+    for m in p.members:
+        w = f"table.members.{m.group_id}/{node_key(m.node)}"
+        _need((m.group_id, m.node) not in seen_m, f"{w}.node_id", "duplicate membership")
+        seen_m.add((m.group_id, m.node))
+        see(m.node, f"{w}.node_id")
+
+
+def _ancestry(groups: dict[str, R.Group]) -> tuple[dict[str, frozenset[str]], dict[str, int]]:
+    """Ancestor set and depth of every group, computed ONCE with memoised iterative walks: O(G * h) total, never per pair.
+    Unknown parents and cycles end a walk (D3 reports them); D1 only needs 'who is above whom'."""
+    anc: dict[str, frozenset[str]] = {}
+    depth: dict[str, int] = {}
+    for start in groups:
+        if start in anc:
+            continue
+        path: list[str] = []
+        cur: str | None = start
+        seen: set[str] = set()
+        while cur is not None and cur in groups and cur not in anc and cur not in seen:
+            path.append(cur)
+            seen.add(cur)
+            cur = groups[cur].parent_group_id
+        known = cur is not None and cur in anc
+        base: frozenset[str] = (anc[cur] | {cur}) if known else frozenset()
+        base_depth = depth[cur] if known else 0
+        for gid in reversed(path):                       # from the top of the walk down: ancestors of gid are everything above it
+            anc[gid] = base
+            depth[gid] = base_depth + 1
+            base = base | {gid}
+            base_depth += 1
+    return anc, depth
+
+
 def _check_relations(p: DatamaticsPayload) -> None:
-    """Task 4 fills this: uniqueness, twins, all-null rows, exclusivity, chains, reachability."""
+    _twin_and_unique(p)
+    groups = {g.group_id: g for g in p.groups}
+    anc, depth = _ancestry(groups)
+    by_node: dict[PR.NodeRef, list[str]] = {}
+    for m in p.members:                                  # members are in key order (group_id first), so conflicts report the later one
+        by_node.setdefault(m.node, []).append(m.group_id)
+    for node, gids in by_node.items():
+        excl = [g for g in gids if g in groups and groups[g].intent in ("collapse", "aggregate")]
+        if len(excl) > 1:
+            _need(False, f"table.members.{excl[1]}/{node_key(node)}.group_id", f"node already belongs to collapse/aggregate group {excl[0]!r}")
+        hier = sorted((g for g in gids if g in groups and groups[g].intent == "hierarchy"), key=lambda g: depth[g])
+        for shallow, deep in zip(hier, hier[1:]):       # a chain iff each next-deeper group has the previous one as an ancestor
+            _need(shallow in anc[deep], f"table.members.{deep}/{node_key(node)}.group_id", f"hierarchy groups {shallow!r} and {deep!r} are not nested")
+    with_members = {gid for gids in by_node.values() for gid in gids if gid in groups}
+    reachable: set[str] = set(with_members)
+    for gid in with_members:
+        reachable.update(anc[gid])
+    for g in p.groups:
+        _need(g.group_id in reachable, f"table.groups.{g.group_id}.group_id", "unreachable: no members and no descendant with members")
+
+
+def check_references(p: DatamaticsPayload, limits: R.Limits = R.DEFAULT_LIMITS) -> None:
+    """D3 (19 §3.1): parents and member groups exist; the parent relation is acyclic and within max_group_depth."""
+    groups = {g.group_id: g for g in p.groups}
+    for g in p.groups:
+        if g.parent_group_id is not None and g.parent_group_id not in groups:
+            raise IGDMError("UNRESOLVED_REFERENCE", f"table.groups.{g.group_id}.parent_group_id", f"unknown group {g.parent_group_id!r}", "D3")
+    for m in p.members:
+        if m.group_id not in groups:
+            raise IGDMError("UNRESOLVED_REFERENCE", f"table.members.{m.group_id}/{node_key(m.node)}.group_id", f"unknown group {m.group_id!r}", "D3")
+    for g in p.groups:                      # iterative walk: a 10^4-deep chain must never recurse
+        seen = {g.group_id}
+        depth = 0
+        cur = g.parent_group_id
+        while cur is not None:
+            if cur in seen:
+                raise IGDMError("GROUP_CYCLE", f"table.groups.{g.group_id}.parent_group_id", f"group {cur!r} is its own ancestor", "D3")
+            depth += 1
+            if depth > limits.max_group_depth:
+                raise IGDMError("DATAMATICS_LIMIT_EXCEEDED", "max_group_depth", f"group {g.group_id!r} nests deeper than {limits.max_group_depth}", "D3")
+            seen.add(cur)
+            cur = groups[cur].parent_group_id
+
+
+def unrecognized_roles(p: DatamaticsPayload) -> tuple[str, ...]:
+    found: set[str] = set()
+
+    def look(table: str, obj: Any, cols) -> None:
+        for col in cols:
+            v = getattr(obj, col)
+            if PR.is_str(v) and col in _X_COLUMNS and R.X_TOKEN.fullmatch(v):
+                found.add(f"{table}.{col}:{v}")
+
+    look("layout", p.layout, ("family",))
+    for n in p.nodes:
+        look("nodes", n, ("role", "ring", "a11y_role", "shape_role"))
+    for e in p.edges:
+        look("edges", e, ("role", "pattern_role"))
+    for g in p.groups:
+        look("groups", g, ("role",))
+    return tuple(sorted(found))

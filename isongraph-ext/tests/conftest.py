@@ -75,3 +75,7 @@ def all_baselines():
     from isongraph_ext.igx.baselines import BASELINES, load_registry
 
     return {**BASELINES, **load_registry(FIXTURES)}
+
+
+def pytest_addoption(parser):
+    parser.addoption("--built", action="store_true", default=False, help="also inspect dist/ artifacts built by python -m build")

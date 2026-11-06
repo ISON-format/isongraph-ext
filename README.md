@@ -15,4 +15,11 @@ python -m isongraph_ext.igx admit  graph.ison graph.igx.ison
 A verified binding proves reproducibility and consistency, not authorship: `producer_port` is a checked
 claim, not cryptographic authentication (spec §1.1).
 
+## Layout
+
+- `isongraph-ext/` — the Python distribution (`src/isongraph_ext`, `tests/`); baselines ship inside the package.
+- `vectors/igx1/` — conformance vectors (`manifest.ison`, byte-exact bindings and graph inputs).
+- `scripts/` — `make_baseline.py` (embed a Core baseline, fail-closed; `--verify` reproduces), `make_vectors.py` (regenerate vectors).
+- `docs/blueprint/` — the ISONGraphExt blueprint; `16` is the Ext/Core contract, `17` the IGX/1 spec.
+
 MIT - Copyright (c) 2026 Mahesh Vaikri

@@ -148,3 +148,29 @@ def test_limited_mode_skips_object_resolution():
     igx, prov = verify(p, retired, T, sources={sha(O): O}, baselines=B)
     assert igx.semantic_verification == "limited" and prov.object_resolution == "skipped"
     assert prov.origin_resolution == {"g0": "unverified"} and prov.steps_passed == ("P0", "P1", "P2", "P3", "P4", "P5")
+
+
+def test_supplied_artifact_checked_even_without_locator():
+    # Review fix 3: P5 checks every supplied artifact's digest and size, locator or not.
+    no_loc = tuple(Attribution(f"a{i}", obj, "src0", "x0") for i, obj in enumerate(("n1", "n2", "e1", "G")))   # whole-artifact only
+    p = real_payload(T, O, D, attributions=no_loc)
+    _fails("SOURCE_ARTIFACT_MISMATCH", "P5", "table.artifacts.src0.artifact_sha256", p=p, sources={sha(D): D + b"x"})
+    p2 = real_payload(T, O, D, artifacts=(Artifact("src0", sha(D), "document", len(D) + 1), Artifact("g0", sha(O), "isongraph", len(O), serialization_profile="ison-v1")),
+                      attributions=no_loc)
+    _fails("SOURCE_ARTIFACT_MISMATCH", "P5", "table.artifacts.src0.size", p=p2, sources={sha(D): D})
+
+
+def test_supplied_artifacts_are_hashed_once(monkeypatch):
+    # Review fix 4: P4/P5 work is one check per supplied artifact, not one per attribution row.
+    import importlib
+    vmod = importlib.import_module("isongraph_ext.igpv.verify")      # the package re-exports verify(); import the module itself
+    calls = []
+    real = vmod.sha256_hex
+    monkeypatch.setattr(vmod, "sha256_hex", lambda data: (calls.append(len(data)), real(data))[1])
+    ats = (tuple(Attribution(f"b{i:03d}", "n1", "src0", "x0", Locator("bytes/1", 0, i)) for i in range(30))       # distinct spans
+           + tuple(Attribution(f"l{k}", "n1", "src0", "x0", Locator("lines/1", 1, k)) for k in range(1, 5))
+           + (Attribution("a1", "n2", "src0", "x0"), Attribution("a2", "e1", "src0", "x0"), Attribution("a3", "G", "src0", "x0")))
+    p = real_payload(T, O, D, attributions=ats)
+    _igx, prov = _ok(p, sources={sha(D): D, sha(O): O})
+    assert all(v == "VERIFIED" for v in prov.locators.values()) and len(prov.locators) == 34
+    assert calls.count(len(D)) == 1 and calls.count(len(O)) == 1

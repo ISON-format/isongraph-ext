@@ -5,7 +5,7 @@ from igpv_helpers import REFERENCE_TEXT, SHA_T, payload
 
 from isongraph_ext.igpv.errors import IGPVError
 from isongraph_ext.igpv.payload import ProvenancePayload
-from isongraph_ext.igpv.records import Artifact, GraphObject, Limits, NodeRef, Producer
+from isongraph_ext.igpv.records import Artifact, Attribution, GraphObject, Limits, NodeRef, Producer
 from isongraph_ext.igx.digest import sha256_hex
 
 
@@ -102,3 +102,27 @@ def test_budgets_before_parse_and_after():
     assert e.field == "max_payload_bytes"
     e = _rejects(text, code="PROVENANCE_LIMIT_EXCEEDED", limits=Limits(max_rows_per_table=3))
     assert e.field == "max_rows_per_table"
+
+
+def test_lone_surrogate_in_record_string_is_malformed():
+    # Review fix 2: a str with no UTF-8 encoding has no bytes; it must be MALFORMED_PROVENANCE, never UnicodeEncodeError.
+    p = payload(artifacts=(Artifact("src0", "1" * 64, "document", 100, revision="\udcff"), payload().artifacts[0]))
+    for op in (p.check, p.to_ison, lambda: p.digest):
+        with pytest.raises(IGPVError) as info:
+            op()
+        assert (info.value.code, info.value.step, info.value.field) == ("MALFORMED_PROVENANCE", "P1", "table.artifacts.src0.revision"), info.value
+    q = payload(objects=payload().objects + (GraphObject("n9", "node", node=NodeRef("p", "\udcff")),))
+    with pytest.raises(IGPVError) as info:
+        q.check()
+    assert info.value.field == "table.objects.n9.node_id"
+
+
+def test_self_digest_artifact_must_be_isongraph():
+    # Review fix 5 (18 §1.1): an artifact row carrying the target's digest is permitted only with kind = isongraph.
+    arts = payload().artifacts + (Artifact("me", SHA_T, "document", 10),)
+    ats = payload().attributions + (Attribution("a9", "G", "me", "x0"),)
+    with pytest.raises(IGPVError) as info:
+        payload(artifacts=arts, attributions=ats).check()
+    assert (info.value.code, info.value.step, info.value.field) == ("MALFORMED_PROVENANCE", "P1", "table.artifacts.me.kind")
+    ok = payload(artifacts=payload().artifacts + (Artifact("me", SHA_T, "isongraph", 10, serialization_profile="ison-v1"),), attributions=ats)
+    ok.check()

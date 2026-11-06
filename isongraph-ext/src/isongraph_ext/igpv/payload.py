@@ -7,6 +7,7 @@ rows by every column in that field order (nulls last), so the same record set al
 from __future__ import annotations
 
 from dataclasses import dataclass
+from dataclasses import fields as dc_fields
 from typing import Any
 
 from ison_parser import Block, Document, dumps_canonical, loads
@@ -263,14 +264,54 @@ def _is_hex64(v: Any) -> bool:
     return R.is_str(v) and R.HEX64.fullmatch(v) is not None
 
 
+def _utf8_ok(v: Any) -> bool:
+    if not isinstance(v, str):
+        return True
+    try:
+        v.encode("utf-8")
+    except UnicodeEncodeError:
+        return False
+    return True
+
+
+def _check_utf8(p: ProvenancePayload) -> None:
+    """Every string in every record must have a UTF-8 encoding: a lone surrogate has no bytes, so it has no digest."""
+    def walk(value: Any, where: str) -> None:
+        if isinstance(value, (R.NodeRef, R.EdgeAddress, R.Locator)):
+            for f in dc_fields(value):
+                walk(getattr(value, f.name), f"{where}.{f.name}" if isinstance(value, R.Locator) or isinstance(value, R.NodeRef) else where)
+            return
+        _need(_utf8_ok(value), where, "string is not UTF-8-encodable (lone surrogate)")
+
+    for name, _fields, key in TABLES:
+        for r in getattr(p, name):
+            w = f"table.{name}.{getattr(r, key)}"
+            for f in dc_fields(r):
+                v = getattr(r, f.name)
+                if isinstance(v, R.EdgeAddress):
+                    walk(v.source.node_type, f"{w}.source_type"); walk(v.source.node_id, f"{w}.source_id")
+                    walk(v.relation, f"{w}.relation")
+                    walk(v.target.node_type, f"{w}.target_type"); walk(v.target.node_id, f"{w}.target_id")
+                    walk(v.ordinal, f"{w}.ordinal")
+                elif isinstance(v, R.NodeRef):
+                    walk(v.node_type, f"{w}.node_type"); walk(v.node_id, f"{w}.node_id")
+                elif isinstance(v, R.Locator):
+                    walk(v.type, f"{w}.locator_type"); walk(v.text, f"{w}.locator_text")
+                else:
+                    walk(v, f"{w}.{f.name}")
+
+
 def _check_fields(p: ProvenancePayload) -> None:
     _need(_is_hex64(p.target_artifact_sha256), "meta.igpv.target_artifact_sha256", "64 lowercase hex")
     _need(p.target_serialization_profile in R.PROFILES, "meta.igpv.target_serialization_profile", f"not one of {R.PROFILES}")
+    _check_utf8(p)
     for a in p.artifacts:
         w = f"table.artifacts.{a.artifact_id}"
         _need(_is_key(a.artifact_id), f"{w}.artifact_id", "key token")
         _need(_is_hex64(a.artifact_sha256), f"{w}.artifact_sha256", "64 lowercase hex")
         _need(a.kind in R.ARTIFACT_KINDS, f"{w}.kind", f"not one of {R.ARTIFACT_KINDS}")
+        _need(a.artifact_sha256 != p.target_artifact_sha256 or a.kind == "isongraph", f"{w}.kind",
+              "an artifact carrying the target graph's digest must be isongraph (18 §1.1)")
         _need(R.is_int(a.size) and 0 <= a.size <= R.INT64_MAX, f"{w}.size", "INT64 in [0, 2^63-1]")
         _need(a.media_type is None or (R.is_str(a.media_type) and R.MEDIA_TYPE.fullmatch(a.media_type) is not None),
               f"{w}.media_type", "null or type/subtype")

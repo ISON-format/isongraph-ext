@@ -185,6 +185,8 @@ empty_p = P(artifacts=(), producers=(), objects=(), attributions=()).to_ison()
 dup_digest_p = raw(P(artifacts=(SRC0, Artifact("src1", SD, "document", len(DOC))), attributions=(A0, Attribution("a1", "n1", "src1", "x0"))))
 twin_p = raw(P(objects=(N1, GraphObject("n9", "node", node=NodeRef("p", "1"))), attributions=(A0, Attribution("a1", "n9", "src0", "x0"))))
 dangling_p = raw(P(artifacts=(SRC0, SRCC)))
+self_kind_p = raw(P(artifacts=(SRC0, Artifact("me", TD, "document", len(DIRECTED))), objects=(N1, G),
+                    attributions=(A0, Attribution("a1", "G", "me", "x0"))))
 two_faults_p = mut(P(objects=(N1, GraphObject("n9", "node", node=NodeRef("p", 9))), attributions=(A0, Attribution("a1", "n9", "src0", "x0"))).to_ison(),
                    f"IGPV/1 {TD}", f"IGPV/1 {'e' * 64}")
 isonl_p = P(profile="isonl-v1").to_ison()
@@ -250,6 +252,7 @@ VECTORS = [
     ("reject/locator-past-size", D, None, mut(loc_b, "src0 a0 8 2 null bytes/1", f"src0 a0 {len(DOC) + 1} 2 null bytes/1"), "none", "reject:MALFORMED_PROVENANCE", "P1", None),
     ("reject/locator-shape", D, None, mut(loc_l, "src0 a0 4 2 null lines/1", "src0 a0 4 2 t lines/1"), "none", "reject:MALFORMED_PROVENANCE", "P1", None),
     ("reject/dangling-artifact-row", D, None, dangling_p, "none", "reject:MALFORMED_PROVENANCE", "P1", None),
+    ("reject/self-artifact-document-kind", D, None, self_kind_p, "none", "reject:MALFORMED_PROVENANCE", "P1", "an artifact carrying the target's digest must be isongraph (18 §1.1)"),
     ("reject/extractor-with-policy", D, None, mut(bt, "betterify-ri-extractor extractor null x0", f"betterify-ri-extractor extractor {'3' * 64} x0"), "none", "reject:MALFORMED_PROVENANCE", "P1", None),
     ("reject/target-sha-mismatch", D, None, other_target_p, "none", "reject:TARGET_BINDING_MISMATCH", "P2", "payload names another graph"),
     ("reject/target-profile-mismatch", D, None, isonl_p, "none", "reject:TARGET_BINDING_MISMATCH", "P2", None),

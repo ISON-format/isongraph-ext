@@ -15,7 +15,7 @@ from ..igx.verify import verify as igx_verify
 from ..igx.versions import parse_range, parse_version, range_admits
 from . import records as R
 from .errors import IGPVError
-from .locators import locator_posture
+from .locators import line_count, locator_posture
 from .payload import ProvenancePayload, check_references
 from .resolve import load_graph, resolve_object
 
@@ -130,6 +130,15 @@ def verify(payload: str | bytes | ProvenancePayload, binding: ExtensionBinding, 
     arts = {a.artifact_id: a for a in p.artifacts}
     origin_ids = sorted({o.graph for o in p.objects if o.graph is not None}, key=lambda s: s.encode("utf-8"))
     origin_resolution: dict[str, str] = {}
+    checked: dict[str, bytes] = {}      # artifact_id -> supplied bytes, digest and size verified exactly once
+
+    def supplied_for(a: R.Artifact, step: str) -> bytes | None:
+        data = supplied.get(a.artifact_sha256)
+        if data is not None and a.artifact_id not in checked:
+            _check_supplied(a, data, step)
+            checked[a.artifact_id] = data
+        return data
+
     if igx_result.semantic_verification == "full":                                              # P4
         graph = load_graph(target_bytes, binding.serialization_profile, "target")
         for o in _sorted_ids(p.objects, lambda o: o.object_id):
@@ -138,11 +147,10 @@ def verify(payload: str | bytes | ProvenancePayload, binding: ExtensionBinding, 
         object_resolution = "full"
         for aid in origin_ids:
             a = arts[aid]
-            data = supplied.get(a.artifact_sha256)
+            data = supplied_for(a, "P4")
             if data is None:
                 origin_resolution[aid] = "unverified"
                 continue
-            _check_supplied(a, data, "P4")
             g = load_graph(data, a.serialization_profile, f"table.artifacts.{aid}")
             for o in _sorted_ids(p.objects, lambda o: o.object_id):
                 if o.graph == aid:
@@ -151,15 +159,19 @@ def verify(payload: str | bytes | ProvenancePayload, binding: ExtensionBinding, 
     else:
         object_resolution = "skipped"
         origin_resolution = {aid: "unverified" for aid in origin_ids}
-    locators: dict[str, str] = {}                                                               # P5
+    # P5: every supplied artifact is digest/size-checked once (locator or not), then postures are per-row lookups
+    for a in _sorted_ids(p.artifacts, lambda a: a.artifact_id):
+        supplied_for(a, "P5")
+    lines: dict[str, int] = {}
+    locators: dict[str, str] = {}
     for at in _sorted_ids(p.attributions, lambda a: a.attribution_id):
         if at.locator is None:
             continue
-        a = arts[at.artifact_id]
-        data = supplied.get(a.artifact_sha256)
-        if data is not None:
-            _check_supplied(a, data, "P5")
-        locators[at.attribution_id] = locator_posture(at.locator, data, f"table.attributions.{at.attribution_id}")
+        data = checked.get(at.artifact_id)
+        total = None
+        if data is not None and at.locator.type == "lines/1":
+            total = lines.setdefault(at.artifact_id, line_count(data))
+        locators[at.attribution_id] = locator_posture(at.locator, data, f"table.attributions.{at.attribution_id}", line_total=total)
     counts = {name: len(getattr(p, name)) for name in ("artifacts", "producers", "objects", "attributions", "derivations")}
     return igx_result, ProvenanceVerification(
         payload_sha256=sha256_hex(payload_bytes), binding_digest=binding.digest, target_artifact_sha256=p.target_artifact_sha256,

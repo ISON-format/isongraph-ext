@@ -21,3 +21,9 @@ def test_igpv_public_api_is_exported():
         assert hasattr(igpv, name), name
     from isongraph_ext.igx import DEFAULT_REGISTRY
     assert dict(DEFAULT_REGISTRY) == {"igpv": "1.0.0"}
+
+
+def test_igpv_reexports_default_registry():
+    from isongraph_ext.igpv import DEFAULT_REGISTRY as R1
+    from isongraph_ext.igx.registry import DEFAULT_REGISTRY as R2
+    assert R1 is R2

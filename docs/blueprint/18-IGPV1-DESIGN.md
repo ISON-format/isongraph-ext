@@ -219,6 +219,8 @@ DEFAULT_LIMITS = Limits()
 
 Exceeding a limit is `PROVENANCE_LIMIT_EXCEEDED` (verification) or `LINEAGE_BUDGET_EXCEEDED` (traversal); both name the limit in `field`. Every byte budget is checked on lengths in the §4.1 preflight, before any parser or Core loader runs (including the IGX/1 verification inside P0), so a small payload cannot make the verifier parse an unbounded graph.
 
+*Post-freeze clarification (2026-11-06, E2 plan review correction 6, applied in execution): `max_graph_bytes` bounds the target and the supplied **origin graphs**; supplied documents are bounded only in aggregate by `max_sources_bytes`, so legitimately large source documents are not refused. The preflight therefore checks the target and the aggregate on lengths before anything is parsed; the per-graph bound is applied as part of P1, once the parsed payload has identified which supplied sources are `isongraph` artifacts, and always before any Core loader runs. Consequence: an oversized origin graph combined with a binding IGX/1 rejects reports the `IGXError` from P0 (the origin graph cannot be identified earlier); an oversized target still wins over everything. The §4.1 preflight line and the P1 row are to be read with this correction.*
+
 ## 5. Runtime API (`isongraph_ext.igpv`, Python 3.12)
 
 Same pins as E1 (`ison-graph==1.4.1`, `ison-py==1.2.0`); the IGPV/1 runtime is the IGX/1 runtime plus one package.

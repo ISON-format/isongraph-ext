@@ -239,6 +239,12 @@ def _common_hints(obj: Any, where: str, cols: tuple[str, ...]) -> None:
             _need(v is None or ((PR.is_int(v) or isinstance(v, float)) and 0 <= v <= 1), f"{where}.{col}", "numeric literal in [0, 1] or null")
 
 
+def _check_address_utf8(ref: PR.NodeRef, where: str, type_col: str, id_col: str) -> None:
+    """In-memory addresses may hold lone surrogates that have no UTF-8 bytes (and hence no digest): reject them at D1."""
+    _need(_utf8_ok(ref.node_type), f"{where}.{type_col}", "string is not UTF-8-encodable (lone surrogate)")
+    _need(_utf8_ok(ref.node_id), f"{where}.{id_col}", "string is not UTF-8-encodable (lone surrogate)")
+
+
 def _check_fields(p: DatamaticsPayload) -> None:
     _need(_is_hex64(p.target_artifact_sha256), "meta.igdm.target_artifact_sha256", "64 lowercase hex")
     _need(p.target_serialization_profile in R.PROFILES, "meta.igdm.target_serialization_profile", f"not one of {R.PROFILES}")
@@ -249,12 +255,15 @@ def _check_fields(p: DatamaticsPayload) -> None:
     for n in p.nodes:
         w = f"table.nodes.{node_key(n.node)}"
         _check_node_ref(n.node, w, "node_type", "node_id", _err)
+        _check_address_utf8(n.node, w, "node_type", "node_id")
         _common_hints(n, w, R.NODE_HINTS)
     for e in p.edges:
         w = f"table.edges.{edge_key(e.edge)}"
         _check_node_ref(e.edge.source, w, "source_type", "source_id", _err)
-        _need(PR.is_identifier(e.edge.relation), f"{w}.relation", "Core identifier")
+        _check_address_utf8(e.edge.source, w, "source_type", "source_id")
+        _need(PR.is_identifier(e.edge.relation) and _utf8_ok(e.edge.relation), f"{w}.relation", "Core identifier, UTF-8-encodable")
         _check_node_ref(e.edge.target, w, "target_type", "target_id", _err)
+        _check_address_utf8(e.edge.target, w, "target_type", "target_id")
         _need(PR.is_str(e.edge.ordinal) and PR.ORDINAL.fullmatch(e.edge.ordinal) is not None, f"{w}.ordinal", 'canonical decimal string ("0", "1", "10")')
         _common_hints(e, w, R.EDGE_HINTS)
     for g in p.groups:
@@ -269,6 +278,7 @@ def _check_fields(p: DatamaticsPayload) -> None:
         w = f"table.members.{m.group_id}/{node_key(m.node)}"
         _need(_is_key(m.group_id), f"{w}.group_id", "key token")
         _check_node_ref(m.node, w, "node_type", "node_id", _err)
+        _check_address_utf8(m.node, w, "node_type", "node_id")
 
 
 def _twin_and_unique(p: DatamaticsPayload) -> None:
@@ -312,36 +322,73 @@ def _twin_and_unique(p: DatamaticsPayload) -> None:
         see(m.node, f"{w}.node_id")
 
 
-def _ancestry(groups: dict[str, R.Group]) -> tuple[dict[str, frozenset[str]], dict[str, int]]:
-    """Ancestor set and depth of every group, computed ONCE with memoised iterative walks: O(G * h) total, never per pair.
-    Unknown parents and cycles end a walk (D3 reports them); D1 only needs 'who is above whom'."""
-    anc: dict[str, frozenset[str]] = {}
-    depth: dict[str, int] = {}
-    for start in groups:
-        if start in anc:
-            continue
-        path: list[str] = []
-        cur: str | None = start
-        seen: set[str] = set()
-        while cur is not None and cur in groups and cur not in anc and cur not in seen:
-            path.append(cur)
-            seen.add(cur)
-            cur = groups[cur].parent_group_id
-        known = cur is not None and cur in anc
-        base: frozenset[str] = (anc[cur] | {cur}) if known else frozenset()
-        base_depth = depth[cur] if known else 0
-        for gid in reversed(path):                       # from the top of the walk down: ancestors of gid are everything above it
-            anc[gid] = base
-            depth[gid] = base_depth + 1
-            base = base | {gid}
-            base_depth += 1
-    return anc, depth
+class _Forest:
+    """Group forest for D1: parent links that are unknown or cyclic are cut (D3 reports them), every group then has one root.
+    Ancestry is answered by Euler-tour intervals (tin/tout) from one iterative DFS: O(G) memory and time, never per-pair
+    walks and never materialised ancestor sets (a 10^5-deep chain stays a few MB)."""
+
+    def __init__(self, groups: dict[str, R.Group]) -> None:
+        self.parent: dict[str, str | None] = {}
+        for gid, g in groups.items():                   # cut unknown parents
+            self.parent[gid] = g.parent_group_id if g.parent_group_id in groups else None
+        self.cyclic: set[str] = set()                   # groups on a cycle: exempt from the D1 reachability rule, D3 reports them
+        state: dict[str, int] = {}                      # 0 = on the current path, 1 = done
+        for start in groups:                            # cut cycles: the first group whose walk returns to the path loses its parent
+            if start in state:
+                continue
+            path: list[str] = []
+            cur: str | None = start
+            while cur is not None and cur not in state:
+                state[cur] = 0
+                path.append(cur)
+                cur = self.parent[cur]
+            if cur is not None and state[cur] == 0:     # cycle: `cur` is on the path
+                self.cyclic.update(path[path.index(cur):])
+                self.parent[cur] = None
+            for gid in path:
+                state[gid] = 1
+        self.children: dict[str, list[str]] = {gid: [] for gid in groups}
+        for gid, par in self.parent.items():
+            if par is not None:
+                self.children[par].append(gid)
+        self.tin: dict[str, int] = {}
+        self.tout: dict[str, int] = {}
+        clock = 0
+        for root in groups:
+            if self.parent[root] is not None:
+                continue
+            stack: list[tuple[str, int]] = [(root, 0)]
+            while stack:
+                gid, i = stack[-1]
+                if i == 0:
+                    self.tin[gid] = clock
+                    clock += 1
+                kids = self.children[gid]
+                if i < len(kids):
+                    stack[-1] = (gid, i + 1)
+                    stack.append((kids[i], 0))
+                else:
+                    self.tout[gid] = clock
+                    stack.pop()
+
+    def is_ancestor_or_self(self, a: str, b: str) -> bool:
+        return self.tin[a] <= self.tin[b] < self.tout[a]
+
+    def mark_upward(self, starts) -> set[str]:
+        """Every group on the path from each start to its root; stops at already-marked groups: O(G)."""
+        marked: set[str] = set()
+        for gid in starts:
+            cur: str | None = gid
+            while cur is not None and cur not in marked:
+                marked.add(cur)
+                cur = self.parent[cur]
+        return marked
 
 
 def _check_relations(p: DatamaticsPayload) -> None:
     _twin_and_unique(p)
     groups = {g.group_id: g for g in p.groups}
-    anc, depth = _ancestry(groups)
+    forest = _Forest(groups)
     by_node: dict[PR.NodeRef, list[str]] = {}
     for m in p.members:                                  # members are in key order (group_id first), so conflicts report the later one
         by_node.setdefault(m.node, []).append(m.group_id)
@@ -349,15 +396,20 @@ def _check_relations(p: DatamaticsPayload) -> None:
         excl = [g for g in gids if g in groups and groups[g].intent in ("collapse", "aggregate")]
         if len(excl) > 1:
             _need(False, f"table.members.{excl[1]}/{node_key(node)}.group_id", f"node already belongs to collapse/aggregate group {excl[0]!r}")
-        hier = sorted((g for g in gids if g in groups and groups[g].intent == "hierarchy"), key=lambda g: depth[g])
-        for shallow, deep in zip(hier, hier[1:]):       # a chain iff each next-deeper group has the previous one as an ancestor
-            _need(shallow in anc[deep], f"table.members.{deep}/{node_key(node)}.group_id", f"hierarchy groups {shallow!r} and {deep!r} are not nested")
-    with_members = {gid for gids in by_node.values() for gid in gids if gid in groups}
-    reachable: set[str] = set(with_members)
-    for gid in with_members:
-        reachable.update(anc[gid])
+        deepest: str | None = None                      # 19 §1.1: walk memberships in key order, report the first that breaks the chain
+        for g in gids:
+            if g not in groups or groups[g].intent != "hierarchy":
+                continue
+            if deepest is None or forest.is_ancestor_or_self(g, deepest):
+                deepest = deepest or g
+            elif forest.is_ancestor_or_self(deepest, g):
+                deepest = g
+            else:
+                _need(False, f"table.members.{g}/{node_key(node)}.group_id", f"hierarchy groups {deepest!r} and {g!r} are not nested")
+    reachable = forest.mark_upward(gid for gids in by_node.values() for gid in gids if gid in groups)
     for g in p.groups:
-        _need(g.group_id in reachable, f"table.groups.{g.group_id}.group_id", "unreachable: no members and no descendant with members")
+        _need(g.group_id in reachable or g.group_id in forest.cyclic, f"table.groups.{g.group_id}.group_id",
+              "unreachable: no members and no descendant with members")
 
 
 def check_references(p: DatamaticsPayload, limits: R.Limits = R.DEFAULT_LIMITS) -> None:
@@ -369,18 +421,37 @@ def check_references(p: DatamaticsPayload, limits: R.Limits = R.DEFAULT_LIMITS) 
     for m in p.members:
         if m.group_id not in groups:
             raise IGDMError("UNRESOLVED_REFERENCE", f"table.members.{m.group_id}/{node_key(m.node)}.group_id", f"unknown group {m.group_id!r}", "D3")
-    for g in p.groups:                      # iterative walk: a 10^4-deep chain must never recurse
-        seen = {g.group_id}
-        depth = 0
-        cur = g.parent_group_id
-        while cur is not None:
-            if cur in seen:
-                raise IGDMError("GROUP_CYCLE", f"table.groups.{g.group_id}.parent_group_id", f"group {cur!r} is its own ancestor", "D3")
-            depth += 1
-            if depth > limits.max_group_depth:
-                raise IGDMError("DATAMATICS_LIMIT_EXCEEDED", "max_group_depth", f"group {g.group_id!r} nests deeper than {limits.max_group_depth}", "D3")
-            seen.add(cur)
+    # acyclicity first (19 §3.1 lists it before the depth budget): one memoised colouring walk over all groups, O(G);
+    # a cycle is reported at its smallest-key member (groups are in key order).
+    state: dict[str, int] = {}                          # 0 = on the current path, 1 = done
+    for g in p.groups:
+        if g.group_id in state:
+            continue
+        path: list[str] = []
+        cur: str | None = g.group_id
+        while cur is not None and cur not in state:
+            state[cur] = 0
+            path.append(cur)
             cur = groups[cur].parent_group_id
+        if cur is not None and state[cur] == 0:
+            members = path[path.index(cur):]
+            first = min(members, key=lambda s: s.encode("utf-8"))
+            raise IGDMError("GROUP_CYCLE", f"table.groups.{first}.parent_group_id", f"group {first!r} is its own ancestor", "D3")
+        for gid in path:
+            state[gid] = 1
+    depth: dict[str, int] = {}                          # then the depth budget, memoised: O(G)
+    for g in p.groups:
+        path = []
+        cur = g.group_id
+        while cur is not None and cur not in depth:
+            path.append(cur)
+            cur = groups[cur].parent_group_id
+        d = depth[cur] if cur is not None else -1
+        for gid in reversed(path):
+            d += 1
+            depth[gid] = d
+        if depth[g.group_id] > limits.max_group_depth:
+            raise IGDMError("DATAMATICS_LIMIT_EXCEEDED", "max_group_depth", f"group {g.group_id!r} nests deeper than {limits.max_group_depth}", "D3")
 
 
 def unrecognized_roles(p: DatamaticsPayload) -> tuple[str, ...]:

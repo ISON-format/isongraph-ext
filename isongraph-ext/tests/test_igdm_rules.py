@@ -97,3 +97,43 @@ def test_unrecognized_roles_reported_sorted_distinct():
     p.check()
     assert unrecognized_roles(p) == ("edges.pattern_role:x-wavy", "layout.family:x-hex", "nodes.ring:x-betterify-risk",
                                      "nodes.role:x-betterify-risk", "nodes.shape_role:x-blob")
+
+
+def test_deep_chain_is_linear_in_memory_and_time():
+    # Review fix 1: ancestry must not materialise ancestor sets; a 50k-deep chain must validate within a small memory bound.
+    import time
+    import tracemalloc
+    n = 50_000
+    chain = tuple(Group(f"g{i:06d}", "hierarchy", parent_group_id=(f"g{i - 1:06d}" if i else None)) for i in range(n))
+    members = tuple(Member(f"g{i:06d}", N) for i in range(n))
+    p = payload(groups=chain, members=members)
+    tracemalloc.start()
+    t0 = time.perf_counter()
+    p.check()
+    elapsed = time.perf_counter() - t0
+    _cur, peak = tracemalloc.get_traced_memory()
+    tracemalloc.stop()
+    assert peak < 64 * 1024 * 1024, peak
+    assert elapsed < 10.0, elapsed
+    _d3("DATAMATICS_LIMIT_EXCEEDED", "max_group_depth", groups=chain, members=members)
+
+
+def test_hierarchy_chain_reports_first_conflicting_membership_in_key_order():
+    # Review fix 2 (19 §1.1): b is a root incomparable with the a-c chain; in key order a < b < c, so b is reported.
+    groups = (Group("b", "hierarchy"), Group("c", "hierarchy"), Group("a", "hierarchy", parent_group_id="c"))
+    _d1("table.members.b/order:1.group_id", groups=groups, members=(Member("a", N), Member("b", N), Member("c", N)))
+    payload(groups=groups[1:], members=(Member("a", N), Member("c", N))).check()      # a under c: a chain
+
+
+def test_long_cycle_is_group_cycle_not_depth_budget():
+    # Review fix 3: a 100-group cycle under default limits is GROUP_CYCLE at the smallest-key member, not a depth failure.
+    cyc = tuple(Group(f"c{i:03d}", "hull", parent_group_id=f"c{(i - 1) % 100:03d}") for i in range(100))
+    _d3("GROUP_CYCLE", "table.groups.c000.parent_group_id", groups=cyc, members=(Member("c050", N),))
+
+
+def test_lone_surrogates_in_addresses_are_malformed():
+    # Review fix 4: in-memory addresses with no UTF-8 encoding must fail check(), never UnicodeEncodeError later.
+    _d1("table.nodes.order:\ud800.node_id", nodes=payload().nodes + (NodeHints(NodeRef("order", "\ud800"), role="info"),))
+    _d1("table.nodes.or\udc00der:7.node_type", nodes=payload().nodes + (NodeHints(NodeRef("or\udc00der", 7), role="info"),))
+    _d1("table.edges.order:1-kn\udc00ows-order:s1#0.relation", edges=payload().edges + (EdgeHints(EdgeAddress(N, "kn\udc00ows", S), role="info"),))
+    _d1("table.members.region/order:\ud800.node_id", members=payload().members + (Member("region", NodeRef("order", "\ud800")),))

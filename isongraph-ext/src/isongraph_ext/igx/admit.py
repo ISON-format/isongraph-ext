@@ -8,7 +8,7 @@ from dataclasses import dataclass
 from .baselines import BASELINES, Baseline
 from .binding import ExtensionBinding
 from .errors import IGXError
-from .verify import EMPTY_REGISTRY, CapabilityRegistry, VerificationResult, resolve_baseline, verify
+from .verify import DEFAULT_REGISTRY, CapabilityRegistry, VerificationResult, resolve_baseline, verify
 
 
 @dataclass(frozen=True)
@@ -88,7 +88,7 @@ def admit(binding: ExtensionBinding, result: VerificationResult, *, policy: Admi
 
 
 def verify_and_admit(binding: ExtensionBinding, source: str | bytes, *, baselines: Mapping[str, Baseline] = BASELINES,
-                     registry: CapabilityRegistry = EMPTY_REGISTRY, policy: AdmissionPolicy = DEFAULT_POLICY
+                     registry: CapabilityRegistry = DEFAULT_REGISTRY, policy: AdmissionPolicy = DEFAULT_POLICY
                      ) -> tuple[VerificationResult, AdmissionResult]:
     """The trustworthy entry point: the result handed to admit() is the one verify() just produced for this binding and these bytes."""
     result = verify(binding, source, baselines=baselines, registry=registry)

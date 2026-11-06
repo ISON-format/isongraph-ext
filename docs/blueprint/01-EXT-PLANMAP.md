@@ -11,7 +11,7 @@ Core baseline: ISONGraph **1.4.1** (tag `v1.4.1` = `027fb77`, released 2026-11-0
 | **G-ID** | **Graph Identity Soundness gate** (`13-SEMANTIC-2.md` §7) | E0, E1, Core 1.4.1 ✓ | BLOCKED on id-typing decision + corpus |
 | E2 | IGPV/1 Provenance | E1 | DONE — `isongraph-ext` main `dabf33e` (PR #2, 2026-11-06; 0.2.0 unreleased; spec `18` rev 1 + two post-freeze clarifications) |
 | E3 | IGRV/1 Revision + IGD/1 Delta | E2, **G-ID** | BLOCKED |
-| E4 | IGDM/1 Datamatics | E1,E2 | ACTIVE — spec `19` FROZEN 2026-11-06 (rev 1); plan `plans/2026-11-06-igdm1-e4.md`; branch `feat/igdm1-e4` |
+| E4 | IGDM/1 Datamatics | E1,E2 | DONE — `isongraph-ext` main (PR #3, 2026-11-06; 0.3.0 unreleased; spec `19` rev 1) |
 | E5 | IGP/1 Purpose Projection | E3,E4 | NOT_STARTED |
 | E6 | IGDAG/1 DAG Projection | E5 | NOT_STARTED |
 | E7 | IGRCP/1 Receipts + ISONCS Binding | E3,E5,E6 | NOT_STARTED |

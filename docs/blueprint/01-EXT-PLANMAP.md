@@ -11,7 +11,7 @@ Core baseline: ISONGraph **1.4.1** (tag `v1.4.1` = `027fb77`, released 2026-11-0
 | **G-ID** | **Graph Identity Soundness gate** (`13-SEMANTIC-2.md` §7) | E0, E1, Core 1.4.1 ✓ | BLOCKED on id-typing decision + corpus |
 | E2 | IGPV/1 Provenance | E1 | DONE — `isongraph-ext` main `dabf33e` (PR #2, 2026-11-06; 0.2.0 unreleased; spec `18` rev 1 + two post-freeze clarifications) |
 | E3 | IGRV/1 Revision + IGD/1 Delta | E2, **G-ID** | BLOCKED |
-| E4 | IGDM/1 Datamatics | E1,E2 | NOT_STARTED |
+| E4 | IGDM/1 Datamatics | E1,E2 | ACTIVE — spec `19` FROZEN 2026-11-06 (rev 1); plan `plans/2026-11-06-igdm1-e4.md`; branch `feat/igdm1-e4` |
 | E5 | IGP/1 Purpose Projection | E3,E4 | NOT_STARTED |
 | E6 | IGDAG/1 DAG Projection | E5 | NOT_STARTED |
 | E7 | IGRCP/1 Receipts + ISONCS Binding | E3,E5,E6 | NOT_STARTED |
@@ -48,7 +48,7 @@ Nine conditions in `13-SEMANTIC-2.md` §7. E3 cannot open until all nine pass. E
 Revision identity/base/parent; node/edge/group/property changes; application/rejection rules; revision/delta receipts; round-trip vectors. Depends on the Semantic/2 digest — not on ISONCS bytes.
 
 ## E4 — Datamatics
-Node/edge/group presentation semantics; layout/LOD/interaction/temporal/accessibility hints; theme separation; compactness; vectors.
+IGDM/1 per `19-IGDM1-DESIGN.md`: companion `<graph>.igdm.ison` bound as the IGX/1 capability `igdm`; node/edge hints (roles, shape/pattern roles, emphasis, badge, ring, label, visibility/LOD, interaction markers, temporal state, accessibility text/role), groups (hull/hierarchy/collapse/aggregate over explicit members, acyclic parent tree), layout hints (family/direction/stability, rank/anchor); closed vocabularies plus a preserved-and-reported `x-` namespace; theme separation is structural (no appearance columns exist); verification D0–D4; vectors. Derived graphs from E5/E6 may carry IGDM/1 payloads.
 
 ## E5 — Projection
 Source revision pinning; anchors/selectors; direction/depth; mandatory material; budgets; provenance retention; deterministic ordering; receipts; runtime; vectors. Emits IGPV/1 lineage for every derived object (`18` §3: `identity` / `rewrite` derivations, attributions carried across unchanged).

@@ -14,3 +14,5 @@ Generic scopes:
 - accessibility: semantic text and non-color state role.
 
 Betterify, SkillDen and other products map their own semantics into IGDM downstream.
+
+**Superseded for E4 by `19-IGDM1-DESIGN.md` (FROZEN 2026-11-06, rev 1)**, the normative IGDM/1 wire format, vocabularies, group rules, verification and vector contract. IGDM/1 describes rendition intent; ISONGraph Visualize interprets and renders it; products supply their domain meanings through the `x-` namespace.

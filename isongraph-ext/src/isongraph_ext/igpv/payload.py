@@ -209,31 +209,36 @@ class ProvenancePayload:
         _check_relations(self)
 
 
-def _collect_blocks(doc: Document) -> dict[tuple[str, str], Block]:
-    required = {("meta", "igpv")} | {("table", name) for name, _f, _k in TABLES}
+def _collect_blocks_for(doc: Document, required: set[tuple[str, str]], err) -> dict[tuple[str, str], Block]:
+    """Generic block collection shared with other capability payloads: `required` names the exact block set, `err` builds the error."""
     out: dict[tuple[str, str], Block] = {}
     for b in doc.blocks:
         key = (b.kind, b.name)
         if key not in required:
-            raise _err(f"{b.kind}.{b.name}", "unexpected block")
+            raise err(f"{b.kind}.{b.name}", "unexpected block")
         if key in out:
-            raise _err(f"{b.kind}.{b.name}", "duplicate block")
+            raise err(f"{b.kind}.{b.name}", "duplicate block")
         out[key] = b
     for key in sorted(required - set(out)):
-        raise _err(f"{key[0]}.{key[1]}", "missing block")
+        raise err(f"{key[0]}.{key[1]}", "missing block")
     return out
 
 
-def _one_row(b: Block, name: str, expected: tuple[str, ...]) -> dict[str, Any]:
+def _collect_blocks(doc: Document) -> dict[tuple[str, str], Block]:
+    return _collect_blocks_for(doc, {("meta", "igpv")} | {("table", name) for name, _f, _k in TABLES}, _err)
+
+
+def _one_row(b: Block, name: str, expected: tuple[str, ...], err=None) -> dict[str, Any]:
+    err = err or _err
     if len(b.rows) != 1:
-        raise _err(name, f"expected exactly one row, got {len(b.rows)}")
+        raise err(name, f"expected exactly one row, got {len(b.rows)}")
     row = b.rows[0]
     for f in expected:
         if f not in row:
-            raise _err(f"{name}.{f}", "missing field")
+            raise err(f"{name}.{f}", "missing field")
     for f in row:
         if f not in expected:
-            raise _err(f"{name}.{f}", "unexpected field")
+            raise err(f"{name}.{f}", "unexpected field")
     return row
 
 
@@ -242,14 +247,21 @@ def _need(cond: bool, field: str, detail: str) -> None:
         raise _err(field, detail)
 
 
-def _check_node_ref(ref: Any, where: str, type_col: str, id_col: str) -> None:
-    _need(isinstance(ref, R.NodeRef), where, "NodeRef required")
-    _need(R.is_identifier(ref.node_type), f"{where}.{type_col}", 'Core identifier (non-empty, no whitespace, none of : | " \\)')
+def _check_node_ref(ref: Any, where: str, type_col: str, id_col: str, err=None) -> None:
+    """NodeRef/2 address rule (18 §1.2), shared with other capability payloads through `err`."""
+    err = err or _err
+
+    def need(cond: bool, field: str, detail: str) -> None:
+        if not cond:
+            raise err(field, detail)
+
+    need(isinstance(ref, R.NodeRef), where, "NodeRef required")
+    need(R.is_identifier(ref.node_type), f"{where}.{type_col}", 'Core identifier (non-empty, no whitespace, none of : | " \\)')
     v = ref.node_id
     if R.is_int(v):
-        _need(R.INT64_MIN <= v <= R.INT64_MAX, f"{where}.{id_col}", "integer id must lie within INT64")
+        need(R.INT64_MIN <= v <= R.INT64_MAX, f"{where}.{id_col}", "integer id must lie within INT64")
     else:
-        _need(R.is_str(v), f"{where}.{id_col}", "id must be an INT64 integer or a string (booleans, floats, null are not ids)")
+        need(R.is_str(v), f"{where}.{id_col}", "id must be an INT64 integer or a string (booleans, floats, null are not ids)")
 
 
 def _opt_str(v: Any) -> bool:

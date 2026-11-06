@@ -6,10 +6,10 @@ Columns (seconds, single wall-clock run each):
   core_parse    ISONGraph.from_ison on the graph text                         (what a Core-only consumer pays)
   igx_verify    igx.verify of the binding                                     (IGX alone)
   igpv_total    igpv.verify_and_admit  -- INCLUDES an igx verification inside
-  igpv_extra    igpv_total - igx_verify  (the capability's own steps)
+  igpv_extra    igpv_total - igx_verify  (an approximation: a difference of two single samples)
   igdm_total    igdm.verify_and_admit  -- INCLUDES an igx verification inside
   igdm_extra    igdm_total - igx_verify
-  svg_render    igdm_to_svg.render (generation only, payload already verified)
+  svg_render    igdm_to_svg.render on an already-parsed graph and already-verified payload (generation only; no parse)
 """
 from __future__ import annotations
 
@@ -62,7 +62,8 @@ def run(n: int) -> dict:
     row["igpv_extra"] = row["igpv_total"] - row["igx_verify"]
     row["igdm_total"], _ = timed(lambda: igdm.verify_and_admit(db, bind_dm, G))
     row["igdm_extra"] = row["igdm_total"] - row["igx_verify"]
-    row["svg_render"], svg = timed(lambda: render(G, dp))
+    parsed = ISONGraph.from_ison(text)
+    row["svg_render"], svg = timed(lambda: render(parsed, dp))
     assert svg.startswith("<svg") and svg.rstrip().endswith("</svg>")
     return row
 

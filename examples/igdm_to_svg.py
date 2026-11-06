@@ -52,9 +52,10 @@ def _shape(shape, x, y, fill, sw) -> str:
     return f'<circle cx="{x}" cy="{y}" r="{R}" {a}/>'
 
 
-def render(graph_bytes: bytes, payload: DatamaticsPayload) -> str:
-    """Pure function: same inputs, same SVG text. Assumes the payload was already verified against the graph."""
-    g = ISONGraph.from_ison(graph_bytes.decode("utf-8"))
+def render(graph, payload: DatamaticsPayload) -> str:
+    """Pure function: same inputs, same SVG text. `graph` is an ISONGraph or its ison-v1 bytes. Assumes the payload was
+    already verified against the graph. Simple graphs only (see main())."""
+    g = ISONGraph.from_ison(graph.decode("utf-8")) if isinstance(graph, (bytes, bytearray)) else graph
     hints = {(h.node.node_type, h.node.node_id): h for h in payload.nodes}
     ehints = {e.edge: e for e in payload.edges}
 
@@ -83,10 +84,12 @@ def render(graph_bytes: bytes, payload: DatamaticsPayload) -> str:
     for e in sorted(g.edges(), key=lambda e: (_node_key(e.source), e.rel_type, _node_key(e.target))):
         if e.source not in pos or e.target not in pos:
             continue
+        if not g.directed and _node_key(e.source) > _node_key(e.target):
+            continue                                   # Core yields both directions of an undirected edge: draw the canonical one once
         eh = ehints.get(EdgeAddress(NodeRef(*e.source), e.rel_type, NodeRef(*e.target)))
         pattern = eh.pattern_role if eh else None
         dash = ' stroke-dasharray="5 4"' if pattern == "dashed" else ' stroke-dasharray="1 4"' if pattern == "dotted" else ""
-        marker = ' marker-end="url(#arrow)"' if not eh or eh.direction_display in (None, "forward", "both") else ""
+        marker = ' marker-end="url(#arrow)"' if g.directed and (not eh or eh.direction_display in (None, "forward", "both")) else ""
         (x1, y1), (x2, y2) = pos[e.source], pos[e.target]
         sw = STROKE.get(eh.emphasis, 1) if eh and eh.emphasis else 1
         out.append(f'<line x1="{x1}" y1="{y1}" x2="{x2}" y2="{y2}" stroke="#6b7280" stroke-width="{sw}"{dash}{marker}/>')
@@ -114,16 +117,32 @@ def main(argv: list[str]) -> int:
         print("usage: igdm_to_svg.py GRAPH BINDING PAYLOAD OUT.svg", file=sys.stderr)
         return 64
     graph, binding, payload, out = (Path(a) for a in argv)
-    graph_b, payload_b = graph.read_bytes(), payload.read_bytes()
     try:
-        _res, _dm, decision = igdm.verify_and_admit(payload_b, ExtensionBinding.from_ison(binding.read_bytes()), graph_b)
+        graph_b, binding_b, payload_b = graph.read_bytes(), binding.read_bytes(), payload.read_bytes()
+    except OSError as e:
+        print(f"cannot read input: {e}", file=sys.stderr)
+        return 64
+    try:
+        b = ExtensionBinding.from_ison(binding_b)
+        _res, _dm, decision = igdm.verify_and_admit(payload_b, b, graph_b)
     except Exception as e:  # any verification error: refuse to render unverified intent
         print(f"refusing to render: {e}", file=sys.stderr)
         return 1
     if not decision.admitted:
         print(f"refusing to render: not admitted ({decision.code})", file=sys.stderr)
         return 2
-    out.write_text(render(graph_b, DatamaticsPayload.from_ison(payload_b)), encoding="utf-8", newline="\n")
+    try:                                                # verified is not the same as drawable: simple ison-v1 graphs only
+        if b.serialization_profile != "ison-v1":
+            raise ValueError(f"profile {b.serialization_profile}")
+        g = ISONGraph.from_ison(graph_b.decode("utf-8"))
+    except ValueError as e:
+        print(f"cannot draw this graph (simple ison-v1 graphs only; MultiGraph and ISONL are out of scope): {e}", file=sys.stderr)
+        return 2
+    try:
+        out.write_text(render(g, DatamaticsPayload.from_ison(payload_b)), encoding="utf-8", newline="\n")
+    except OSError as e:
+        print(f"cannot write output: {e}", file=sys.stderr)
+        return 64
     print(f"wrote {out}")
     return 0
 

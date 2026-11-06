@@ -75,7 +75,6 @@ def test_unknown_x_role_renders_exactly_like_no_hint():
         from igdm_to_svg import render
     finally:
         sys.path.remove(str(EX))
-    sys.path.insert(0, str(SRC))
     from ison_graph import ISONGraph
 
     from isongraph_ext.igdm import DatamaticsPayload, NodeHints, NodeRef
@@ -118,3 +117,68 @@ def test_fresh_environment_installs_built_wheel_and_runs_examples(request, tmp_p
     svg = work / "out.svg"
     p = _run(EX / "igdm_to_svg.py", supply / "assets.ison", supply / "assets.igx.ison", supply / "assets.igdm.ison", svg, cwd=work, env_extra={}, python=py)
     assert p.returncode == 0 and svg.read_text(encoding="utf-8").startswith("<svg")
+
+
+def _fixture_files(tmp_path, g, payload_kw, profile="ison-v1", name="x"):
+    sys.path.insert(0, str(SRC))
+    try:
+        import hashlib
+
+        from isongraph_ext import igdm
+        from isongraph_ext.igdm import DatamaticsPayload
+        gb = g.to_ison().encode("utf-8") if profile == "ison-v1" else g.to_isonl().encode("utf-8")
+        p = DatamaticsPayload(hashlib.sha256(gb).hexdigest(), profile, **payload_kw)
+        b = igdm.bind(gb, p, serialization_profile=profile, producer_port="python", identity_claim="artifact")
+    finally:
+        sys.path.remove(str(SRC))
+    paths = [tmp_path / f"{name}.ison", tmp_path / f"{name}.igx.ison", tmp_path / f"{name}.igdm.ison"]
+    for path, data in zip(paths, (gb, b.to_ison().encode("utf-8"), p.to_ison().encode("utf-8"))):
+        path.write_bytes(data)
+    return paths
+
+
+def test_svg_adapter_refuses_what_it_cannot_draw_without_a_traceback(tmp_path):
+    from ison_graph import ISONGraph
+    from ison_graph.multigraph import MultiGraph
+    m = MultiGraph()
+    m.add_node("p", 1)
+    m.add_node("p", 2)
+    m.add_edge("r", ("p", 1), ("p", 2))
+    g = ISONGraph()
+    g.add_node("p", 1)
+    for graph, profile in ((m, "ison-v1"), (g, "isonl-v1")):
+        d = tmp_path / profile
+        d.mkdir()
+        files = _fixture_files(d, graph, {}, profile)
+        out = d / "o.svg"
+        p = _run(EX / "igdm_to_svg.py", *files, out)
+        assert p.returncode == 2 and not out.exists() and b"Traceback" not in p.stderr and b"cannot draw" in p.stderr, (profile, p.stderr)
+    p = _run(EX / "igdm_to_svg.py", tmp_path / "missing.ison", tmp_path / "b", tmp_path / "p", tmp_path / "o.svg")
+    assert p.returncode == 64 and b"Traceback" not in p.stderr
+
+
+def test_svg_escapes_text_hides_hidden_nodes_and_draws_undirected_edges_once(tmp_path):
+    sys.path.insert(0, str(EX))
+    sys.path.insert(0, str(SRC))
+    try:
+        from igdm_to_svg import render
+        from ison_graph import ISONGraph
+
+        from isongraph_ext.igdm import DatamaticsPayload, EdgeAddress, EdgeHints, Group, Member, NodeHints, NodeRef
+    finally:
+        sys.path.remove(str(EX))
+        sys.path.remove(str(SRC))
+    g = ISONGraph(directed=False)
+    for i in (1, 2, 3):
+        g.add_node("p", i)
+    g.add_edge("r", ("p", 1), ("p", 2))
+    g.add_edge("r", ("p", 1), ("p", 3))
+    p = DatamaticsPayload(
+        "a0" * 32, "ison-v1",
+        nodes=(NodeHints(NodeRef("p", 1), label="A & <B>", a11y_text='say "hi" <now>', badge="<>"), NodeHints(NodeRef("p", 3), visibility="hidden", label="SECRET")),
+        edges=(EdgeHints(EdgeAddress(NodeRef("p", 1), "r", NodeRef("p", 2)), pattern_role="dashed", label="x & y"),),
+        groups=(Group("g", "hull", label="G <1>"),), members=(Member("g", NodeRef("p", 1)),))
+    svg = render(g.to_ison().encode("utf-8"), p)
+    xml.dom.minidom.parseString(svg)
+    assert "A &amp; &lt;B&gt;" in svg and "G &lt;1&gt;" in svg and "x &amp; y" in svg and "SECRET" not in svg
+    assert svg.count("<line ") == 1 and "marker-end" not in svg and 'stroke-dasharray="5 4"' in svg   # one logical edge, hint applied, no arrow

@@ -5,3 +5,4 @@
 vectors/** -text
 isongraph-ext/src/isongraph_ext/baselines/** -text
 isongraph-ext/tests/fixtures/** -text
+docs/blueprint/receipts/** -text

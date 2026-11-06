@@ -30,6 +30,7 @@ reject/receipt-crossfield-mismatch reject--receipt-crossfield-mismatch.igx.ison 
 reject/required-range-excludes-registered reject--required-range-excludes-registered.igx.ison null reject:UNSUPPORTED_CAPABILITY ids/positive-int.ison test V5
 reject/semantic-digest-set reject--semantic-digest-set.igx.ison null reject:MALFORMED_BINDING ids/positive-int.ison empty V1
 reject/source-canonical-token-disallowed reject--source-canonical-token-disallowed.igx.ison null reject:MALFORMED_BINDING ids/positive-int.ison empty V1
+reject/trailing-newline-in-hex-field reject--trailing-newline-in-hex-field.igx.ison "quoted hex with trailing newline round-trips canonically; only a full-match grammar catches it at V1" reject:MALFORMED_BINDING ids/positive-int.ison empty V1
 reject/two-faults-first-wins reject--two-faults-first-wins.igx.ison null reject:CORPUS_DIGEST_MISMATCH ids/positive-int.ison empty V2
 reject/unexpected-block reject--unexpected-block.igx.ison null reject:MALFORMED_BINDING ids/positive-int.ison empty V1
 reject/unknown-required reject--unknown-required.igx.ison null reject:UNSUPPORTED_CAPABILITY ids/positive-int.ison empty V5

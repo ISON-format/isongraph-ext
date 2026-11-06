@@ -94,6 +94,7 @@ VECTORS = [
     ("reject/unexpected-block", POS, add_block(base.to_ison(), Block("meta", "extra", ["a"], [{"a": 1}])), "empty", "reject:MALFORMED_BINDING", "V1", None),
     ("reject/semantic-digest-set", POS, rep(base, semantic_digest="ab" * 32, semantic_digest_algorithm="sha256"), "empty", "reject:MALFORMED_BINDING", "V1", None),
     ("reject/writer-port-mismatch", POS, rep(base, core_writer_implementation="isongraph-ts"), "empty", "reject:MALFORMED_BINDING", "V1", None),
+    ("reject/trailing-newline-in-hex-field", POS, rep(base, artifact_sha256=base.artifact_sha256 + "\n"), "empty", "reject:MALFORMED_BINDING", "V1", "quoted hex with trailing newline round-trips canonically; only a full-match grammar catches it at V1"),
     ("reject/source-canonical-token-disallowed", POS, rep(ts_artifact, source_canonical="true"), "empty", "reject:MALFORMED_BINDING", "V1", None),
     ("reject/wrong-core-commit", POS, rep(base, core_commit="a" * 40), "empty", "reject:CORE_BASELINE_UNSUPPORTED", "V2", None),
     ("reject/wrong-corpus-digest", POS, rep(base, core_vector_corpus_digest="c" * 64), "empty", "reject:CORPUS_DIGEST_MISMATCH", "V2", None),

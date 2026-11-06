@@ -23,7 +23,7 @@ EXPECT_IDS = {
     "reject/unknown-required", "reject/required-range-excludes-registered", "reject/two-faults-first-wins",
     "admit/known-defect-producer-bound", "admit/ineligible-source-producer-bound", "admit/multigraph-source-producer-bound",
     "admit/cross-port-reserved", "admit/lossy-producer-bound-reserved", "admit/lossy-policy-field-ignored", "admit/consumer-known-defect-reported",
-    "admit/retired-limited-producer-bound",
+    "admit/retired-limited-producer-bound", "reject/trailing-newline-in-hex-field",
 }
 
 

@@ -188,7 +188,7 @@ The CLI exposes no `--registry` and no `--accept-lossy` in E1: production regist
 
 | step | checks | code on failure |
 |---|---|---|
-| **V0 runtime** | compare the installed `ison_graph` distribution and module hashes (after `\r\n → \n` normalisation — line endings are not implementation; the recorded values are the git blob hashes at `core_commit`, which the published `ison_graph-1.4.1` wheel reproduces byte-for-byte) with the **binding's** baseline. Match → `semantic_verification = full`. Mismatch and the baseline is **retired** → `semantic_verification = limited`: evidence (V1–V3, V4's byte check, V5) is still verified, the V4 re-derivations are skipped, and the result says so — a historical binding never becomes unverifiable, and never gets a false "fully re-verified". Mismatch and the baseline is **current** → the install is not the reference runtime | `CORE_RUNTIME_MISMATCH` |
+| **V0 runtime** | compare the installed `ison_graph` distribution, module hashes **and the `ison-py` distribution version** (the canonical writer every canonicality verdict runs through; recorded in `MANIFEST.ison` as `canonical_writer_dist[_version]`) (after `\r\n → \n` normalisation — line endings are not implementation; the recorded values are the git blob hashes at `core_commit`, which the published `ison_graph-1.4.1` wheel reproduces byte-for-byte) with the **binding's** baseline. Match → `semantic_verification = full`. Mismatch and the baseline is **retired** → `semantic_verification = limited`: evidence (V1–V3, V4's byte check, V5) is still verified, the V4 re-derivations are skipped, and the result says so — a historical binding never becomes unverifiable, and never gets a false "fully re-verified". Mismatch and the baseline is **current** → the install is not the reference runtime | `CORE_RUNTIME_MISMATCH` |
 | **V1 shape** | input bytes equal the canonical re-emission (§2.1); required blocks exactly once, `meta.consumer` ≤ 1, no other blocks; every field present with the right type; `binding_spec == "IGX/1"`; enums valid; `semantic_digest*` null; capability rows unique and well-formed; `core_writer_implementation` matches `producer_port` and `core_writer_version == producer_port_version`; `source_canonical` token allowed for the producer (§2); eligibility/reason cross-field rule (§2) | `MALFORMED_BINDING` |
 | **V2 baseline pins** | `core_commit` is a known baseline (supported or retired); `core_format`, `core_version`, `core_semantic_spec` equal that baseline's | `CORE_BASELINE_UNSUPPORTED` |
 | | `core_vector_corpus_version`, `_commit`, `_digest` equal that baseline's | `CORPUS_DIGEST_MISMATCH` |
@@ -274,7 +274,7 @@ Graph inputs reuse Core corpus documents by copy into `vectors/igx1/graphs/` (th
 ```text
 baselines/
   <core_commit>/
-    MANIFEST.ison        meta.baseline (16 §1 values + core_runtime_dist) · table.files (path sha256)
+    MANIFEST.ison        meta.baseline (16 §1 values + core_runtime_dist[_version] + canonical_writer_dist[_version] = the ison-py the receipts and bindings are canonicalised with) · table.files (path sha256)
                          · table.core_runtime (module sha256) — module = ison_graph/__init__.py, multigraph.py,
                            query.py, schema.py, structural.py, viz.py as they exist at core_commit
     receipts/<port>.ison the six receipt files, bytes identical to Core's output

@@ -151,7 +151,26 @@ def test_lossy_baseline_verifies():
 def test_v0_runtime_mismatch_on_current_baseline(monkeypatch):
     import importlib
     v = importlib.import_module("isongraph_ext.igx.verify")   # the package re-exports verify() under the same name
-    monkeypatch.setattr(v, "installed_core_runtime", lambda: (("ison-graph", "1.4.1"), {"ison_graph/__init__.py": "0" * 64}))
+    real = B[make_binding().core_commit]
+    good_hashes = dict(real.core_runtime)
+    monkeypatch.setattr(v, "installed_core_runtime", lambda modules: (("ison-graph", "1.4.1"), {**good_hashes, "ison_graph/__init__.py": "0" * 64}, ("ison-py", "1.2.0")))
     _fails(make_binding(), SRC, "CORE_RUNTIME_MISMATCH", "V0", "ison_graph/__init__.py")
-    monkeypatch.setattr(v, "installed_core_runtime", lambda: (("ison-graph", "1.4.0"), {}))
+    monkeypatch.setattr(v, "installed_core_runtime", lambda modules: (("ison-graph", "1.4.0"), good_hashes, ("ison-py", "1.2.0")))
     _fails(make_binding(), SRC, "CORE_RUNTIME_MISMATCH", "V0", "ison-graph")
+    # ison-py implements the canonical writer both canonicality verdicts depend on: it is part of the runtime identity
+    monkeypatch.setattr(v, "installed_core_runtime", lambda modules: (("ison-graph", "1.4.1"), good_hashes, ("ison-py", "1.1.0")))
+    _fails(make_binding(), SRC, "CORE_RUNTIME_MISMATCH", "V0", "ison-py")
+
+
+def test_v0_probe_classifies_instead_of_raising():
+    # A baseline that lists a module the installed Core does not have (a future or older Core) must be a
+    # mismatch, not a FileNotFoundError traceback - that is exactly the retired-baseline case (reviewer finding).
+    import dataclasses
+    from isongraph_ext.igx.verify import _runtime_mismatch
+    odd = dataclasses.replace(B[make_binding().core_commit], core_runtime={"ison_graph/does_not_exist.py": "0" * 64})
+    assert _runtime_mismatch(odd) is not None and _runtime_mismatch(odd)[0] == "ison_graph/does_not_exist.py"
+
+
+def test_source_str_without_utf8_encoding_is_an_igxerror():
+    e = _fails(make_binding(), "\ud800", "SOURCE_BINDING_MISMATCH", "V4")
+    assert "UTF-8" in e.detail

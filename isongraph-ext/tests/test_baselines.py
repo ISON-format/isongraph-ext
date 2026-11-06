@@ -55,10 +55,22 @@ def test_domains(baseline):
 
 
 def test_installed_core_runtime_is_the_baseline_implementation(baseline):
-    dist, hashes = installed_core_runtime()
+    dist, hashes, writer = installed_core_runtime(baseline.core_runtime)
     assert dist == baseline.core_runtime_dist
     assert hashes == dict(baseline.core_runtime)
+    assert writer == baseline.canonical_writer_dist == ("ison-py", "1.2.0")
     assert importlib.metadata.version("ison-graph") == "1.4.1"
+
+
+def test_installed_core_runtime_reports_missing_modules_as_none():
+    _, hashes, _ = installed_core_runtime({"ison_graph/does_not_exist.py": "0" * 64})
+    assert hashes == {"ison_graph/does_not_exist.py": None}
+
+
+def test_test_paths_are_portable():
+    # CI has neither d:/ nor the author's checkout: the blueprint copy and the graph inputs live in this repo.
+    assert BLUEPRINT.is_relative_to(ROOT) and (BLUEPRINT / "receipts" / "python.ison").is_file()
+    assert b"\r" not in (BLUEPRINT / "receipts" / "python.ison").read_bytes()
 
 
 def test_load_baseline_detects_corruption(tmp_path: Path):
@@ -96,6 +108,18 @@ def test_make_baseline_reproduces_committed_directory(tmp_path: Path):
     subprocess.run(SCRIPT + ["--core", str(CORE_REPO), "--receipts", str(BLUEPRINT / "receipts"), "--out", str(out)], check=True)
     for rel in ["REGISTRY.ison", f"{CORE_COMMIT}/MANIFEST.ison", f"{CORE_COMMIT}/domains.ison"] + [f"{CORE_COMMIT}/receipts/{p}.ison" for p in PORTS]:
         assert (out / rel).read_bytes() == (BASELINES_ROOT / rel).read_bytes(), rel
+
+
+@needs_core
+def test_make_baseline_fails_closed_on_crlf_receipts_and_writes_nothing(tmp_path: Path):
+    bad = tmp_path / "receipts"
+    bad.mkdir()
+    for p in PORTS:
+        bad.joinpath(f"{p}.ison").write_bytes((BLUEPRINT / "receipts" / f"{p}.ison").read_bytes().replace(b"\n", b"\r\n"))
+    out = tmp_path / "baselines"
+    p = subprocess.run(SCRIPT + ["--core", str(CORE_REPO), "--receipts", str(bad), "--out", str(out)], capture_output=True, text=True)
+    assert p.returncode == 2 and "framing" in p.stderr.lower(), p.stderr
+    assert not out.exists(), "a failed run must leave nothing behind"
 
 
 @needs_core

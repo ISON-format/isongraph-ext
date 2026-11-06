@@ -9,7 +9,7 @@ BASELINES_ROOT = PKG / "baselines"
 CORE_COMMIT = "ce9d3b78afd79cbdffdd67546bcb5278dc38be70"
 BASELINE_DIR = BASELINES_ROOT / CORE_COMMIT
 CORE_REPO = Path(os.environ.get("ISONGRAPH_CORE_REPO", "d:/Goldmine/ISON/ison_dev/isongraphossworking/isongraph"))
-BLUEPRINT = Path("d:/Goldmine/ISON/ison_dev/isongraphossworking/isongraphext/isongraphext/docs/isongraph-ext-blueprint")
+BLUEPRINT = ROOT / "docs" / "blueprint"          # the in-repo copy; CI has no access to the author's editing master
 
 RECEIPT_SHA = {
     "python": "cece1259ac61172a1d519b5ad31cef8b29ff3e466f629f4cb72b4f34fdda9ac0",
@@ -42,7 +42,7 @@ def make_binding(**overrides):
 
     base = dict(
         identity_claim="producer_bound",
-        artifact_sha256=sha256_file(CORE_REPO / "vectors" / "ids" / "positive-int.ison"),
+        artifact_sha256=sha256_file(GRAPHS / "ids" / "positive-int.ison"),   # in-repo byte-exact copy (SOURCES.ison)
         serialization_profile="ison-v1", source_canonical="true",
         source_semantic_eligibility="eligible", source_semantic_reason=None,
         core_writer_implementation="isongraph-python", core_writer_version="1.4.1",

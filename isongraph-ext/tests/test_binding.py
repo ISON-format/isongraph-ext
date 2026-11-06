@@ -151,3 +151,19 @@ def test_bad_requirement_and_payload_rejected():
 
 def test_consumer_enum_rules():
     _malformed(make_binding(consumer=Consumer("go", "1.4.1", "FULL", RECEIPT_SHA["ts"])).to_ison(), "meta.consumer.consumer_port")
+
+
+def test_trailing_newline_inside_quoted_hex_is_a_v1_fault():
+    # The canonical writer round-trips a quoted "<hex>\n", so only a full-match grammar catches it at V1
+    # (reviewer finding: `$` accepted it and the fault surfaced at V2-V4 instead, breaking step parity).
+    _malformed(make_binding(artifact_sha256="a" * 64 + "\n").to_ison(), "meta.source.artifact_sha256")
+    _malformed(make_binding(core_commit="b" * 40 + "\n").to_ison(), "meta.core_baseline.core_commit")
+    _malformed(make_binding(capabilities=(Capability("x-igx-test", "^1\n", "OPTIONAL", None),)).to_ison(), "table.capabilities.version_range")
+    _malformed(make_binding(capabilities=(Capability("x-igx-test", "^1", "OPTIONAL", "c" * 64 + "\n"),)).to_ison(), "table.capabilities.payload_sha256")
+
+
+def test_lone_surrogate_text_is_not_a_binding():
+    # A str that has no UTF-8 encoding has no bytes and therefore no digest (reviewer finding: from_ison
+    # accepted it and .digest/verify crashed with UnicodeEncodeError).
+    text = make_binding(capabilities=(Capability("x-\ud800", "^1", "OPTIONAL", None),)).to_ison()
+    _malformed(text, "document")

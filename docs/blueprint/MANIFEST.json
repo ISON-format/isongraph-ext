@@ -3,7 +3,7 @@
   "repo_target": "ISON-format/isongraph-ext",
   "planmap": "E0-E13 + G-ID",
   "start_task": "G-ID.7 (golden corpus) once Core patch is released",
-  "status": "E0 DONE (except E0.9 rust/cs/cpp); contract 16 FROZEN (receipt digests re-pinned to LF bytes 2026-11-05); IGX/1 spec 17 FROZEN rev 3; E1 DONE on isongraph-ext main c245844 (CI green; v0.1.0 tagged, nothing published); IGPV/1 spec 18 FROZEN rev 1 (2026-11-06); E2 READY (plan plans/2026-11-06-igpv1-e2.md); G-ID DRAFTED; E3+ BLOCKED",
+  "status": "E0 DONE (except E0.9 rust/cs/cpp); contract 16 FROZEN (receipt digests re-pinned to LF bytes 2026-11-05); IGX/1 spec 17 FROZEN rev 3; E1 DONE on isongraph-ext main c245844 (CI green; v0.1.0 tagged, nothing published); IGPV/1 spec 18 FROZEN rev 1 (2026-11-06, two post-freeze clarifications: §1 writer row order, §4.3 per-source budget); E2 DONE on isongraph-ext main dabf33e (PR #2 merged 2026-11-06, CI green; 355 tests, 71 vectors; 0.2.0 not tagged/published); G-ID DRAFTED; E3+ BLOCKED",
   "generated_utc": "2026-08-29T04:38:04.134640+00:00",
   "updated_utc": "2026-11-06T00:00:00+00:00",
   "core_baseline": {

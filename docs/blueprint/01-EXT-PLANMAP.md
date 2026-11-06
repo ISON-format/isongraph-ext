@@ -9,7 +9,7 @@ Core baseline: ISONGraph **1.4.1** (tag `v1.4.1` = `027fb77`, released 2026-11-0
 | E0 | Core Semantic Baseline (forensics + corpus + frozen contract) | shipped core | DONE except E0.9 (Rust/C#/C++) |
 | E1 | IGX/1 Extension Binding + Capability Model | E0.10 (`16`) | DONE — `isongraph-ext` main `c245844` (0.1.0 unreleased; spec `17` rev 3) |
 | **G-ID** | **Graph Identity Soundness gate** (`13-SEMANTIC-2.md` §7) | E0, E1, Core 1.4.1 ✓ | BLOCKED on id-typing decision + corpus |
-| E2 | IGPV/1 Provenance | E1 | READY — spec `18` FROZEN 2026-11-06 (rev 1); plan `plans/2026-11-06-igpv1-e2.md` |
+| E2 | IGPV/1 Provenance | E1 | DONE — `isongraph-ext` main `dabf33e` (PR #2, 2026-11-06; 0.2.0 unreleased; spec `18` rev 1 + two post-freeze clarifications) |
 | E3 | IGRV/1 Revision + IGD/1 Delta | E2, **G-ID** | BLOCKED |
 | E4 | IGDM/1 Datamatics | E1,E2 | NOT_STARTED |
 | E5 | IGP/1 Purpose Projection | E3,E4 | NOT_STARTED |

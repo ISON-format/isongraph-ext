@@ -56,3 +56,10 @@ def make_binding(**overrides):
     )
     base.update(overrides)
     return ExtensionBinding(**base)
+
+
+GRAPHS = ROOT / "vectors" / "igx1" / "graphs"
+
+
+def graph_bytes(rel: str) -> bytes:
+    return (GRAPHS / rel).read_bytes()

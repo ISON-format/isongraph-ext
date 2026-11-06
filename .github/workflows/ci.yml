@@ -18,3 +18,24 @@ jobs:
           python-version: "3.12"
       - run: pip install -e ".[dev]"
       - run: pytest
+      - run: python -m build
+      - run: pytest tests/test_packaging.py -q --built
+      - run: pip install dist/*.whl --force-reinstall --no-deps && python -c "import isongraph_ext.igx.baselines as b; print(b.DEFAULT_BASELINE.core_commit)"
+
+  # Release verification lane: the embedded baseline must be reproducible from the pinned Core commit,
+  # not just hash-consistent with itself (17 §6).
+  baseline-reproduces:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
+        with:
+          repository: ISON-format/isongraph
+          ref: ce9d3b78afd79cbdffdd67546bcb5278dc38be70
+          path: core
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install -e "isongraph-ext[dev]"
+      - run: python scripts/make_baseline.py --core core --commit ce9d3b78afd79cbdffdd67546bcb5278dc38be70 --receipts docs/blueprint/receipts --adopted 2026-11-05 --out isongraph-ext/src/isongraph_ext/baselines --verify
+      - run: ISONGRAPH_CORE_REPO=$PWD/core pytest isongraph-ext/tests/test_baselines.py -q

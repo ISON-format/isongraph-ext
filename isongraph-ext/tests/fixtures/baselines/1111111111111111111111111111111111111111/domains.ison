@@ -1,0 +1,8 @@
+table.domains
+port tag
+js binary64-inexact-int
+js integral-float-collapse
+js multigraph-document-accepted
+ts binary64-inexact-int
+ts integral-float-collapse
+ts multigraph-document-accepted

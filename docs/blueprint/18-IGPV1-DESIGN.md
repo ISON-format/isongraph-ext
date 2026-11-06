@@ -33,7 +33,7 @@ A record saying an extractor produced an edge does not prove the edge is semanti
 
 ## 1. Wire format and addressing
 
-One companion document `<graph>.igpv.ison`. Its bytes are **exactly** ison-py's canonical writer output (`dumps_canonical`, UTF-8, no trailing newline — `17` §2.1 applies verbatim); any other byte sequence is not an IGPV/1 payload (`MALFORMED_PROVENANCE`, field `canonical_form`). The writer decides block order (by `kind.name`), field order and quoting; the examples below are shown as the writer emits them (string tokens that look typed — `"0"`, `"1"`, `"true"`, `""` — are quoted, integers are bare, so `INT64` and `STRING` ids survive the wire). **Row order is this spec's**, not the writer's: every table is sorted by its key column (`artifact_id`, `producer_id`, `object_id`, `attribution_id`, `derivation_id`) as unsigned UTF-8 bytes before serialization, so two producers emitting the same set of records obtain the same bytes and the same digest; `to_ison()` sorts, and a file whose rows are in any other order fails the canonical re-emission check. Exactly these six blocks, each **exactly once**; any other block or a duplicate is `MALFORMED_PROVENANCE`. Tables may be empty (header only).
+One companion document `<graph>.igpv.ison`. Its bytes are **exactly** ison-py's canonical writer output (`dumps_canonical`, UTF-8, no trailing newline — `17` §2.1 applies verbatim); any other byte sequence is not an IGPV/1 payload (`MALFORMED_PROVENANCE`, field `canonical_form`). The writer decides block order (by `kind.name`), field order and quoting; the examples below are shown as the writer emits them (string tokens that look typed — `"0"`, `"1"`, `"true"`, `""` — are quoted, integers are bare, so `INT64` and `STRING` ids survive the wire). **Row order is canonical and deterministic**: the canonical writer orders the rows of every table by every column in canonical field order (ordinal UTF-8 bytes, nulls last at each position), so two producers emitting the same set of records obtain the same bytes and the same digest, and a file whose rows are in any other order fails the canonical re-emission check. *Post-freeze clarification (2026-11-06, E2 execution): rev 1 said rows are sorted "by key column"; ison-py 1.2.0's `dumps_canonical` sorts rows itself on all columns, which makes a key-column order unreachable on the wire. The guarantee (same records → same bytes; non-canonical order rejected) is unchanged; only the stated mechanism was wrong. The example below is in the writer's order.* Exactly these six blocks, each **exactly once**; any other block or a duplicate is `MALFORMED_PROVENANCE`. Tables may be empty (header only).
 
 ```text
 meta.igpv
@@ -47,18 +47,18 @@ src0 <64hex> document text/markdown 9f1c2e3d null 18422 file:///docs/orders.md
 
 table.producers
 implementation kind policy_sha256 producer_id spec version
-isongraph-ext transformation <64hex> t0 IGDAG/1 0.2.0
 betterify-ri-extractor extractor null x0 null 2.3.0
+isongraph-ext transformation <64hex> t0 IGDAG/1 0.2.0
 
 table.objects
 graph kind node_id node_type object_id ordinal relation source_id source_type target_id target_type
-null graph null null G null null null null null null
-null edge null null e1 "0" knows 1 p "s1" p
-null node 1 p n1 null null null null null null
-null node "s1" p n2 null null null null null null
 g0 node 7 p o7 null null null null null null
 g0 node 8 p o8 null null null null null null
 g0 node 9 p o9 null null null null null null
+null edge null null e1 "0" knows 1 p s1 p
+null graph null null G null null null null null null
+null node 1 p n1 null null null null null null
+null node s1 p n2 null null null null null null
 
 table.attributions
 artifact_id attribution_id locator_end locator_start locator_text locator_type object_id producer_id

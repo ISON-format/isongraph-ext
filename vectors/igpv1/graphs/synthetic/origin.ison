@@ -1,0 +1,11 @@
+edges.knows
+source target
+:p:1 :p:s1
+:p:7 :p:8
+
+nodes.p
+id
+1
+7
+8
+s1

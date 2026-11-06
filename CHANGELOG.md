@@ -2,6 +2,13 @@
 
 ## [Unreleased]
 
+## [0.2.0] — unreleased — E2 IGPV/1
+- IGPV/1 provenance (`docs/blueprint/18-IGPV1-DESIGN.md`, FROZEN rev 1): companion `<graph>.igpv.ison`, canonical by construction (the canonical writer orders rows), bound through IGX/1 as capability `igpv 1.0.0`.
+- Source attribution (SHA-256 artifacts, optional `bytes/1` / `lines/1` / `x-*` locators with runtime-derived `VERIFIED`/`UNVERIFIED` posture), producer attribution, graph/node/edge objects addressed by `NodeRef/2` / `EdgeAddress/2` (INT64 ids, ID-TWIN-INVARIANT), derivation lineage (`identity` / `collapse` / `rewrite`, artifact-to-artifact).
+- `verify()` with byte-budget preflight and P0–P5 (runs IGX/1 verification itself), `bind()`, `verify_and_admit()` (admission is the binding's), bounded `Lineage` queries with object-level cycle detection, CLI `python -m isongraph_ext.igpv verify|origins` (exit 0/1/2, 64 on usage).
+- `igx.DEFAULT_REGISTRY = {"igpv": "1.0.0"}` is the production registry default; `EMPTY_REGISTRY` remains for tests and the E1 vectors.
+- 70 conformance vectors under `vectors/igpv1/` with generator and reference runner.
+
 ## [0.1.0] — 2026-11-05 — E1 IGX/1
 - IGX/1 binding protocol (`docs/blueprint/17-IGX1-DESIGN.md`, FROZEN rev 3): companion `<graph>.igx.ison`, canonical by construction.
 - Identity claims `none | artifact | producer_bound | cross_port`; `producer_bound` requires a `FULL` producer **and** a Semantic/2-draft-eligible artifact **and** a full (not limited) re-verification; `cross_port` reserved; lossy producer-bound admission reserved.

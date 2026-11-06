@@ -7,9 +7,9 @@ Core baseline: ISONGraph **1.4.1** (tag `v1.4.1` = `027fb77`, released 2026-11-0
 | ID | Milestone | Depends on | Status |
 |---|---|---|---|
 | E0 | Core Semantic Baseline (forensics + corpus + frozen contract) | shipped core | DONE except E0.9 (Rust/C#/C++) |
-| E1 | IGX/1 Extension Binding + Capability Model | E0.10 (`16`) | READY — next |
+| E1 | IGX/1 Extension Binding + Capability Model | E0.10 (`16`) | DONE — `isongraph-ext` main `c245844` (0.1.0 unreleased; spec `17` rev 3) |
 | **G-ID** | **Graph Identity Soundness gate** (`13-SEMANTIC-2.md` §7) | E0, E1, Core 1.4.1 ✓ | BLOCKED on id-typing decision + corpus |
-| E2 | IGPV/1 Provenance | E1 | NOT_STARTED |
+| E2 | IGPV/1 Provenance | E1 | READY — spec `18` FROZEN 2026-11-06 (rev 1); plan `plans/2026-11-06-igpv1-e2.md` |
 | E3 | IGRV/1 Revision + IGD/1 Delta | E2, **G-ID** | BLOCKED |
 | E4 | IGDM/1 Datamatics | E1,E2 | NOT_STARTED |
 | E5 | IGP/1 Purpose Projection | E3,E4 | NOT_STARTED |
@@ -39,7 +39,7 @@ Re-cut 2026-11-05 around the executable Core corpus (`15-CORE-CONFORMANCE-CORPUS
 Extension identity/version; graph binding; REQUIRED/OPTIONAL capability; dependencies; unknown-extension behavior; canonical extension identity; vectors. Implements the frozen contract in `16` §3–§7: the binding carries the Core baseline pins and the producer's Core Conformance Receipt by digest, validation emits the `16` §5 codes, and admission follows `16` §4. Scope is exactly `16` §7 — no provenance/revision/Datamatics/projection.
 
 ## E2 — Provenance
-Graph/node/edge provenance scopes; source artifacts; extractor identity; transformations/collapse chains; merge rules; compactness; vectors.
+IGPV/1 per `18-IGPV1-DESIGN.md`: companion `<graph>.igpv.ison` bound as the IGX/1 capability `igpv`; source attribution (SHA-256 artifacts, optional versioned locators), producer attribution, graph/node/edge object provenance addressed by `NodeRef/2` / `EdgeAddress/2`, derivation lineage (`identity` / `collapse` / `rewrite`, many-to-one and one-to-many, artifact-to-artifact), verification P0–P5 with budgets, bounded `Lineage` queries, vectors. **Merge/conflict-resolution rules are deferred** to their own spec once multi-source composition semantics exist. E5/E6 emit IGPV/1 lineage (`18` §3); E2 defines and verifies it.
 
 ## G-ID — Graph Identity Soundness gate
 Nine conditions in `13-SEMANTIC-2.md` §7. E3 cannot open until all nine pass. Exit criteria: Core release carrying the identity patch (and the Rust/C#/C++ follow-ups), Semantic/2 tag bytes frozen, pre-E3 golden corpus executing on Python **and** TypeScript.
@@ -51,10 +51,10 @@ Revision identity/base/parent; node/edge/group/property changes; application/rej
 Node/edge/group presentation semantics; layout/LOD/interaction/temporal/accessibility hints; theme separation; compactness; vectors.
 
 ## E5 — Projection
-Source revision pinning; anchors/selectors; direction/depth; mandatory material; budgets; provenance retention; deterministic ordering; receipts; runtime; vectors.
+Source revision pinning; anchors/selectors; direction/depth; mandatory material; budgets; provenance retention; deterministic ordering; receipts; runtime; vectors. Emits IGPV/1 lineage for every derived object (`18` §3: `identity` / `rewrite` derivations, attributions carried across unchanged).
 
 ## E6 — DAG Projection
-SCC detection; `collapse_scc`; `edge_class_filter`; `temporal_cut`; `fail_if_cycle`; topological-order artifact; provenance; acyclicity proof; vectors.
+SCC detection; `collapse_scc`; `edge_class_filter`; `temporal_cut`; `fail_if_cycle`; topological-order artifact; provenance; acyclicity proof; vectors. Emits IGPV/1 lineage (`18` §3: `collapse` for SCC nodes, `rewrite` for re-targeted edges).
 
 ## E7 — Receipts/ISONCS
 Canonical source, policy and result identity; projection/DAG/delta receipts; ISONCS vectors.

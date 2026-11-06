@@ -7,14 +7,14 @@ name = "isongraph-ext"
 version = "0.1.0"
 description = "ISONGraphExt - IGX/1 extension bindings with verifiable identity claims over ISONGraph Core"
 readme = "README.md"
-license = {text = "MIT"}
+license = "MIT"
+license-files = ["LICENSE"]
 authors = [{name = "Mahesh Vaikri"}]
 requires-python = ">=3.12"
 # Exact pins: the reference runtime IS the implementation the Core baseline was measured with (17 §3, §4 V0).
 dependencies = ["ison-py==1.2.0", "ison-graph==1.4.1"]
 classifiers = [
     "Development Status :: 3 - Alpha",
-    "License :: OSI Approved :: MIT License",
     "Programming Language :: Python :: 3.12",
     "Typing :: Typed",
 ]

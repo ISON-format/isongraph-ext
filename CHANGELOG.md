@@ -1,6 +1,7 @@
 # Changelog
 
 ## [Unreleased]
+- `examples/`: adoption demonstrations (institutional evidence with IGX+IGPV, supply-chain assets with IGX+IGDM, a minimal generic IGDM-to-SVG adapter, a Core-only consumer, informational timings) with smoke tests and a fresh-venv wheel check. No library or protocol change.
 
 ## [0.3.0] — unreleased — E4 IGDM/1
 - IGDM/1 datamatics (`docs/blueprint/19-IGDM1-DESIGN.md`, FROZEN rev 1): companion `<graph>.igdm.ison` of renderer-neutral presentation and interaction intent, canonical by construction, bound through IGX/1 as capability `igdm 1.0.0`.

@@ -6,3 +6,17 @@ build/
 dist/
 .pytest_cache/
 .superpowers/
+
+# Internal planning documents are kept on the maintainer's disk and never committed. The public distribution carries only the
+# normative specifications and the Core receipts; anything else under docs/blueprint is ignored unless it is allowed below.
+docs/blueprint/*
+!docs/blueprint/README.md
+!docs/blueprint/02-CORE-COMPATIBILITY-LAWS.md
+!docs/blueprint/11-ADRS.md
+!docs/blueprint/13-SEMANTIC-2.md
+!docs/blueprint/15-CORE-CONFORMANCE-CORPUS.md
+!docs/blueprint/16-CORE-BASELINE-AND-COMPATIBILITY-CONTRACT.md
+!docs/blueprint/17-IGX1-DESIGN.md
+!docs/blueprint/18-IGPV1-DESIGN.md
+!docs/blueprint/19-IGDM1-DESIGN.md
+!docs/blueprint/receipts/

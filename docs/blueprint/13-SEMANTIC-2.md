@@ -1,6 +1,6 @@
 # ISONGraph-Semantic/2 — Graph Identity Contract
 
-Status: **DRAFT FOR G-ID FREEZE** · Consolidates `Q_A.md`–`Q_A4.md` into one normative document. Where this file and the Q&A transcripts disagree, this file wins; the transcripts are kept as design history.
+Status: **DRAFT FOR G-ID FREEZE** · Consolidates the earlier design discussion into one normative document; where it and any earlier discussion disagree, this file wins.
 
 Core baseline: ISONGraph **1.4.1** (tag `v1.4.1` = `027fb77`, released 2026-11-05), which carries the identity-contract fixes described in `14-E0-FORENSICS.md`.
 

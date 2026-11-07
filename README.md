@@ -19,6 +19,8 @@ A verified binding proves reproducibility and consistency, not authorship: `prod
 claim, not cryptographic authentication (spec §1.1). Provenance establishes origin and lineage, not that an
 extracted assertion is true, and a SHA-256 identifies bytes without authenticating their origin (IGPV/1 §0.1). Datamatics carries rendition intent (roles, never colours or coordinates); ISONGraph Visualize interprets it and owns the renderer's own accessibility obligations (IGDM/1 §1.3).
 
+Runnable end-to-end examples (a non-software provenance graph, a supply-chain presentation graph, a minimal generic SVG adapter, a Core-only consumer) are in [`examples/`](examples/README.md).
+
 ## Layout
 
 - `isongraph-ext/` — the Python distribution (`src/isongraph_ext`, `tests/`); baselines ship inside the package.

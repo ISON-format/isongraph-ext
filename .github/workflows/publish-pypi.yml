@@ -1,0 +1,109 @@
+# Publishes to TestPyPI (rehearsal) and PyPI via Trusted Publishing. See CONTRIBUTING.md, section Releasing.
+#
+# PyPI Trusted Publishing (GitHub OIDC): no tokens, no secrets. Register BOTH publishers (pending publishers, since the project
+# does not exist yet), each with exactly these claims:
+#
+#   index          PyPI project  Owner        Repository         Workflow           Environment
+#   test.pypi.org  isongraph-ext ISON-format   <final repo name>  publish-pypi.yml   testpypi
+#   pypi.org       isongraph-ext ISON-format   <final repo name>  publish-pypi.yml   pypi
+#
+# GitHub environments (Settings > Environments):
+#   testpypi  no reviewers needed; deployment tags/branches: v* tags
+#   pypi      REQUIRED REVIEWERS (owner + backup); deployment branches and tags: tag pattern v* only; no secrets
+# Renaming this file or either environment breaks the publishers' claim match: change both sides together.
+#
+# Triggers:
+#   release published  -> build from the release tag, then publish to PyPI after the `pypi` environment is approved.
+#   workflow_dispatch  -> build from `ref` (a v-tag, required), publish to testpypi (default) or pypi (also gated).
+# The build job refuses to continue unless the checked-out package version equals the tag (vX.Y.Z) and the tagged commit is on main.
+
+name: Publish Python package
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: Tag to build (vX.Y.Z)
+        required: true
+      target:
+        description: Where to publish
+        type: choice
+        options: [testpypi, pypi]
+        default: testpypi
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: isongraph-ext
+    env:
+      TAG: ${{ github.event_name == 'release' && github.event.release.tag_name || inputs.ref }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ env.TAG }}
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Tag must be a v-tag equal to the package version
+        run: |
+          case "$TAG" in v[0-9]*) ;; *) echo "not a version tag: $TAG"; exit 1;; esac
+          VERSION=$(python -c "import tomllib; print(tomllib.load(open('pyproject.toml','rb'))['project']['version'])")
+          echo "tag=$TAG version=$VERSION"
+          test "$TAG" = "v$VERSION"
+      - name: Tagged commit must be reachable from main
+        run: git merge-base --is-ancestor HEAD origin/main
+      - run: pip install -e ".[dev]"
+      - run: pytest -q
+      - run: pip install twine
+      - run: python -m build
+      - run: twine check dist/*
+      - run: pytest tests/test_packaging.py tests/test_examples.py -q --built
+      - run: pip install dist/*.whl --force-reinstall --no-deps && python -c "import isongraph_ext.igx.baselines as b; print(b.DEFAULT_BASELINE.core_commit)"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: dist
+          path: isongraph-ext/dist/
+          if-no-files-found: error
+
+  publish-testpypi:
+    if: github.event_name == 'workflow_dispatch' && inputs.target == 'testpypi'
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: testpypi
+      url: https://test.pypi.org/p/isongraph-ext
+    permissions:
+      id-token: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: dist
+          path: dist
+      - uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          repository-url: https://test.pypi.org/legacy/
+          skip-existing: true
+
+  publish-pypi:
+    if: github.event_name == 'release' || (github.event_name == 'workflow_dispatch' && inputs.target == 'pypi')
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: pypi
+      url: https://pypi.org/p/isongraph-ext
+    permissions:
+      id-token: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: dist
+          path: dist
+      - uses: pypa/gh-action-pypi-publish@release/v1

@@ -13,9 +13,15 @@ authors = [{name = "Mahesh Vaikri"}]
 requires-python = ">=3.12"
 # Exact pins: the reference runtime IS the implementation the Core baseline was measured with (17 §3, §4 V0).
 dependencies = ["ison-py==1.2.0", "ison-graph==1.4.1"]
+keywords = ["isongraph", "ison", "graph", "provenance", "lineage", "integrity", "verification", "conformance"]
 classifiers = [
     "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3 :: Only",
     "Programming Language :: Python :: 3.12",
+    "Topic :: Software Development :: Libraries :: Python Modules",
     "Typing :: Typed",
 ]
 
@@ -24,6 +30,10 @@ dev = ["pytest>=8", "build>=1.2"]
 
 [project.urls]
 Repository = "https://github.com/ISON-format/isongraph-ext"
+Issues = "https://github.com/ISON-format/isongraph-ext/issues"
+Changelog = "https://github.com/ISON-format/isongraph-ext/blob/main/CHANGELOG.md"
+Specifications = "https://github.com/ISON-format/isongraph-ext/tree/main/docs/blueprint"
+"ISONGraph Core" = "https://github.com/ISON-format/isongraph"
 
 [tool.setuptools.packages.find]
 where = ["src"]

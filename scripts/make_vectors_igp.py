@@ -67,7 +67,12 @@ RAW = {  # sources that are not (or must not be treated as) accepted graphs
     "multigraph": _m.to_ison().encode(), "undirected": graph([("p", 1)], [], directed=False), "isonl": _one.to_isonl().encode(),
     "noncanonical": TREE + b"\n\n", "id-beyond-int64": _big.to_ison().encode(), "node-type-column": b"nodes.p\nid node_type\n1 x\n", "not-utf8": b"\xff\xfe\x00",
 }
-SOURCES = {"tree": TREE, "institutional": INST, "supply": SUPPLY, "mixed": MIXED, **RAW}
+CHAIN = graph([("n", "a"), ("n", "z"), ("n", "b")], [("r", ("n", "a"), ("n", "z")), ("r", ("n", "z"), ("n", "b"))])
+FORK = graph([("n", "a"), ("n", "b"), ("n", "c")], [("r", ("n", "a"), ("n", "b")), ("s", ("n", "a"), ("n", "c"))])
+FAR = graph([("n", "a"), ("n", "b"), ("m", "far")], [("r", ("n", "a"), ("n", "b")), ("t", ("m", "far"), ("n", "a"))])
+XTYPE = graph([("x", "a"), ("n", "b")], [("r", ("x", "a"), ("n", "b"))])
+TREE_LF = TREE + b"\n"   # the Core writer does not emit a final LF, but Q1 admits one
+SOURCES = {"chain": CHAIN, "fork": FORK, "far": FAR, "xtype": XTYPE, "tree-lf": TREE_LF, "tree": TREE, "institutional": INST, "supply": SUPPLY, "mixed": MIXED, **RAW}
 
 BASE_POLICY = pol(("n", "a"), direction="out", depth=1)
 BT = BASE_POLICY.to_ison()
@@ -110,6 +115,11 @@ V = [
     ("ok/institutional-context", "institutional", CONTEXT, OK, None, "nodes:D-4,D-9,FR-19,CM-3,2026-03-12;stats:result_edges=4"),
     ("ok/supply-chain-impact", "supply", IMPACT, OK, None, "nodes:S-ACME,F-LYON,C-HOUSING,C-SEAL"),
     ("ok/whole-graph-identity", "tree", pol(("n", "a"), depth=3, direction="both"), OK, None, "result:source"),
+    ("ok/node-budget-distance-before-address", "chain", pol(("n", "a"), depth=2, max_nodes=2), OK, None, "nodes:a,z;farthest first: b is farther but sorts before z"),
+    ("ok/edge-budget-tie-break-greatest-edge-order", "fork", pol(("n", "a"), depth=1, max_edges=1), OK, None, "stats:result_edges=1,pruned_edges=1;both edges at distance 1: (a,s,c) is removed first"),
+    ("ok/edge-budget-untraversed-mandatory-first", "far", pol(("n", "a"), mandatory=[("m", "far")], depth=1, node_types=("n",), max_edges=1), OK, None, "nodes:a,b,far;stats:result_edges=1,pruned_edges=1;the edge to the untraversed mandatory node has distance infinity"),
+    ("ok/anchor-outside-node-type-allow-list", "xtype", pol(("x", "a"), depth=1, node_types=("n",)), OK, None, "nodes:a,b;an anchor is selected whatever its type"),
+    ("ok/trailing-lf-source-identity-rows", "tree-lf", pol(("n", "a"), depth=3, direction="both"), OK, None, "nodes:a,b1,b2,c1,c2,d,x,far;the result is not byte-identical to the source, so the lineage has identity rows"),
     # --- policy rejections
     ("reject/policy-noncanonical", "tree", BT + "\n", "reject:POLICY_MALFORMED", "Q0", None),
     ("reject/policy-duplicate-block", "tree", BT + "\n\nmeta.igp\ndepth\n1", "reject:POLICY_MALFORMED", "Q0", None),
@@ -145,6 +155,7 @@ V = [
     ("reject/verify-tampered-result", "institutional", CONTEXT, "reject:RESULT_MISMATCH", "Q4", "verify:result"),
     ("reject/verify-tampered-payload", "institutional", CONTEXT, "reject:LINEAGE_MISMATCH", "Q4", "verify:payload"),
     ("reject/verify-implementation-version", "institutional", CONTEXT, "reject:IMPLEMENTATION_VERSION_MISMATCH", "Q4", "verify:version"),
+    ("reject/verify-version-before-result", "institutional", CONTEXT, "reject:IMPLEMENTATION_VERSION_MISMATCH", "Q4", "verify:version-result"),
     ("reject/verify-policy-changed", "institutional", dataclasses.replace(CONTEXT, depth=1), "reject:RESULT_MISMATCH", "Q4", "verify:policy"),
 ]
 
@@ -183,7 +194,7 @@ def write_all() -> None:
         result_name = payload_name = "none"
         tamper = d.get("verify", [None])[0]
         if expect == OK or tamper:
-            base_pol = CONTEXT if tamper in ("result", "payload", "version") else pol_
+            base_pol = CONTEXT if tamper in ("result", "payload", "version", "version-result") else pol_
             base = project(source, base_pol, limits=limits)
             result, payload = base.result_bytes, base.payload
             if tamper == "result":
@@ -192,6 +203,9 @@ def write_all() -> None:
                 payload = dataclasses.replace(payload, derivations=tuple(x for x in payload.derivations if x.derivation_id != "dn0"),
                                               objects=tuple(x for x in payload.objects if x.object_id not in ("n0", "o0")))
             elif tamper == "version":
+                payload = dataclasses.replace(payload, producers=(dataclasses.replace(payload.producers[0], version="0.9.0"),))
+            elif tamper == "version-result":
+                result = result + b"\n"
                 payload = dataclasses.replace(payload, producers=(dataclasses.replace(payload.producers[0], version="0.9.0"),))
             elif tamper == "policy":
                 base = project(source, CONTEXT)                       # artifacts of the original policy, verified against the changed one

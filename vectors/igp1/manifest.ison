@@ -4,12 +4,15 @@ IGP/1 1
 
 table.vectors
 id detail expect payload policy result source step
+ok/anchor-outside-node-type-allow-list "nodes:a,b;an anchor is selected whatever its type" ok ok--anchor-outside-node-type-allow-list.igpv.ison ok--anchor-outside-node-type-allow-list.igp.ison ok--anchor-outside-node-type-allow-list.result.ison "xtype.ison" null
 ok/anchors-only nodes:a ok ok--anchors-only.igpv.ison ok--anchors-only.igp.ison ok--anchors-only.result.ison "tree.ison" null
 ok/both-allow-lists nodes:a,b1,b2,c1,c2,d,x ok ok--both-allow-lists.igpv.ison ok--both-allow-lists.igp.ison ok--both-allow-lists.result.ison "tree.ison" null
 ok/depth-1-out nodes:a,b1,b2 ok ok--depth-1-out.igpv.ison ok--depth-1-out.igp.ison ok--depth-1-out.result.ison "tree.ison" null
 ok/depth-2-both nodes:a,b1,b2,c1,c2,d,x,far ok ok--depth-2-both.igpv.ison ok--depth-2-both.igp.ison ok--depth-2-both.result.ison "tree.ison" null
 ok/direction-in nodes:a,far ok ok--direction-in.igpv.ison ok--direction-in.igp.ison ok--direction-in.result.ison "tree.ison" null
 ok/edge-budget-by-distance stats:result_edges=3,pruned_edges=3 ok ok--edge-budget-by-distance.igpv.ison ok--edge-budget-by-distance.igp.ison ok--edge-budget-by-distance.result.ison "tree.ison" null
+ok/edge-budget-tie-break-greatest-edge-order "stats:result_edges=1,pruned_edges=1;both edges at distance 1: (a,s,c) is removed first" ok ok--edge-budget-tie-break-greatest-edge-order.igpv.ison ok--edge-budget-tie-break-greatest-edge-order.igp.ison ok--edge-budget-tie-break-greatest-edge-order.result.ison "fork.ison" null
+ok/edge-budget-untraversed-mandatory-first "nodes:a,b,far;stats:result_edges=1,pruned_edges=1;the edge to the untraversed mandatory node has distance infinity" ok ok--edge-budget-untraversed-mandatory-first.igpv.ison ok--edge-budget-untraversed-mandatory-first.igp.ison ok--edge-budget-untraversed-mandatory-first.result.ison "far.ison" null
 ok/induced-sibling-edge stats:result_edges=3 ok ok--induced-sibling-edge.igpv.ison ok--induced-sibling-edge.igp.ison ok--induced-sibling-edge.result.ison "tree.ison" null
 ok/institutional-context nodes:D-4,D-9,FR-19,CM-3,2026-03-12;stats:result_edges=4 ok ok--institutional-context.igpv.ison ok--institutional-context.igp.ison ok--institutional-context.result.ison "institutional.ison" null
 ok/int-and-string-ids nodes:1,s1 ok ok--int-and-string-ids.igpv.ison ok--int-and-string-ids.igp.ison ok--int-and-string-ids.result.ison "mixed.ison" null
@@ -17,6 +20,7 @@ ok/mandatory-also-anchor nodes:a ok ok--mandatory-also-anchor.igpv.ison ok--mand
 ok/mandatory-inside-traversal nodes:a,b1,b2 ok ok--mandatory-inside-traversal.igpv.ison ok--mandatory-inside-traversal.igp.ison ok--mandatory-inside-traversal.result.ison "tree.ison" null
 ok/mandatory-outside-traversal-induced-edge nodes:a,far;stats:result_edges=1 ok ok--mandatory-outside-traversal-induced-edge.igpv.ison ok--mandatory-outside-traversal-induced-edge.igp.ison ok--mandatory-outside-traversal-induced-edge.result.ison "tree.ison" null
 ok/mandatory-survives-without-edge nodes:a,b1,b2,far;stats:result_edges=0,pruned_edges=4,truncated=true ok ok--mandatory-survives-without-edge.igpv.ison ok--mandatory-survives-without-edge.igp.ison ok--mandatory-survives-without-edge.result.ison "tree.ison" null
+ok/node-budget-distance-before-address "nodes:a,z;farthest first: b is farther but sorts before z" ok ok--node-budget-distance-before-address.igpv.ison ok--node-budget-distance-before-address.igp.ison ok--node-budget-distance-before-address.result.ison "chain.ison" null
 ok/node-budget-farthest-first nodes:a,b1,b2,c1;stats:pruned_nodes=2,truncated=true ok ok--node-budget-farthest-first.igpv.ison ok--node-budget-farthest-first.igp.ison ok--node-budget-farthest-first.result.ison "tree.ison" null
 ok/node-type-allow-list nodes:a,b1,b2 ok ok--node-type-allow-list.igpv.ison ok--node-type-allow-list.igp.ison ok--node-type-allow-list.result.ison "tree.ison" null
 ok/out-projection-holds-incoming-edge nodes:b1,x;stats:result_edges=1 ok ok--out-projection-holds-incoming-edge.igpv.ison ok--out-projection-holds-incoming-edge.igp.ison ok--out-projection-holds-incoming-edge.result.ison "tree.ison" null
@@ -26,6 +30,7 @@ ok/relation-allow-list nodes:a ok ok--relation-allow-list.igpv.ison ok--relation
 ok/same-id-different-types nodes:1,-7 ok ok--same-id-different-types.igpv.ison ok--same-id-different-types.igp.ison ok--same-id-different-types.result.ison "mixed.ison" null
 ok/stats-exclude-never-selected stats:selected_nodes=2,pruned_nodes=1 ok ok--stats-exclude-never-selected.igpv.ison ok--stats-exclude-never-selected.igp.ison ok--stats-exclude-never-selected.result.ison "tree.ison" null
 ok/supply-chain-impact nodes:S-ACME,F-LYON,C-HOUSING,C-SEAL ok ok--supply-chain-impact.igpv.ison ok--supply-chain-impact.igp.ison ok--supply-chain-impact.result.ison "supply.ison" null
+ok/trailing-lf-source-identity-rows "nodes:a,b1,b2,c1,c2,d,x,far;the result is not byte-identical to the source, so the lineage has identity rows" ok ok--trailing-lf-source-identity-rows.igpv.ison ok--trailing-lf-source-identity-rows.igp.ison ok--trailing-lf-source-identity-rows.result.ison "tree-lf.ison" null
 ok/unrestricted-empty-lists nodes:a,b1,b2,far ok ok--unrestricted-empty-lists.igpv.ison ok--unrestricted-empty-lists.igp.ison ok--unrestricted-empty-lists.result.ison "tree.ison" null
 ok/whole-graph-identity result:source ok ok--whole-graph-identity.igpv.ison ok--whole-graph-identity.igp.ison ok--whole-graph-identity.result.ison "tree.ison" null
 reject/anchor-not-found null reject:ANCHOR_NOT_FOUND none reject--anchor-not-found.igp.ison none "tree.ison" Q2
@@ -59,3 +64,4 @@ reject/verify-implementation-version verify:version reject:IMPLEMENTATION_VERSIO
 reject/verify-policy-changed verify:policy reject:RESULT_MISMATCH reject--verify-policy-changed.igpv.ison reject--verify-policy-changed.igp.ison reject--verify-policy-changed.result.ison "institutional.ison" Q4
 reject/verify-tampered-payload verify:payload reject:LINEAGE_MISMATCH reject--verify-tampered-payload.igpv.ison reject--verify-tampered-payload.igp.ison reject--verify-tampered-payload.result.ison "institutional.ison" Q4
 reject/verify-tampered-result verify:result reject:RESULT_MISMATCH reject--verify-tampered-result.igpv.ison reject--verify-tampered-result.igp.ison reject--verify-tampered-result.result.ison "institutional.ison" Q4
+reject/verify-version-before-result verify:version-result reject:IMPLEMENTATION_VERSION_MISMATCH reject--verify-version-before-result.igpv.ison reject--verify-version-before-result.igp.ison reject--verify-version-before-result.result.ison "institutional.ison" Q4

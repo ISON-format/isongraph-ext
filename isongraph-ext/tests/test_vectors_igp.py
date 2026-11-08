@@ -10,12 +10,14 @@ from isongraph_ext.igp import IGPError, Limits, project, verify_projection
 
 VEC = ROOT / "vectors" / "igp1"
 EXPECT_IDS = {
-    "ok/anchors-only", "ok/both-allow-lists", "ok/depth-1-out", "ok/depth-2-both", "ok/direction-in", "ok/edge-budget-by-distance",
-    "ok/induced-sibling-edge", "ok/institutional-context", "ok/int-and-string-ids", "ok/mandatory-also-anchor",
-    "ok/mandatory-inside-traversal", "ok/mandatory-outside-traversal-induced-edge", "ok/mandatory-survives-without-edge",
-    "ok/node-budget-farthest-first", "ok/node-type-allow-list", "ok/out-projection-holds-incoming-edge", "ok/property-carry-over",
-    "ok/protected-equals-max-nodes", "ok/relation-allow-list", "ok/same-id-different-types", "ok/stats-exclude-never-selected",
-    "ok/supply-chain-impact", "ok/unrestricted-empty-lists", "ok/whole-graph-identity", "reject/anchor-not-found",
+    "ok/anchor-outside-node-type-allow-list", "ok/anchors-only", "ok/both-allow-lists", "ok/depth-1-out", "ok/depth-2-both",
+    "ok/direction-in", "ok/edge-budget-by-distance", "ok/edge-budget-tie-break-greatest-edge-order",
+    "ok/edge-budget-untraversed-mandatory-first", "ok/induced-sibling-edge", "ok/institutional-context", "ok/int-and-string-ids",
+    "ok/mandatory-also-anchor", "ok/mandatory-inside-traversal", "ok/mandatory-outside-traversal-induced-edge",
+    "ok/mandatory-survives-without-edge", "ok/node-budget-distance-before-address", "ok/node-budget-farthest-first",
+    "ok/node-type-allow-list", "ok/out-projection-holds-incoming-edge", "ok/property-carry-over", "ok/protected-equals-max-nodes",
+    "ok/relation-allow-list", "ok/same-id-different-types", "ok/stats-exclude-never-selected", "ok/supply-chain-impact",
+    "ok/trailing-lf-source-identity-rows", "ok/unrestricted-empty-lists", "ok/whole-graph-identity", "reject/anchor-not-found",
     "reject/budget-unsatisfiable", "reject/lineage-byte-limit", "reject/lineage-row-limit", "reject/mandatory-not-found",
     "reject/policy-bad-direction", "reject/policy-depth-out-of-range", "reject/policy-duplicate-anchor", "reject/policy-duplicate-block",
     "reject/policy-id-beyond-int64", "reject/policy-noncanonical", "reject/policy-oversized", "reject/policy-twin-ids",
@@ -23,7 +25,7 @@ EXPECT_IDS = {
     "reject/source-id-beyond-int64", "reject/source-isonl", "reject/source-multigraph", "reject/source-node-type-column",
     "reject/source-noncanonical", "reject/source-not-utf8", "reject/source-oversized", "reject/source-undirected",
     "reject/two-faults-first-wins", "reject/typed-id-mismatch", "reject/verify-implementation-version", "reject/verify-policy-changed",
-    "reject/verify-tampered-payload", "reject/verify-tampered-result"
+    "reject/verify-tampered-payload", "reject/verify-tampered-result", "reject/verify-version-before-result"
 }
 
 

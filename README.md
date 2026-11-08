@@ -55,7 +55,6 @@ Core works without any of it. Add a companion only when you need the answer it g
 | *Is this really the graph I was promised?* | **IGX/1** binding | Pins the exact bytes, the Core version they were written with, and an identity claim (`none`, `artifact`, `producer_bound`). Unknown capabilities are reported or refused, never silently ignored. |
 | *Where did this come from?* | **IGPV/1** provenance | Attributes nodes and edges to source documents, with byte or line spans you can check against the real bytes, and records derivation lineage: *this node stands for those nodes in an earlier graph*. |
 | *How should a viewer present it?* | **IGDM/1** datamatics | Renderer-neutral presentation **intent**: semantic roles, emphasis, badges, groups, layout hints and accessibility text. Never colours, fonts or coordinates. |
-
 | *Which part of this graph do I need?* | **IGP/1** projection | Selects a bounded, deterministic subgraph from explicit anchors, relation and type allow-lists, direction, depth and budgets, and returns an ordinary graph **plus provenance for every node and edge**. Anyone can recompute it from the source and the policy. |
 
 Each is optional and independent. A consumer that knows none of them still has the whole graph.
@@ -216,7 +215,7 @@ The reference runtime pins `ison-graph==1.4.1` and `ison-py==1.2.0`. These check
 
 - **Byte-exact.** Companion files are canonical by construction: one graph, one companion, one set of bytes, one SHA-256.
 - **Specified before coded.** Each capability has a frozen specification in [`docs/blueprint/`](docs/blueprint/README.md); the code follows it, never the reverse.
-- **Conformance vectors.** 211 byte-exact vectors in [`vectors/`](vectors) (IGX/1 35, IGPV/1 71, IGDM/1 50, IGP/1 55) and about 540 tests, replayed in CI on every change.
+- **Conformance vectors.** 217 byte-exact vectors in [`vectors/`](vectors) (IGX/1 35, IGPV/1 71, IGDM/1 50, IGP/1 61) and about 540 tests, replayed in CI on every change.
 - **Pinned to a measured Core.** The package embeds the Core baseline it was verified against, plus Core's own conformance receipts, so identity claims are checkable rather than asserted.
 - **Hostile-input safe.** Parsing is bounded by explicit size and row budgets, and verification reports the first failing step instead of guessing.
 

@@ -90,7 +90,7 @@ Output is itself ISON, so receipts can quote it verbatim.
 
 - **Byte-exact.** Companion files are canonical by construction: one graph, one companion, one set of bytes, one SHA-256.
 - **Specified before coded.** Frozen specifications for IGX/1, IGPV/1 and IGDM/1 live in the [repository](https://github.com/ISON-format/isongraph-ext/tree/main/docs/blueprint); the code follows them, never the reverse.
-- **Conformance vectors.** 211 byte-exact vectors and about 540 tests are replayed in CI on every change.
+- **Conformance vectors.** 217 byte-exact vectors and about 540 tests are replayed in CI on every change.
 - **Pinned to a measured Core.** The package embeds the Core baseline it was verified against, plus Core's conformance receipts, so identity claims are checkable rather than asserted.
 - **Hostile-input safe.** Parsing is bounded by explicit size and row budgets; verification reports the first failing step instead of guessing.
 

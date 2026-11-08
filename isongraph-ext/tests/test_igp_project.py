@@ -143,3 +143,23 @@ def test_in_memory_policy_obeys_the_policy_byte_budget():
         with pytest.raises(IGPError) as info:
             project(INSTITUTIONAL, policy, limits=Limits(max_policy_bytes=10))
         assert (info.value.code, info.value.field, info.value.step) == ("PROJECTION_LIMIT_EXCEEDED", "max_policy_bytes", "Q0"), info.value
+
+
+def test_a_trailing_lf_in_the_source_gives_identity_rows_not_self_attribution():
+    # whole-graph selection, but the source bytes carry a final LF the Core writer does not emit: the result is NOT byte-identical
+    plain = graph_bytes([("n", "a"), ("n", "b")], [("r", ("n", "a"), ("n", "b"))])
+    r = project(plain + b"\n", pol(("n", "a"), depth=3, direction="both"))
+    assert r.result_bytes == plain and r.result_bytes != plain + b"\n"
+    assert len(r.payload.derivations) == 3 and not r.payload.attributions
+    assert r.payload.artifacts[0].size == len(plain) + 1 and r.payload.artifacts[0].artifact_sha256 == sha(plain + b"\n")
+    sources = {sha(plain + b"\n"): plain + b"\n"}
+    b = igpv.bind(r.result_bytes, r.payload, sources=sources, **KW)
+    assert igpv.verify_and_admit(r.payload, b, r.result_bytes, sources=sources)[2].admitted
+
+
+def test_a_wrong_version_is_reported_before_a_tampered_result():
+    r = project(INSTITUTIONAL, CONTEXT)
+    prod = dataclasses.replace(r.payload.producers[0], version="0.9.0")
+    with pytest.raises(IGPError) as info:
+        verify_projection(INSTITUTIONAL, CONTEXT, r.result_bytes + b"tamper", dataclasses.replace(r.payload, producers=(prod,)))
+    assert (info.value.code, info.value.step) == ("IMPLEMENTATION_VERSION_MISMATCH", "Q4")

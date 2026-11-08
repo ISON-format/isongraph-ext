@@ -109,3 +109,13 @@ def test_to_ison_enforces_the_byte_budget_for_in_memory_policies():
     with pytest.raises(IGPError) as info:
         to_ison(sample(), Limits(max_policy_bytes=len(ORACLE) - 1))
     assert (info.value.code, info.value.field, info.value.step) == ("PROJECTION_LIMIT_EXCEEDED", "max_policy_bytes", "Q0")
+
+
+def test_a_lone_surrogate_anywhere_in_a_programmatic_policy_is_policy_malformed():
+    # none of these has UTF-8 bytes, so none may escape as a UnicodeEncodeError
+    a = NodeRef("p", "a")
+    for kw, field in ((dict(anchors=(NodeRef("\ud800", "a"),)), "table.anchors"), (dict(anchors=(a,), node_types=("\ud800",)), "table.node_types"),
+                      (dict(anchors=(a,), relations=("\ud800",)), "table.relations"), (dict(anchors=(a,), mandatory=(NodeRef("\ud800", "m"),)), "table.mandatory")):
+        with pytest.raises(IGPError) as info:
+            Policy(**kw).to_ison()
+        assert (info.value.code, info.value.step) == ("POLICY_MALFORMED", "Q0") and info.value.field.startswith(field), info.value

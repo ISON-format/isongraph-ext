@@ -41,6 +41,7 @@ def _utf8_ok(s: str) -> bool:
 def _check_ref(ref: Any, table: str) -> None:
     _need(isinstance(ref, NodeRef), f"table.{table}", "NodeRef required")
     where = f"table.{table}.{ref.node_type}:{ref.node_id}"
+    _need(is_str(ref.node_type) and _utf8_ok(ref.node_type), f"{where}.node_type", "string is not UTF-8-encodable (lone surrogate)")
     _need(is_identifier(ref.node_type), f"{where}.node_type", 'Core identifier (non-empty, no whitespace, none of : | " \\)')
     if is_int(ref.node_id):
         _need(INT64_MIN <= ref.node_id <= INT64_MAX, f"{where}.node_id", "integer id must lie within INT64")
@@ -77,6 +78,7 @@ def check(p: Policy, limits: Limits = R.DEFAULT_LIMITS) -> None:
     for table, col, rows in (("node_types", "node_type", p.node_types), ("relations", "relation", p.relations)):
         seen2: set = set()
         for v in rows:
+            _need(is_str(v) and _utf8_ok(v), f"table.{table}.{v}.{col}", "string is not UTF-8-encodable (lone surrogate)")
             _need(is_identifier(v), f"table.{table}.{v}.{col}", "Core identifier")
             _need(v not in seen2, f"table.{table}.{v}.{col}", "duplicate entry")
             seen2.add(v)

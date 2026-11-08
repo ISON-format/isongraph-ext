@@ -81,3 +81,44 @@ def test_anchor_and_mandatory_must_exist_and_ids_are_typed():
     with pytest.raises(IGPError) as info:
         select(ints, pol(("p", "1")))                                                                # STRING "1" is not INT64 1
     assert info.value.code == "ANCHOR_NOT_FOUND"
+
+
+# --- review fix pass: rules the first test set did not pin (each would survive the mutation named in its comment)
+def _sel(nodes, edges, policy):
+    s = select(load_source(graph_bytes(nodes, edges), DEFAULT_LIMITS), policy)
+    return {n[1] for n in s.nodes}, {(e[0][1], e[1], e[2][1]) for e in s.edges}
+
+
+def test_node_budget_prunes_by_distance_before_address():
+    # a -> z -> b: b is farthest but not the greatest address; address-only pruning would keep {a, b}
+    nodes, _ = _sel([("n", "a"), ("n", "z"), ("n", "b")], [("r", ("n", "a"), ("n", "z")), ("r", ("n", "z"), ("n", "b"))],
+                    pol(("n", "a"), depth=2, max_nodes=2))
+    assert nodes == {"a", "z"}
+
+
+def test_edge_budget_tie_break_removes_the_greatest_edge_order_first():
+    # both edges are at distance 1: relation 's' sorts after 'r', so (a, s, c) goes first
+    _, edges = _sel([("n", "a"), ("n", "b"), ("n", "c")], [("r", ("n", "a"), ("n", "b")), ("s", ("n", "a"), ("n", "c"))],
+                    pol(("n", "a"), depth=1, max_edges=1))
+    assert edges == {("a", "r", "b")}
+
+
+def test_edge_to_an_untraversed_mandatory_node_is_pruned_first():
+    # far (mandatory, outside the traversal) has distance infinity, so its edge goes before the walked edge
+    _, edges = _sel([("n", "a"), ("n", "b"), ("m", "far")], [("r", ("n", "a"), ("n", "b")), ("t", ("m", "far"), ("n", "a"))],
+                    pol(("n", "a"), mandatory=[("m", "far")], depth=1, node_types=("n",), max_edges=1))
+    assert edges == {("a", "r", "b")}
+
+
+def test_an_anchor_outside_the_node_type_allow_list_is_still_selected():
+    nodes, _ = _sel([("x", "a"), ("n", "b")], [("r", ("x", "a"), ("n", "b"))], pol(("x", "a"), depth=1, node_types=("n",)))
+    assert nodes == {"a", "b"}
+
+
+def test_source_size_limit_boundary_is_inclusive():
+    from isongraph_ext.igp import IGPError, Limits
+    data = graph_bytes([("n", "a")], [])
+    load_source(data, Limits(max_source_bytes=len(data)))
+    with pytest.raises(IGPError) as info:
+        load_source(data, Limits(max_source_bytes=len(data) - 1))
+    assert info.value.code == "PROJECTION_LIMIT_EXCEEDED"

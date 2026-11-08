@@ -1,0 +1,18 @@
+meta.igp
+depth direction max_edges max_nodes policy_spec
+0 out null null IGP/1
+
+table.anchors
+node_id node_type
+a n
+
+table.mandatory
+node_id node_type
+far m
+
+table.node_types
+node_type
+n
+
+table.relations
+relation

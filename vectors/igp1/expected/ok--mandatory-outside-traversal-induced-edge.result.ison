@@ -1,0 +1,11 @@
+edges.t
+source target
+:m:far :n:a
+
+nodes.m
+id
+far
+
+nodes.n
+id
+a

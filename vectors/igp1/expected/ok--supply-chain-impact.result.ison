@@ -1,0 +1,21 @@
+edges.produces
+source target
+:facility:F-LYON :component:C-HOUSING
+:facility:F-LYON :component:C-SEAL
+
+edges.supplies
+source target
+:supplier:S-ACME :facility:F-LYON
+
+nodes.component
+id
+C-HOUSING
+C-SEAL
+
+nodes.facility
+id
+F-LYON
+
+nodes.supplier
+id
+S-ACME

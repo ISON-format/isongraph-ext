@@ -1,0 +1,33 @@
+edges.depends_on
+source target
+:component:C-PUMP :component:C-HOUSING
+:component:C-PUMP :component:C-MOTOR
+:component:C-PUMP :component:C-SEAL
+
+edges.produces
+source target
+:facility:F-LYON :component:C-HOUSING
+:facility:F-LYON :component:C-SEAL
+:facility:F-OSAKA :component:C-MOTOR
+
+edges.supplies
+source target
+:supplier:S-ACME :facility:F-LYON
+:supplier:S-NORD :facility:F-LYON
+
+nodes.component
+id
+C-HOUSING
+C-MOTOR
+C-PUMP
+C-SEAL
+
+nodes.facility
+id
+F-LYON
+F-OSAKA
+
+nodes.supplier
+id
+S-ACME
+S-NORD

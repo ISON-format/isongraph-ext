@@ -1,0 +1,41 @@
+meta.igpv
+provenance_spec target_artifact_sha256 target_semantic_digest target_semantic_digest_algorithm target_serialization_profile
+IGPV/1 f4c3ed790d886247e5468cacf39e2fcea2ad4b9ae91ebb5774a02a4415a04a17 null null ison-v1
+
+table.artifacts
+artifact_id artifact_sha256 kind media_type revision serialization_profile size uri
+src 7b5f4c473a4efa4dc0068b073b9a029b771e5102199eb95a4ee1b34b5c03e632 isongraph null null ison-v1 499 null
+
+table.attributions
+artifact_id attribution_id locator_end locator_start locator_text locator_type object_id producer_id
+
+table.derivations
+derivation_id derived_object_id kind origin_object_id producer_id
+de0 e0 identity q0 p0
+de1 e1 identity q1 p0
+de2 e2 identity q2 p0
+dn0 n0 identity o0 p0
+dn1 n1 identity o1 p0
+dn2 n2 identity o2 p0
+dn3 n3 identity o3 p0
+
+table.objects
+graph kind node_id node_type object_id ordinal relation source_id source_type target_id target_type
+src edge null null q0 "0" produces F-LYON facility C-HOUSING component
+src edge null null q1 "0" produces F-LYON facility C-SEAL component
+src edge null null q2 "0" supplies S-ACME supplier F-LYON facility
+src node C-HOUSING component o0 null null null null null null
+src node C-SEAL component o1 null null null null null null
+src node F-LYON facility o2 null null null null null null
+src node S-ACME supplier o3 null null null null null null
+null edge null null e0 "0" produces F-LYON facility C-HOUSING component
+null edge null null e1 "0" produces F-LYON facility C-SEAL component
+null edge null null e2 "0" supplies S-ACME supplier F-LYON facility
+null node C-HOUSING component n0 null null null null null null
+null node C-SEAL component n1 null null null null null null
+null node F-LYON facility n2 null null null null null null
+null node S-ACME supplier n3 null null null null null null
+
+table.producers
+implementation kind policy_sha256 producer_id spec version
+isongraph-ext-igp transformation 41e9765014495036270d6e924e59cd31d0cf26cfde4852700a6778c016aff3e2 p0 IGP/1 1.0.0

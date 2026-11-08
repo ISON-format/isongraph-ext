@@ -9,7 +9,7 @@ from .baselines import BASELINES, DEFAULT_BASELINE, Baseline
 from .binding import IDENTITY_CLAIMS, PORTS, PROFILES, WRITER_OF_PORT, Capability, Consumer, ExtensionBinding
 from .digest import sha256_hex
 from .errors import IGXError
-from .source import as_bytes, classify_eligibility, derive_canonical
+from .source import as_bytes, classify_eligibility, derive_canonical, load_source
 from .verify import DEFAULT_REGISTRY, CapabilityRegistry, _runtime_mismatch, verify
 
 
@@ -32,11 +32,12 @@ def bind(source: str | bytes, *, serialization_profile: str, producer_port: str,
     if mismatch is not None:
         # Producing needs the pinned implementation to derive canonicality/eligibility; only verifying tolerates its absence.
         raise IGXError("CORE_RUNTIME_MISMATCH", mismatch[0], mismatch[1], "V0")
-    canonical = derive_canonical(data, serialization_profile, producer_port)
+    loaded = load_source(data, serialization_profile)           # parse once for both source facts
+    canonical = derive_canonical(data, serialization_profile, producer_port, loaded=loaded)
     if canonical == "false":
         raise IGXError("SOURCE_WRITER_MISMATCH", "meta.source.source_canonical",
                        "the Python writer does not reproduce these bytes under this profile", "V4")
-    eligibility, reason = classify_eligibility(data, serialization_profile)
+    eligibility, reason = classify_eligibility(data, serialization_profile, loaded=loaded)
     binding = ExtensionBinding(
         identity_claim=identity_claim, artifact_sha256=sha256_hex(data), serialization_profile=serialization_profile,
         source_canonical=canonical, source_semantic_eligibility=eligibility, source_semantic_reason=reason,

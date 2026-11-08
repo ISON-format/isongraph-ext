@@ -7,6 +7,8 @@ domain the eligibility classifier has to inspect.
 
 from __future__ import annotations
 
+from typing import Any, NamedTuple
+
 from ison_graph import MULTIGRAPH_FORMAT, ISONGraph
 from ison_graph.multigraph import MultiGraph
 from ison_parser import loads, loads_isonl
@@ -49,16 +51,38 @@ def _load(source: bytes, profile: str):
     return graph, doc
 
 
+class Loaded(NamedTuple):
+    """The outcome of loading a source once. `error` is set when the pinned Core rejects it; then graph and doc are None."""
+
+    graph: Any
+    doc: Any
+    error: Exception | None
+
+
+def load_source(source: bytes, profile: str) -> Loaded:
+    """Load once. A source the Core rejects is an answer, not an exception: callers map `error` to their own outcome ("false" for
+    canonicality, "unclassified" for eligibility). Pass the result to derive_canonical / classify_eligibility so one verification
+    parses the artifact once instead of once per question."""
+    try:
+        graph, doc = _load(source, profile)
+    except Exception as e:
+        return Loaded(None, None, e)
+    return Loaded(graph, doc, None)
+
+
 def _emit(graph, profile: str) -> bytes:
     return (graph.to_isonl() if profile == "isonl-v1" else graph.to_ison()).encode("utf-8")
 
 
-def derive_canonical(source: bytes, profile: str, producer_port: str) -> str:
+def derive_canonical(source: bytes, profile: str, producer_port: str, *, loaded: Loaded | None = None) -> str:
     if producer_port != "python":
         return "unverified"
+    if loaded is None:
+        loaded = load_source(source, profile)
+    if loaded.error is not None:
+        return "false"
     try:
-        graph, _ = _load(source, profile)
-        emitted = _emit(graph, profile)
+        emitted = _emit(loaded.graph, profile)
     except Exception:
         return "false"
     return "true" if source in (emitted, emitted + b"\n") else "false"
@@ -68,11 +92,12 @@ def _int_out_of_range(value) -> bool:
     return isinstance(value, int) and not isinstance(value, bool) and not (INT64_MIN <= value <= INT64_MAX)
 
 
-def classify_eligibility(source: bytes, profile: str) -> tuple[str, str | None]:
-    try:
-        graph, doc = _load(source, profile)
-    except Exception:
+def classify_eligibility(source: bytes, profile: str, *, loaded: Loaded | None = None) -> tuple[str, str | None]:
+    if loaded is None:
+        loaded = load_source(source, profile)
+    if loaded.error is not None:
         return ("unclassified", None)
+    graph, doc = loaded.graph, loaded.doc
     if _is_multigraph_document(doc):
         return ("ineligible", "MULTIGRAPH_DOCUMENT")
     for node in graph.nodes():

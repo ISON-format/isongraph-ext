@@ -5,9 +5,9 @@ Small, runnable demonstrations that the released capabilities (IGX/1, IGPV/1, IG
 ## Install and run
 
 ```bash
+git clone https://github.com/ISON-format/isongraph-ext.git && cd isongraph-ext
 python -m venv .venv && . .venv/bin/activate            # Windows: .venv\Scripts\activate
-pip install build && python -m build isongraph-ext
-pip install isongraph-ext/dist/isongraph_ext-0.3.0-py3-none-any.whl     # no PyPI release exists
+pip install isongraph-ext                               # the examples live in the repository, not in the wheel
 python examples/institutional_evidence.py
 python examples/supply_chain_assets.py --write out/
 python examples/igdm_to_svg.py out/assets.ison out/assets.igx.ison out/assets.igdm.ison out/assets.svg

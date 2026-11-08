@@ -35,6 +35,8 @@ def test_wheel_contains_every_baseline_file_byte_exact(request):
     assert "isongraph_ext/igx/registry.py" in names_all
     for mod in ("__init__", "errors", "records", "payload", "verify", "bind", "__main__"):
         assert f"isongraph_ext/igdm/{mod}.py" in names_all, mod
+    for mod in ("__init__", "errors", "records", "policy", "source", "select", "project", "__main__"):
+        assert f"isongraph_ext/igp/{mod}.py" in names_all, mod
 
 
 def test_sdist_contains_every_baseline_file(request):

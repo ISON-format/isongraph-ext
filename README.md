@@ -50,11 +50,13 @@ Core works without any of it. Add a companion only when you need the answer it g
 
 ## What you get
 
-| Question | Companion | In one line |
+| Question | Capability | In one line |
 |---|---|---|
 | *Is this really the graph I was promised?* | **IGX/1** binding | Pins the exact bytes, the Core version they were written with, and an identity claim (`none`, `artifact`, `producer_bound`). Unknown capabilities are reported or refused, never silently ignored. |
 | *Where did this come from?* | **IGPV/1** provenance | Attributes nodes and edges to source documents, with byte or line spans you can check against the real bytes, and records derivation lineage: *this node stands for those nodes in an earlier graph*. |
 | *How should a viewer present it?* | **IGDM/1** datamatics | Renderer-neutral presentation **intent**: semantic roles, emphasis, badges, groups, layout hints and accessibility text. Never colours, fonts or coordinates. |
+
+| *Which part of this graph do I need?* | **IGP/1** projection | Selects a bounded, deterministic subgraph from explicit anchors, relation and type allow-lists, direction, depth and budgets, and returns an ordinary graph **plus provenance for every node and edge**. Anyone can recompute it from the source and the policy. |
 
 Each is optional and independent. A consumer that knows none of them still has the whole graph.
 
@@ -101,6 +103,35 @@ tampered: SOURCE_BINDING_MISMATCH at V4
 
 Verification is a fixed sequence of numbered steps, and every failure names the step and a stable error code.
 
+## Project a bounded subgraph
+
+Select what an agent, a report or a viewer needs, with proof of where every part came from:
+
+```python
+from ison_graph import ISONGraph
+from isongraph_ext.igp import Policy, project
+from isongraph_ext.igpv import NodeRef
+
+g = ISONGraph()
+for name in ("ada", "grace", "linus"):
+    g.add_node("person", name)
+g.add_edge("knows", ("person", "ada"), ("person", "grace"))
+g.add_edge("knows", ("person", "grace"), ("person", "linus"))
+data = g.to_ison().encode("utf-8")
+
+policy = Policy(anchors=(NodeRef("person", "ada"),), direction="out", depth=1)
+result = project(data, policy)
+print("selected:", result.stats["selected_nodes"], "nodes,", result.stats["result_edges"], "edge")
+print("lineage rows:", len(result.payload.derivations), "| policy digest:", result.policy_sha256[:12])
+```
+
+```text
+selected: 2 nodes, 1 edge
+lineage rows: 3 | policy digest: 2b7fbfb0ce34
+```
+
+The policy is a canonical file you can keep next to the graph (`policy.to_ison()`); its digest is recorded in the lineage. `result.result_bytes` is an ordinary ISONGraph, `result.payload` an IGPV/1 lineage payload, and `verify_projection` recomputes both from the source and the policy. The policy never inspects property values: you choose the anchors, IGP/1 does the structural work. Specification: [`21-IGP1-DESIGN.md`](docs/blueprint/21-IGP1-DESIGN.md).
+
 ## From the command line
 
 ```bash
@@ -121,6 +152,8 @@ python -m isongraph_ext.igx   admit  out/assets.ison out/assets.igx.ison
 python -m isongraph_ext.igdm  verify out/assets.ison out/assets.igx.ison out/assets.igdm.ison
 python -m isongraph_ext.igpv  verify graph.ison graph.igx.ison graph.igpv.ison [--source SHA256=PATH]
 python -m isongraph_ext.igpv  origins <graph-sha256> graph.igpv.ison --node person ada
+python -m isongraph_ext.igp   project graph.ison policy.igp.ison --out out/       # writes result.ison and result.igpv.ison
+python -m isongraph_ext.igp   verify  graph.ison policy.igp.ison result.ison result.igpv.ison
 ```
 
 ## Examples
@@ -183,7 +216,7 @@ The reference runtime pins `ison-graph==1.4.1` and `ison-py==1.2.0`. These check
 
 - **Byte-exact.** Companion files are canonical by construction: one graph, one companion, one set of bytes, one SHA-256.
 - **Specified before coded.** Each capability has a frozen specification in [`docs/blueprint/`](docs/blueprint/README.md); the code follows it, never the reverse.
-- **Conformance vectors.** 156 byte-exact vectors in [`vectors/`](vectors) (IGX/1 35, IGPV/1 71, IGDM/1 50) and about 450 tests, replayed in CI on every change.
+- **Conformance vectors.** 211 byte-exact vectors in [`vectors/`](vectors) (IGX/1 35, IGPV/1 71, IGDM/1 50, IGP/1 55) and about 540 tests, replayed in CI on every change.
 - **Pinned to a measured Core.** The package embeds the Core baseline it was verified against, plus Core's own conformance receipts, so identity claims are checkable rather than asserted.
 - **Hostile-input safe.** Parsing is bounded by explicit size and row budgets, and verification reports the first failing step instead of guessing.
 
@@ -193,14 +226,14 @@ ISONGraphExt is an **early-stage (alpha)** release, published on PyPI as `isongr
 
 - A verified binding proves **reproducibility and consistency, not authorship**. `producer_port` is a checked claim, not authentication.
 - Provenance proves origin and lineage, **not that an extracted statement is true**; a SHA-256 identifies bytes without authenticating where they came from.
-- The cross-port identity claim and lossy producer-bound admission are reserved. Revision, delta, projection and DAG capabilities are not implemented.
+- The cross-port identity claim and lossy producer-bound admission are reserved. Revision, delta and DAG capabilities are not implemented. Projection is structural only (no property filters) and supports directed simple graphs.
 - IGDM/1 carries presentation **intent only** and renders nothing.
 - It is a Python reference implementation. Verification is an offline cost: roughly 5 seconds for a 10,000-node graph with a capability (see [`examples/README.md`](examples/README.md)).
 - The examples were verified on Windows and in Linux CI, not on macOS.
 
 ## Documentation
 
-[`docs/blueprint/`](docs/blueprint/README.md) holds the normative texts: the Ext/Core contract (`16`), IGX/1 (`17`), IGPV/1 (`18`) and IGDM/1 (`19`). [`CHANGELOG.md`](CHANGELOG.md) lists what changed, [`CONTRIBUTING.md`](CONTRIBUTING.md) explains how to work on the project and how releases are made, and [`SECURITY.md`](SECURITY.md) explains how to report a vulnerability privately.
+[`docs/blueprint/`](docs/blueprint/README.md) holds the normative texts: the Ext/Core contract (`16`), IGX/1 (`17`), IGPV/1 (`18`), IGDM/1 (`19`) and IGP/1 (`21`). [`CHANGELOG.md`](CHANGELOG.md) lists what changed, [`CONTRIBUTING.md`](CONTRIBUTING.md) explains how to work on the project and how releases are made, and [`SECURITY.md`](SECURITY.md) explains how to report a vulnerability privately.
 
 ## License
 

@@ -1,0 +1,122 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1800" height="2040" viewBox="0 0 1800 2040">
+<rect width="100%" height="100%" fill="#f4f7fb"/>
+<text x="65" y="83" font-family="Segoe UI,Arial,sans-serif" font-size="48" font-weight="700" fill="#142b49">ISONGraphExt</text>
+<text x="65" y="124" font-family="Segoe UI,Arial,sans-serif" font-size="26" font-weight="400" fill="#23334d">TECHNICAL SCHEMATIC  /  Implemented Python architecture v0.3.0</text>
+<text x="65" y="170" font-family="Segoe UI,Arial,sans-serif" font-size="25" font-weight="400" fill="#23334d">Companion files preserve the graph. Verification and admission are separate operations.</text>
+<rect x="65" y="215" width="510" height="165" rx="16" fill="white" stroke="#137e99" stroke-width="3"/>
+<text x="87" y="258" font-family="Segoe UI,Arial,sans-serif" font-size="27" font-weight="700" fill="#137e99">1  PRODUCE</text>
+<text x="87" y="299" font-family="Segoe UI,Arial,sans-serif" font-size="23" font-weight="400" fill="#23334d">Application / domain extraction</text>
+<text x="87" y="332" font-family="Segoe UI,Arial,sans-serif" font-size="23" font-weight="400" fill="#23334d">ISONGraph Core creates graph bytes</text>
+<text x="87" y="365" font-family="Segoe UI,Arial,sans-serif" font-size="23" font-weight="400" fill="#23334d">Core owns nodes, edges and properties</text>
+<rect x="645" y="215" width="510" height="165" rx="16" fill="white" stroke="#137e99" stroke-width="3"/>
+<text x="667" y="258" font-family="Segoe UI,Arial,sans-serif" font-size="27" font-weight="700" fill="#137e99">2  BIND</text>
+<text x="667" y="299" font-family="Segoe UI,Arial,sans-serif" font-size="23" font-weight="400" fill="#23334d">igx.bind / igpv.bind / igdm.bind</text>
+<text x="667" y="332" font-family="Segoe UI,Arial,sans-serif" font-size="23" font-weight="400" fill="#23334d">Serialize payloads; compute SHA-256</text>
+<text x="667" y="365" font-family="Segoe UI,Arial,sans-serif" font-size="23" font-weight="400" fill="#23334d">Create binding with capability digests</text>
+<rect x="1225" y="215" width="510" height="165" rx="16" fill="white" stroke="#61748b" stroke-width="3"/>
+<text x="1247" y="258" font-family="Segoe UI,Arial,sans-serif" font-size="27" font-weight="700" fill="#61748b">REFERENCE RUNTIME</text>
+<text x="1247" y="299" font-family="Segoe UI,Arial,sans-serif" font-size="23" font-weight="400" fill="#23334d">Python 3.12+</text>
+<text x="1247" y="332" font-family="Segoe UI,Arial,sans-serif" font-size="23" font-weight="400" fill="#23334d">ison-graph == 1.4.1</text>
+<text x="1247" y="365" font-family="Segoe UI,Arial,sans-serif" font-size="23" font-weight="400" fill="#23334d">ison-py == 1.2.0</text>
+<polyline points="575,297 645,297" fill="none" stroke="#69798e" stroke-width="3"/>
+<polygon points="645,297 632.3937405670625,303.08951747755725 632.3937405670625,290.91048252244275" fill="#69798e"/>
+<polyline points="900,380 900,425" fill="none" stroke="#69798e" stroke-width="3"/>
+<polygon points="900,425 893.9104825224427,412.39374056706254 906.0895174775573,412.39374056706254" fill="#69798e"/>
+<rect x="65" y="425" width="510" height="215" rx="16" fill="white" stroke="#137e99" stroke-width="3"/>
+<text x="87" y="468" font-family="Segoe UI,Arial,sans-serif" font-size="27" font-weight="700" fill="#137e99">graph.ison</text>
+<text x="87" y="509" font-family="Segoe UI,Arial,sans-serif" font-size="23" font-weight="400" fill="#23334d">Original graph bytes remain unchanged</text>
+<text x="87" y="542" font-family="Segoe UI,Arial,sans-serif" font-size="23" font-weight="400" fill="#23334d">IGX pins artifact_sha256</text>
+<text x="87" y="575" font-family="Segoe UI,Arial,sans-serif" font-size="23" font-weight="400" fill="#23334d">Payloads name the target graph digest</text>
+<text x="87" y="608" font-family="Segoe UI,Arial,sans-serif" font-size="23" font-weight="400" fill="#23334d">Core-only consumers can read directly</text>
+<rect x="645" y="425" width="510" height="215" rx="16" fill="white" stroke="#137e99" stroke-width="3"/>
+<text x="667" y="468" font-family="Segoe UI,Arial,sans-serif" font-size="27" font-weight="700" fill="#137e99">graph.igx.ison  |  IGX/1</text>
+<text x="667" y="509" font-family="Segoe UI,Arial,sans-serif" font-size="23" font-weight="400" fill="#23334d">Core baseline + conformance receipt</text>
+<text x="667" y="542" font-family="Segoe UI,Arial,sans-serif" font-size="23" font-weight="400" fill="#23334d">Identity claim + serialization profile</text>
+<text x="667" y="575" font-family="Segoe UI,Arial,sans-serif" font-size="23" font-weight="400" fill="#23334d">Capabilities: version / requirement</text>
+<text x="667" y="608" font-family="Segoe UI,Arial,sans-serif" font-size="23" font-weight="400" fill="#23334d">SHA-256 of each declared payload</text>
+<rect x="1225" y="425" width="510" height="215" rx="16" fill="white" stroke="#8b57b2" stroke-width="3"/>
+<text x="1247" y="468" font-family="Segoe UI,Arial,sans-serif" font-size="27" font-weight="700" fill="#8b57b2">OPTIONAL PAYLOAD FILES</text>
+<text x="1247" y="509" font-family="Segoe UI,Arial,sans-serif" font-size="23" font-weight="400" fill="#23334d">graph.igpv.ison  |  provenance</text>
+<text x="1247" y="542" font-family="Segoe UI,Arial,sans-serif" font-size="23" font-weight="400" fill="#23334d">graph.igdm.ison  |  presentation intent</text>
+<text x="1247" y="575" font-family="Segoe UI,Arial,sans-serif" font-size="23" font-weight="400" fill="#23334d">Each is independent of the other</text>
+<text x="1247" y="608" font-family="Segoe UI,Arial,sans-serif" font-size="23" font-weight="400" fill="#23334d">Payload verification uses an IGX binding</text>
+<polyline points="575,530 645,530" fill="none" stroke="#69798e" stroke-width="3"/>
+<polygon points="645,530 632.3937405670625,536.0895174775573 632.3937405670625,523.9104825224427" fill="#69798e"/>
+<polyline points="1155,530 1225,530" fill="none" stroke="#69798e" stroke-width="3"/>
+<polygon points="1225,530 1212.3937405670624,536.0895174775573 1212.3937405670624,523.9104825224427" fill="#69798e"/>
+<text x="65" y="706" font-family="Segoe UI,Arial,sans-serif" font-size="26" font-weight="700" fill="#142b49">CONSUMER PATH  /  Python API or python -m isongraph_ext.{igx,igpv,igdm}</text>
+<rect x="65" y="735" width="510" height="170" rx="16" fill="white" stroke="#61748b" stroke-width="3"/>
+<text x="87" y="778" font-family="Segoe UI,Arial,sans-serif" font-size="27" font-weight="700" fill="#61748b">SHARED VERIFICATION SUPPORT</text>
+<text x="87" y="819" font-family="Segoe UI,Arial,sans-serif" font-size="23" font-weight="400" fill="#23334d">Embedded baselines / port receipts</text>
+<text x="87" y="852" font-family="Segoe UI,Arial,sans-serif" font-size="23" font-weight="400" fill="#23334d">Capability registry / version ranges</text>
+<text x="87" y="885" font-family="Segoe UI,Arial,sans-serif" font-size="23" font-weight="400" fill="#23334d">SHA-256 / canonical ISON serialization</text>
+<rect x="645" y="735" width="1090" height="170" rx="16" fill="white" stroke="#137e99" stroke-width="3"/>
+<text x="667" y="778" font-family="Segoe UI,Arial,sans-serif" font-size="27" font-weight="700" fill="#137e99">IGX VERIFICATION  |  V0–V5</text>
+<text x="667" y="819" font-family="Segoe UI,Arial,sans-serif" font-size="23" font-weight="400" fill="#23334d">V0 runtime match    →    V1 binding shape    →    V2 baseline / corpus</text>
+<text x="667" y="852" font-family="Segoe UI,Arial,sans-serif" font-size="23" font-weight="400" fill="#23334d">V3 receipt references    →    V4 exact source bytes + semantic eligibility</text>
+<text x="667" y="885" font-family="Segoe UI,Arial,sans-serif" font-size="23" font-weight="400" fill="#23334d">V5 required capabilities supported; unknown optional capabilities reported</text>
+<polyline points="1100,640 1100,665 1190,665 1190,735" fill="none" stroke="#69798e" stroke-width="3"/>
+<polygon points="1190,735 1183.9104825224429,722.3937405670625 1196.0895174775571,722.3937405670625" fill="#69798e"/>
+<polyline points="575,820 645,820" fill="none" stroke="#69798e" stroke-width="3"/>
+<polygon points="645,820 632.3937405670625,826.0895174775573 632.3937405670625,813.9104825224427" fill="#69798e"/>
+<polyline points="1190,905 1190,950 610,950 610,995" fill="none" stroke="#69798e" stroke-width="3"/>
+<polygon points="610,995 603.9104825224427,982.3937405670625 616.0895174775573,982.3937405670625" fill="#69798e"/>
+<polyline points="1190,950 1460,950 1460,995" fill="none" stroke="#69798e" stroke-width="3"/>
+<polygon points="1460,995 1453.9104825224429,982.3937405670625 1466.0895174775571,982.3937405670625" fill="#69798e"/>
+<text x="70" y="937" font-family="Segoe UI,Arial,sans-serif" font-size="22" font-weight="400" fill="#23334d">Each payload verifier invokes IGX verification itself; byte budgets precede parsing.</text>
+<rect x="65" y="995" width="800" height="325" rx="16" fill="white" stroke="#8b57b2" stroke-width="3"/>
+<text x="87" y="1038" font-family="Segoe UI,Arial,sans-serif" font-size="27" font-weight="700" fill="#8b57b2">IGPV/1  |  P0–P5</text>
+<text x="87" y="1079" font-family="Segoe UI,Arial,sans-serif" font-size="23" font-weight="400" fill="#23334d">Preflight: graph, payload and supplied-source budgets</text>
+<text x="87" y="1112" font-family="Segoe UI,Arial,sans-serif" font-size="23" font-weight="400" fill="#23334d">P0 IGX verify + capability version + payload digest</text>
+<text x="87" y="1145" font-family="Segoe UI,Arial,sans-serif" font-size="23" font-weight="400" fill="#23334d">P1 payload schema / row limits; P2 target binding</text>
+<text x="87" y="1178" font-family="Segoe UI,Arial,sans-serif" font-size="23" font-weight="400" fill="#23334d">P3 references; P4 target / origin object resolution</text>
+<text x="87" y="1211" font-family="Segoe UI,Arial,sans-serif" font-size="23" font-weight="400" fill="#23334d">P5 supplied-source digest, size and locator bounds</text>
+<text x="87" y="1244" font-family="Segoe UI,Arial,sans-serif" font-size="23" font-weight="400" fill="#23334d">Tables: artifacts, producers, objects, attributions, derivations</text>
+<text x="87" y="1277" font-family="Segoe UI,Arial,sans-serif" font-size="23" font-weight="400" fill="#23334d">Missing origin bytes remain explicitly unverified</text>
+<rect x="935" y="995" width="800" height="325" rx="16" fill="white" stroke="#b47619" stroke-width="3"/>
+<text x="957" y="1038" font-family="Segoe UI,Arial,sans-serif" font-size="27" font-weight="700" fill="#b47619">IGDM/1  |  D0–D4</text>
+<text x="957" y="1079" font-family="Segoe UI,Arial,sans-serif" font-size="23" font-weight="400" fill="#23334d">Preflight: graph and payload byte budgets</text>
+<text x="957" y="1112" font-family="Segoe UI,Arial,sans-serif" font-size="23" font-weight="400" fill="#23334d">D0 IGX verify + capability version + payload digest</text>
+<text x="957" y="1145" font-family="Segoe UI,Arial,sans-serif" font-size="23" font-weight="400" fill="#23334d">D1 schema / row limits; D2 target binding</text>
+<text x="957" y="1178" font-family="Segoe UI,Arial,sans-serif" font-size="23" font-weight="400" fill="#23334d">D3 references / group constraints; D4 object resolution</text>
+<text x="957" y="1211" font-family="Segoe UI,Arial,sans-serif" font-size="23" font-weight="400" fill="#23334d">Tables: nodes, edges, groups, members</text>
+<text x="957" y="1244" font-family="Segoe UI,Arial,sans-serif" font-size="23" font-weight="400" fill="#23334d">Roles, emphasis, badges, hints and accessibility text</text>
+<text x="957" y="1277" font-family="Segoe UI,Arial,sans-serif" font-size="23" font-weight="400" fill="#23334d">Reuses igpv.resolve for graph-object lookup</text>
+<rect x="65" y="1375" width="800" height="145" rx="16" fill="white" stroke="#8b57b2" stroke-width="3"/>
+<text x="87" y="1418" font-family="Segoe UI,Arial,sans-serif" font-size="27" font-weight="700" fill="#8b57b2">OPTIONAL EVIDENCE INPUTS</text>
+<text x="87" y="1459" font-family="Segoe UI,Arial,sans-serif" font-size="23" font-weight="400" fill="#23334d">Source documents / origin graphs supplied by digest</text>
+<text x="87" y="1492" font-family="Segoe UI,Arial,sans-serif" font-size="23" font-weight="400" fill="#23334d">Byte or line spans; attributions and derivation lineage</text>
+<polyline points="450,1375 450,1320" fill="none" stroke="#8b57b2" stroke-width="3"/>
+<polygon points="450,1320 456.08951747755725,1332.6062594329376 443.91048252244275,1332.6062594329376" fill="#8b57b2"/>
+<rect x="935" y="1375" width="800" height="145" rx="16" fill="white" stroke="#137e99" stroke-width="3"/>
+<text x="957" y="1418" font-family="Segoe UI,Arial,sans-serif" font-size="27" font-weight="700" fill="#137e99">VERIFICATION OUTPUTS</text>
+<text x="957" y="1459" font-family="Segoe UI,Arial,sans-serif" font-size="23" font-weight="400" fill="#23334d">IGX result + provenance / datamatics reports</text>
+<text x="957" y="1492" font-family="Segoe UI,Arial,sans-serif" font-size="23" font-weight="400" fill="#23334d">Full or limited semantics; object resolution full or skipped</text>
+<polyline points="1335,1320 1335,1375" fill="none" stroke="#69798e" stroke-width="3"/>
+<polygon points="1335,1375 1328.9104825224429,1362.3937405670624 1341.0895174775571,1362.3937405670624" fill="#69798e"/>
+<polyline points="865,1200 900,1200 900,1445 935,1445" fill="none" stroke="#69798e" stroke-width="3"/>
+<polygon points="935,1445 922.3937405670625,1451.0895174775571 922.3937405670625,1438.9104825224429" fill="#69798e"/>
+<rect x="65" y="1580" width="800" height="210" rx="16" fill="white" stroke="#137e99" stroke-width="3"/>
+<text x="87" y="1623" font-family="Segoe UI,Arial,sans-serif" font-size="27" font-weight="700" fill="#137e99">ADMISSION POLICY  |  A1–A3</text>
+<text x="87" y="1664" font-family="Segoe UI,Arial,sans-serif" font-size="23" font-weight="400" fill="#23334d">verify_and_admit passes the fresh IGX result to admit</text>
+<text x="87" y="1697" font-family="Segoe UI,Arial,sans-serif" font-size="23" font-weight="400" fill="#23334d">A1 baseline currency; A2 identity-claim admissibility</text>
+<text x="87" y="1730" font-family="Segoe UI,Arial,sans-serif" font-size="23" font-weight="400" fill="#23334d">A3 consumer posture reporting</text>
+<text x="87" y="1763" font-family="Segoe UI,Arial,sans-serif" font-size="23" font-weight="400" fill="#23334d">Returns admitted / denied, code, posture and reasons</text>
+<polyline points="935,1445 900,1445 900,1550 465,1550 465,1580" fill="none" stroke="#69798e" stroke-width="3"/>
+<polygon points="465,1580 458.91048252244275,1567.3937405670624 471.08951747755725,1567.3937405670624" fill="#69798e"/>
+<rect x="935" y="1580" width="800" height="210" rx="16" fill="white" stroke="#b47619" stroke-width="3"/>
+<text x="957" y="1623" font-family="Segoe UI,Arial,sans-serif" font-size="27" font-weight="700" fill="#b47619">EXTERNAL APPLICATION / VIEWER</text>
+<text x="957" y="1664" font-family="Segoe UI,Arial,sans-serif" font-size="23" font-weight="400" fill="#23334d">Application decides domain policy and user experience</text>
+<text x="957" y="1697" font-family="Segoe UI,Arial,sans-serif" font-size="23" font-weight="400" fill="#23334d">Viewer consumes graph + verified presentation intent</text>
+<text x="957" y="1730" font-family="Segoe UI,Arial,sans-serif" font-size="23" font-weight="400" fill="#23334d">Layout, styling, interaction and rendering live here</text>
+<text x="957" y="1763" font-family="Segoe UI,Arial,sans-serif" font-size="23" font-weight="400" fill="#23334d">Example consumer: examples/igdm_to_svg.py</text>
+<polyline points="865,1670 935,1670" fill="none" stroke="#69798e" stroke-width="3"/>
+<polygon points="935,1670 922.3937405670625,1676.0895174775571 922.3937405670625,1663.9104825224429" fill="#69798e"/>
+<polyline points="1335,1520 1335,1580" fill="none" stroke="#69798e" stroke-width="3"/>
+<polygon points="1335,1580 1328.9104825224429,1567.3937405670624 1341.0895174775571,1567.3937405670624" fill="#69798e"/>
+<text x="65" y="1831" font-family="Segoe UI,Arial,sans-serif" font-size="26" font-weight="700" fill="#142b49">CONTRACT BOUNDARIES</text>
+<text x="65" y="1875" font-family="Segoe UI,Arial,sans-serif" font-size="25" font-weight="400" fill="#23334d">Offline verification • No graph rewriting • No renderer in the extension library</text>
+<text x="65" y="1915" font-family="Segoe UI,Arial,sans-serif" font-size="25" font-weight="400" fill="#23334d">Binding proves consistency, not authorship. Provenance records origins, not factual truth.</text>
+<text x="65" y="1952" font-family="Segoe UI,Arial,sans-serif" font-size="22" font-weight="400" fill="#23334d">Reserved: cross-port identity and lossy producer-bound admission; revision / delta / DAG not implemented.</text>
+<text x="65" y="1999" font-family="Segoe UI,Arial,sans-serif" font-size="19" font-weight="400" fill="#61748b">Source: README; igx/{bind,verify,admit}; igpv/{bind,verify,resolve}; igdm/{bind,verify}; blueprint specs 16–19.</text>
+</svg>

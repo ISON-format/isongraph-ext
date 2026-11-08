@@ -22,6 +22,7 @@
   <a href="#from-the-command-line">CLI</a> ·
   <a href="#examples">Examples</a> ·
   <a href="#where-it-fits">Where it fits</a> ·
+  <a href="#architecture">Architecture</a> ·
   <a href="#status-and-limits">Status</a> ·
   <a href="docs/blueprint/README.md">Specs</a>
 </p>
@@ -142,6 +143,38 @@ See [`examples/README.md`](examples/README.md) for how to run them, the timings,
 | **Your application** | Domain meaning, policy and user experience |
 
 Ext never reinterprets the document, and it carries no vocabulary from any one domain.
+
+## Architecture
+
+ISONGraphExt is an offline Python library with CLI entry points. **The graph stays in Core; extensions live in companion files.** The following overview shows how producers, artifacts, verification and consumers connect.
+
+[![Full ISONGraphExt architecture: producers, graph and companion files, verification library, admission policy and external consumers](docs/architecture/full-architecture.png)](docs/architecture/full-architecture.png)
+
+### Files and responsibilities
+
+An application uses ISONGraph Core to produce `graph.ison`, containing nodes, edges and properties. It can then add the companions it needs:
+
+| File | Responsibility | What connects it to the graph |
+|---|---|---|
+| `graph.igx.ison` | **Binding:** records the Core baseline, conformance receipt, identity claim and declared capabilities. | SHA-256 of the exact graph bytes. Capability rows also pin the bytes of declared payloads. |
+| `graph.igpv.ison` | **Provenance:** records source artifacts, producers, object attributions and derivation lineage. | Target graph digest and serialization profile; its payload digest is declared in IGX. |
+| `graph.igdm.ison` | **Presentation intent:** describes roles, emphasis, badges, groups, layout hints and accessibility text. | Target graph digest and serialization profile; its payload digest is declared in IGX. |
+
+IGPV and IGDM are independently optional; neither requires the other. Their verification APIs require an IGX binding. A Core-only consumer can read the original graph without loading any extension.
+
+### Verification and admission flow
+
+The schematic expands the implementation into its verification stages, shared support modules and consumer boundary. Open the image for full-size detail, or use the [editable SVG](docs/architecture/architecture-schematic.svg).
+
+[![Technical schematic of IGX V0–V5, IGPV P0–P5, IGDM D0–D4 and admission A1–A3](docs/architecture/architecture-schematic.png)](docs/architecture/architecture-schematic.png)
+
+1. **Produce and bind.** Create the graph, serialize any payloads, and create an IGX binding that records their digests. The graph bytes are unchanged.
+2. **Verify the binding.** IGX checks the runtime, binding shape, Core baseline, receipt references, source bytes and capability support through V0–V5. Shared support includes embedded baselines and receipts, canonical ISON serialization, SHA-256 and a capability registry.
+3. **Verify each supplied payload.** IGPV runs P0–P5 to check the payload binding, structure, references, graph objects and supplied source locators. IGDM runs D0–D4 to check its binding, structure, references and graph objects. Each payload verifier invokes IGX verification itself. Byte and row budgets bound input processing; unavailable provenance evidence remains explicitly unverified.
+4. **Apply admission policy.** `verify_and_admit` passes the fresh verification result into admission: A1 checks baseline currency, A2 checks whether the identity claim is admissible, and A3 reports consumer posture. Successful verification and permission to use the binding are separate results.
+5. **Consume the result.** Applications decide how to use the reports and admission decision. Viewers combine the graph with verified IGDM intent and choose layout, styling and interaction. Rendering belongs to the consumer; Ext supplies no renderer.
+
+The reference runtime pins `ison-graph==1.4.1` and `ison-py==1.2.0`. These checks establish byte consistency and checkable lineage; they do not authenticate authorship or establish that source statements are true. See the [architecture notes](docs/architecture/README.md) for source references and verification-order details, and the [normative specifications](docs/blueprint/README.md) for the complete contracts.
 
 ## Built to be checked
 

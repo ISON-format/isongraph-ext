@@ -83,13 +83,14 @@ Output is itself ISON, so receipts can quote it verbatim.
 |---|---|
 | **IGX/1** binding | Pins the exact bytes, the Core version they were written with and an identity claim (`none`, `artifact`, `producer_bound`). Unknown capabilities are reported or refused, never silently ignored. |
 | **IGPV/1** provenance | Attributes nodes and edges to source documents, with byte or line spans checked against the real bytes, and records derivation lineage: *this node stands for those nodes in an earlier graph*. |
+| **IGP/1** projection | Selects a bounded, deterministic subgraph from explicit anchors, allow-lists, direction, depth and budgets, and returns an ordinary graph plus IGPV/1 provenance for every node and edge; recomputable from the source and the policy. |
 | **IGDM/1** datamatics | Renderer-neutral presentation **intent**: semantic roles, emphasis, badges, groups, layout hints and accessibility text. Never colours, fonts or coordinates. |
 
 ## Built to be checked
 
 - **Byte-exact.** Companion files are canonical by construction: one graph, one companion, one set of bytes, one SHA-256.
 - **Specified before coded.** Frozen specifications for IGX/1, IGPV/1 and IGDM/1 live in the [repository](https://github.com/ISON-format/isongraph-ext/tree/main/docs/blueprint); the code follows them, never the reverse.
-- **Conformance vectors.** 156 byte-exact vectors and about 450 tests are replayed in CI on every change.
+- **Conformance vectors.** 217 byte-exact vectors and about 540 tests are replayed in CI on every change.
 - **Pinned to a measured Core.** The package embeds the Core baseline it was verified against, plus Core's conformance receipts, so identity claims are checkable rather than asserted.
 - **Hostile-input safe.** Parsing is bounded by explicit size and row budgets; verification reports the first failing step instead of guessing.
 
@@ -103,7 +104,7 @@ This is an **early-stage (alpha)** release. Know what it does not do:
 
 - A verified binding proves **reproducibility and consistency, not authorship**; `producer_port` is a checked claim, not authentication.
 - Provenance proves origin and lineage, **not that an extracted statement is true**.
-- The cross-port identity claim and lossy producer-bound admission are reserved. Revision, delta, projection and DAG capabilities are not implemented.
+- The cross-port identity claim and lossy producer-bound admission are reserved. Revision, delta and DAG capabilities are not implemented. Projection is structural only (no property filters) and supports directed simple graphs.
 - IGDM/1 carries presentation **intent only** and renders nothing.
 - Python reference implementation only. Verification is an offline cost: roughly 5 seconds for a 10,000-node graph with a capability.
 

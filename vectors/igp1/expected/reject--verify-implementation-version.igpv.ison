@@ -1,0 +1,47 @@
+meta.igpv
+provenance_spec target_artifact_sha256 target_semantic_digest target_semantic_digest_algorithm target_serialization_profile
+IGPV/1 416ec442123937f202eb5ca9a1ffcbc2404d7178b1ae0e62db90d6dfd018e858 null null ison-v1
+
+table.artifacts
+artifact_id artifact_sha256 kind media_type revision serialization_profile size uri
+src 852599bbc58f0d6a30dc772b7a4a6e6cd4a1ca1794f0cc22739884257b353d9b isongraph null null ison-v1 347 null
+
+table.attributions
+artifact_id attribution_id locator_end locator_start locator_text locator_type object_id producer_id
+
+table.derivations
+derivation_id derived_object_id kind origin_object_id producer_id
+de0 e0 identity q0 p0
+de1 e1 identity q1 p0
+de2 e2 identity q2 p0
+de3 e3 identity q3 p0
+dn0 n0 identity o0 p0
+dn1 n1 identity o1 p0
+dn2 n2 identity o2 p0
+dn3 n3 identity o3 p0
+dn4 n4 identity o4 p0
+
+table.objects
+graph kind node_id node_type object_id ordinal relation source_id source_type target_id target_type
+src edge null null q0 "0" decided_at D-4 decision 2026-03-12 meeting
+src edge null null q1 "0" supports CM-3 evidence D-4 decision
+src edge null null q2 "0" supports CM-3 evidence D-9 decision
+src edge null null q3 "0" supports FR-19 evidence D-4 decision
+src node 2026-03-12 meeting o4 null null null null null null
+src node CM-3 evidence o2 null null null null null null
+src node D-4 decision o0 null null null null null null
+src node D-9 decision o1 null null null null null null
+src node FR-19 evidence o3 null null null null null null
+null edge null null e0 "0" decided_at D-4 decision 2026-03-12 meeting
+null edge null null e1 "0" supports CM-3 evidence D-4 decision
+null edge null null e2 "0" supports CM-3 evidence D-9 decision
+null edge null null e3 "0" supports FR-19 evidence D-4 decision
+null node 2026-03-12 meeting n4 null null null null null null
+null node CM-3 evidence n2 null null null null null null
+null node D-4 decision n0 null null null null null null
+null node D-9 decision n1 null null null null null null
+null node FR-19 evidence n3 null null null null null null
+
+table.producers
+implementation kind policy_sha256 producer_id spec version
+isongraph-ext-igp transformation ad07c683c13f015934ba4ded9b256eb55d45140a333c84967d040b577df87030 p0 IGP/1 0.9.0

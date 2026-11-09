@@ -1,0 +1,8 @@
+edges.r
+source target
+:n:a :n:b1
+
+nodes.n
+id
+a
+b1

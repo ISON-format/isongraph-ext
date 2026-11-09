@@ -36,3 +36,11 @@ def test_igdm_public_api_is_exported():
                  "DEFAULT_REGISTRY", "NodeRef", "EdgeAddress"):
         assert hasattr(igdm, name), name
     assert dict(igdm.DEFAULT_REGISTRY) == {"igpv": "1.0.0", "igdm": "1.0.0"}
+
+
+def test_igp_public_api_is_exported():
+    import isongraph_ext.igp as igp
+    for name in ("IGPError", "Policy", "Projection", "Limits", "DEFAULT_LIMITS", "project", "verify_projection", "IGP_SPEC",
+                 "IGP_IMPLEMENTATION_VERSION"):
+        assert hasattr(igp, name), name
+    assert igp.IGP_SPEC == "IGP/1" and igp.IGP_IMPLEMENTATION_VERSION == "1.0.0"

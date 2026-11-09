@@ -2,6 +2,7 @@
 
 ## [Unreleased]
 
+- IGP/1 structural projection (`docs/blueprint/21-IGP1-DESIGN.md`, FROZEN rev 1): `isongraph_ext.igp.project(source, policy)` returns an ordinary directed ISONGraph plus an IGPV/1 lineage payload; a canonical policy file `<name>.igp.ison` (explicit anchors, node-type and relation allow-lists, direction, depth, mandatory nodes, node and edge budgets); exact source acceptance (directed simple canonical ison-v1 only); deterministic farthest-first budget pruning; `verify_projection` by recomputation; a byte-identical whole-graph result is lineage by self-attribution; `IGP_IMPLEMENTATION_VERSION` independent of the package version; CLI `python -m isongraph_ext.igp project|verify`; 61 conformance vectors under `vectors/igp1/`, each lineage additionally admitted by `igpv.verify_and_admit`. No change to IGX/1, IGPV/1, IGDM/1 or Core.
 - IGX/1 verification loads the source artifact once instead of twice, and `bind()` twice instead of four times (new `igx.source.load_source`, with optional `loaded=` arguments on `derive_canonical` and `classify_eligibility`). Same answers, measured about 2x faster verification and bind on a 10,000-node graph. No wire, spec or API removal.
 
 ## [0.3.0] — 2026-11-08 — first public release (E4 IGDM/1)

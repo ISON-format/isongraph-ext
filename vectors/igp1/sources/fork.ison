@@ -1,0 +1,13 @@
+edges.r
+source target
+:n:a :n:b
+
+edges.s
+source target
+:n:a :n:c
+
+nodes.n
+id
+a
+b
+c

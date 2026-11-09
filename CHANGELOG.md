@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+- IGX/1 verification loads the source artifact once instead of twice, and `bind()` twice instead of four times (new `igx.source.load_source`, with optional `loaded=` arguments on `derive_canonical` and `classify_eligibility`). Same answers, measured about 2x faster verification and bind on a 10,000-node graph. No wire, spec or API removal.
+
 ## [0.3.0] — 2026-11-08 — first public release (E4 IGDM/1)
 - First release published to PyPI as `isongraph-ext` (alpha). It contains everything from the internal milestones 0.1.0 (IGX/1) and 0.2.0 (IGPV/1) listed below.
 - Release plumbing: a Trusted Publishing workflow (`publish-pypi.yml`), `SECURITY.md`, Dependabot for GitHub Actions, a Releasing section in `CONTRIBUTING.md`; a rewritten README with an architecture section, and a PyPI long description with package metadata (keywords, classifiers, project URLs).

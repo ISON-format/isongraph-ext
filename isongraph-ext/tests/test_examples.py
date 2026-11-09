@@ -100,7 +100,7 @@ def test_svg_adapter_refuses_unverified_intent(supply, tmp_path):
 def test_fresh_environment_installs_built_wheel_and_runs_examples(request, tmp_path, supply):
     if not request.config.getoption("--built"):
         pytest.skip("run with --built after `python -m build`")
-    wheels = glob.glob(str(DIST / "isongraph_ext-0.4.0-*.whl"))
+    wheels = glob.glob(str(DIST / "isongraph_ext-0.4.1-*.whl"))
     assert wheels, "no wheel in dist/"
     venv = tmp_path / "venv"
     subprocess.run([sys.executable, "-m", "venv", str(venv)], check=True)

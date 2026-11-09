@@ -1,5 +1,4 @@
 # Publishes to PyPI via Trusted Publishing (GitHub OIDC): no tokens, no secrets. See CONTRIBUTING.md, section Releasing.
-# There is deliberately no TestPyPI job: the publisher is registered on pypi.org only.
 #
 # The pypi.org publisher must carry exactly these claims:
 #   PyPI project isongraph-ext | Owner ISON-format | Repository isongraph-ext | Workflow publish-pypi.yml | Environment pypi

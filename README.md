@@ -215,7 +215,7 @@ The reference runtime pins `ison-graph==1.4.1` and `ison-py==1.2.0`. These check
 
 - **Byte-exact.** Companion files are canonical by construction: one graph, one companion, one set of bytes, one SHA-256.
 - **Specified before coded.** Each capability has a frozen specification in [`docs/blueprint/`](docs/blueprint/README.md); the code follows it, never the reverse.
-- **Conformance vectors.** 217 byte-exact vectors in [`vectors/`](vectors) (IGX/1 35, IGPV/1 71, IGDM/1 50, IGP/1 61) and about 540 tests, replayed in CI on every change.
+- **Conformance vectors.** 217 byte-exact vectors in [`vectors/`](vectors) (IGX/1 35, IGPV/1 71, IGDM/1 50, IGP/1 61) and about 590 tests, replayed in CI on every change.
 - **Pinned to a measured Core.** The package embeds the Core baseline it was verified against, plus Core's own conformance receipts, so identity claims are checkable rather than asserted.
 - **Hostile-input safe.** Parsing is bounded by explicit size and row budgets, and verification reports the first failing step instead of guessing.
 
@@ -227,7 +227,7 @@ ISONGraphExt is an **early-stage (alpha)** release, published on PyPI as `isongr
 - Provenance proves origin and lineage, **not that an extracted statement is true**; a SHA-256 identifies bytes without authenticating where they came from.
 - The cross-port identity claim and lossy producer-bound admission are reserved. Revision, delta and DAG capabilities are not implemented. Projection is structural only (no property filters) and supports directed simple graphs.
 - IGDM/1 carries presentation **intent only** and renders nothing.
-- It is a Python reference implementation. Verification is an offline cost: roughly 5 seconds for a 10,000-node graph with a capability (see [`examples/README.md`](examples/README.md)).
+- It is a Python reference implementation. Verification is an offline cost: roughly 2 seconds for a 10,000-node graph with a capability (see [`examples/README.md`](examples/README.md)).
 - The examples were verified on Windows and in Linux CI, not on macOS.
 
 ## Documentation

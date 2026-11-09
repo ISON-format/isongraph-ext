@@ -1,3 +1,3 @@
-"""ISONGraphExt - extension bindings, provenance and datamatics over ISONGraph Core (IGX/1, IGPV/1, IGDM/1)."""
+"""ISONGraphExt - extension bindings, provenance and datamatics over ISONGraph Core (IGX/1, IGPV/1, IGDM/1, IGP/1)."""
 
 __version__ = "0.4.0"

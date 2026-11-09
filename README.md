@@ -11,6 +11,7 @@
 <p align="center">
   <a href="https://github.com/ISON-format/isongraph-ext/actions/workflows/ci.yml"><img src="https://github.com/ISON-format/isongraph-ext/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-yellow.svg" alt="MIT License"></a>
+  <a href="https://pypi.org/project/isongraph-ext/"><img src="https://img.shields.io/pypi/v/isongraph-ext.svg" alt="PyPI"></a>
   <img src="https://img.shields.io/badge/python-3.12%2B-blue.svg" alt="Python 3.12+">
   <img src="https://img.shields.io/badge/status-alpha-orange.svg" alt="Alpha">
   <img src="https://img.shields.io/badge/dependencies-ison--graph%20%2B%20ison--py-informational.svg" alt="Two pinned dependencies">
@@ -59,14 +60,16 @@ Each is optional and independent. A consumer that knows none of them still has t
 
 ## Try it in two minutes
 
-Until the first PyPI release, install from a clone (Python 3.12+; the only dependencies are `ison-graph==1.4.1` and `ison-py==1.2.0`):
+```bash
+pip install isongraph-ext
+```
+
+Python 3.12+; the only dependencies are `ison-graph==1.4.1` and `ison-py==1.2.0`. To run the bundled examples or work on the code, install from a clone instead:
 
 ```bash
 git clone https://github.com/ISON-format/isongraph-ext.git && cd isongraph-ext
 python -m venv .venv && . .venv/bin/activate          # Windows: .venv\Scripts\activate
-pip install build
-python -m build isongraph-ext                         # writes isongraph-ext/dist/
-pip install isongraph-ext/dist/isongraph_ext-0.3.0-py3-none-any.whl
+pip install -e isongraph-ext                         # editable install; ison-graph and ison-py are pulled in
 ```
 
 Bind a graph to its bytes, verify it, then change one byte:
@@ -186,7 +189,7 @@ The reference runtime pins `ison-graph==1.4.1` and `ison-py==1.2.0`. These check
 
 ## Status and limits
 
-ISONGraphExt is **early-stage (alpha)** and **not yet released on PyPI**. Know what it does not do:
+ISONGraphExt is an **early-stage (alpha)** release, published on PyPI as `isongraph-ext` 0.3.0. Know what it does not do:
 
 - A verified binding proves **reproducibility and consistency, not authorship**. `producer_port` is a checked claim, not authentication.
 - Provenance proves origin and lineage, **not that an extracted statement is true**; a SHA-256 identifies bytes without authenticating where they came from.

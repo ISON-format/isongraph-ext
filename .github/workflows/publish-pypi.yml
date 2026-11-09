@@ -1,20 +1,13 @@
-# Publishes to TestPyPI (rehearsal) and PyPI via Trusted Publishing. See CONTRIBUTING.md, section Releasing.
+# Publishes to PyPI via Trusted Publishing (GitHub OIDC): no tokens, no secrets. See CONTRIBUTING.md, section Releasing.
+# There is deliberately no TestPyPI job: the publisher is registered on pypi.org only.
 #
-# PyPI Trusted Publishing (GitHub OIDC): no tokens, no secrets. Register BOTH publishers (pending publishers, since the project
-# does not exist yet), each with exactly these claims:
-#
-#   index          PyPI project  Owner        Repository         Workflow           Environment
-#   test.pypi.org  isongraph-ext ISON-format   <final repo name>  publish-pypi.yml   testpypi
-#   pypi.org       isongraph-ext ISON-format   <final repo name>  publish-pypi.yml   pypi
-#
-# GitHub environments (Settings > Environments):
-#   testpypi  no reviewers needed; deployment tags/branches: v* tags
-#   pypi      REQUIRED REVIEWERS (owner + backup); deployment branches and tags: tag pattern v* only; no secrets
-# Renaming this file or either environment breaks the publishers' claim match: change both sides together.
+# The pypi.org publisher must carry exactly these claims:
+#   PyPI project isongraph-ext | Owner ISON-format | Repository isongraph-ext | Workflow publish-pypi.yml | Environment pypi
+# Renaming this file or the environment breaks the publisher's claim match: change both sides together.
 #
 # Triggers:
-#   release published  -> build from the release tag, then publish to PyPI after the `pypi` environment is approved.
-#   workflow_dispatch  -> build from `ref` (a v-tag, required), publish to testpypi (default) or pypi (also gated).
+#   release published  -> build from the release tag, then publish to PyPI.
+#   workflow_dispatch  -> build from `ref` (a v-tag, required) and publish to PyPI.
 # The build job refuses to continue unless the checked-out package version equals the tag (vX.Y.Z) and the tagged commit is on main.
 
 name: Publish Python package
@@ -25,13 +18,8 @@ on:
   workflow_dispatch:
     inputs:
       ref:
-        description: Tag to build (vX.Y.Z)
+        description: Tag to build and publish to PyPI (vX.Y.Z)
         required: true
-      target:
-        description: Where to publish
-        type: choice
-        options: [testpypi, pypi]
-        default: testpypi
 
 permissions:
   contents: read
@@ -73,27 +61,7 @@ jobs:
           path: isongraph-ext/dist/
           if-no-files-found: error
 
-  publish-testpypi:
-    if: github.event_name == 'workflow_dispatch' && inputs.target == 'testpypi'
-    needs: build
-    runs-on: ubuntu-latest
-    environment:
-      name: testpypi
-      url: https://test.pypi.org/p/isongraph-ext
-    permissions:
-      id-token: write
-    steps:
-      - uses: actions/download-artifact@v8
-        with:
-          name: dist
-          path: dist
-      - uses: pypa/gh-action-pypi-publish@release/v1
-        with:
-          repository-url: https://test.pypi.org/legacy/
-          skip-existing: true
-
   publish-pypi:
-    if: github.event_name == 'release' || (github.event_name == 'workflow_dispatch' && inputs.target == 'pypi')
     needs: build
     runs-on: ubuntu-latest
     environment:

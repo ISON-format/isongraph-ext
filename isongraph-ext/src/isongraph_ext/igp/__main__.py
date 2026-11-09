@@ -8,7 +8,7 @@ from pathlib import Path
 
 from ison_parser import Block, Document, dumps_canonical
 
-from .._cli import read_capped
+from .._cli import read_capped, write_atomic
 from ..igx.digest import sha256_hex
 from .errors import IGPError
 from .records import DEFAULT_LIMITS
@@ -66,8 +66,8 @@ def main(argv: list[str]) -> int:
     if a.cmd == "project":
         try:
             a.out.mkdir(parents=True, exist_ok=True)
-            (a.out / "result.ison").write_bytes(proj.result_bytes)
-            (a.out / "result.igpv.ison").write_bytes(payload_text.encode("utf-8"))
+            write_atomic(a.out / "result.ison", proj.result_bytes)
+            write_atomic(a.out / "result.igpv.ison", payload_text.encode("utf-8"))
         except OSError as e:
             sys.stderr.write(f"error: {e}\n")
             return EX_USAGE

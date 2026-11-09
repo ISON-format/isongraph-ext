@@ -112,3 +112,18 @@ def test_a2_limited_verification_denies_producer_bound_but_not_artifact():
     assert (r.admitted, r.code, r.step) == (False, "IDENTITY_CLAIM_INADMISSIBLE", "A2") and "SEMANTIC_REVERIFICATION_UNAVAILABLE" in r.reasons
     art = make_binding(core_commit=RETIRED, core_conformance_receipt=B[RETIRED].receipts["python"].sha256, identity_claim="artifact")
     assert _admit(art, policy=AdmissionPolicy(allow_retired_baselines=True)).admitted
+
+
+def test_a3_lossy_known_consumer_is_reported_as_core_lossy():
+    rc = B[LOSSY].receipts["python"].sha256
+    r = _admit(make_binding(core_commit=LOSSY, producer_core_posture="LOSSY_KNOWN", core_conformance_receipt=rc,
+                            identity_claim="artifact", consumer=Consumer("python", "1.4.1", "LOSSY_KNOWN", rc)))
+    assert r.admitted and r.receipt_posture == "CORE_LOSSY" and "CONSUMER_POSTURE_LOSSY_KNOWN" in r.reasons
+
+
+def test_a2_unclassified_source_is_named_in_a_producer_bound_denial():
+    junk = b"not ison :::"
+    kw = dict(artifact_sha256=sha256_hex(junk), source_semantic_eligibility="unclassified", source_semantic_reason=None)
+    r = _admit(_ts(**kw), junk)
+    assert not r.admitted and "SOURCE_UNCLASSIFIED" in r.reasons
+    assert _admit(_ts(identity_claim="artifact", **kw), junk).admitted

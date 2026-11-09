@@ -13,7 +13,7 @@ jobs:
         working-directory: isongraph-ext
     steps:
       - uses: actions/checkout@v7
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v7
         with:
           python-version: "3.12"
       - run: pip install -e ".[dev]"
@@ -33,7 +33,7 @@ jobs:
           repository: ISON-format/isongraph
           ref: ce9d3b78afd79cbdffdd67546bcb5278dc38be70
           path: core
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v7
         with:
           python-version: "3.12"
       - run: pip install -e "isongraph-ext[dev]"

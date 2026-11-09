@@ -8,8 +8,10 @@ from pathlib import Path
 
 from ison_parser import Block, Document, dumps_canonical
 
+from .._cli import read_capped
 from ..igx.digest import sha256_hex
 from .errors import IGPError
+from .records import DEFAULT_LIMITS
 from .project import project, verify_projection
 
 EX_USAGE = 64
@@ -47,14 +49,16 @@ def main(argv: list[str]) -> int:
     a = ap.parse_args(argv)
     try:
         if a.cmd == "project":
-            source, policy = a.source.read_bytes(), a.policy.read_bytes()
+            source, policy = read_capped(a.source, DEFAULT_LIMITS.max_source_bytes), read_capped(a.policy, DEFAULT_LIMITS.max_policy_bytes)
         else:
-            source, policy, result, payload = (getattr(a, n).read_bytes() for n in ("source", "policy", "result", "payload"))
+            source, policy = read_capped(a.source, DEFAULT_LIMITS.max_source_bytes), read_capped(a.policy, DEFAULT_LIMITS.max_policy_bytes)
+            result, payload = read_capped(a.result, DEFAULT_LIMITS.max_source_bytes), read_capped(a.payload, DEFAULT_LIMITS.lineage.max_payload_bytes)
     except OSError as e:
         sys.stderr.write(f"error: {e}\n")
         return EX_USAGE
     try:
-        proj = project(source, policy) if a.cmd == "project" else verify_projection(source, policy, result, payload)
+        proj = (project(source, policy, limits=DEFAULT_LIMITS) if a.cmd == "project"
+                else verify_projection(source, policy, result, payload, limits=DEFAULT_LIMITS))
     except IGPError as e:
         _emit(_meta("error", {"code": e.code, "field": e.field, "detail": e.detail, "step": e.step}))
         return 1

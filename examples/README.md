@@ -1,6 +1,6 @@
 # ISONGraphExt adoption examples
 
-Small, runnable demonstrations that the released capabilities (IGX/1, IGPV/1, IGDM/1) can be consumed by someone who has never heard of any product built on them. None of them uses software-engineering vocabulary, and none imports anything but `ison_graph`, `ison_parser`, `isongraph_ext` and the standard library.
+Small, runnable demonstrations that the released capabilities (IGX/1, IGPV/1, IGDM/1; IGP/1 projection is described in the main README) can be consumed by someone who has never heard of any product built on them. None of them uses software-engineering vocabulary, and none imports anything but `ison_graph`, `ison_parser`, `isongraph_ext` and the standard library.
 
 ## Install and run
 
@@ -35,12 +35,12 @@ Does not prove: external demand or adoption, a second implementation, production
 
 ## Measured costs (informational, no thresholds)
 
-`measure.py` times, separately and from single runs: a Core parse; an IGX verification; IGPV and IGDM verification (each runs an IGX verification inside, so the table also reports `*_extra` = total minus the IGX run, an approximation because it is a difference of two single samples); and SVG generation from an already-parsed graph and already-verified payload (no parse inside the figure). Output of `python examples/measure.py 100 1000 10000` on a development machine (Windows, Python 3.12), graph with N nodes and 2N edges; seconds:
+`measure.py` times, separately and from single runs: a Core parse; an IGX verification; IGPV and IGDM verification (each runs an IGX verification inside, so the table also reports `*_extra` = total minus the IGX run, an approximation because it is a difference of two single samples); and SVG generation from an already-parsed graph and already-verified payload (no parse inside the figure). Output of `python examples/measure.py 100 1000 10000` on a development machine (Windows, Python 3.12, 0.4.0), graph with N nodes and 2N edges; seconds:
 
 | N | core_parse | igx_verify | igpv_extra | igdm_extra | svg_render |
 |---|---|---|---|---|---|
-| 100 | 0.003 | 0.010 | 0.010 | 0.010 | 0.001 |
-| 1000 | 0.023 | 0.092 | 0.096 | 0.097 | 0.008 |
-| 10000 | 0.268 | 2.931 | 2.465 | 2.493 | 0.182 |
+| 100 | 0.005 | 0.008 | 0.012 | 0.011 | 0.001 |
+| 1000 | 0.030 | 0.075 | 0.134 | 0.116 | 0.010 |
+| 10000 | 0.411 | 0.762 | 1.250 | 1.060 | 0.082 |
 
-A full IGPV or IGDM verification is `igx_verify + *_extra`: about 5.4 s at 10,000 nodes here, and roughly 55 to 60 s at 100,000 in a local run. That is an offline-validation cost, not an interactive one. No caching or optimisation is applied. A graph without companion files costs exactly a Core parse.
+A full IGPV or IGDM verification is `igx_verify + *_extra`: about 2 s at 10,000 nodes here (measured again for 0.4.0). Larger graphs have not been re-measured. That is an offline-validation cost, not an interactive one. No caching or optimisation is applied. A graph without companion files costs exactly a Core parse.

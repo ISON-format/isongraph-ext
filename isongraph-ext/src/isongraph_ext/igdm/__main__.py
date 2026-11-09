@@ -9,11 +9,13 @@ from pathlib import Path
 
 from ison_parser import Block, Document, dumps_canonical
 
+from .._cli import read_capped
 from ..igx.admit import AdmissionPolicy
 from ..igx.binding import ExtensionBinding
 from ..igx.errors import IGXError
 from .bind import verify_and_admit
 from .errors import IGDMError
+from .records import DEFAULT_LIMITS
 
 EX_USAGE = 64   # BSD sysexits: never collides with 2 (admission denied) or 1 (invalid binding/payload)
 
@@ -61,7 +63,8 @@ def main(argv: list[str]) -> int:
     v.add_argument("--allow-retired", action="store_true")
     a = ap.parse_args(argv)
     try:
-        graph, binding_bytes, payload_bytes = a.graph.read_bytes(), a.binding.read_bytes(), a.payload.read_bytes()
+        graph, binding_bytes = read_capped(a.graph, DEFAULT_LIMITS.max_graph_bytes), a.binding.read_bytes()
+        payload_bytes = read_capped(a.payload, DEFAULT_LIMITS.max_payload_bytes)
     except OSError as e:
         ap.print_usage(sys.stderr)
         sys.stderr.write(f"error: {e}\n")

@@ -65,6 +65,35 @@ tampered: SOURCE_BINDING_MISMATCH at V4
 
 Verification is a fixed sequence of numbered steps, and every failure names the step and a stable error code.
 
+## Project a bounded subgraph
+
+Select what an agent, a report or a viewer needs, with proof of where every part came from:
+
+```python
+from ison_graph import ISONGraph
+from isongraph_ext.igp import Policy, project
+from isongraph_ext.igpv import NodeRef
+
+g = ISONGraph()
+for name in ("ada", "grace", "linus"):
+    g.add_node("person", name)
+g.add_edge("knows", ("person", "ada"), ("person", "grace"))
+g.add_edge("knows", ("person", "grace"), ("person", "linus"))
+data = g.to_ison().encode("utf-8")
+
+policy = Policy(anchors=(NodeRef("person", "ada"),), direction="out", depth=1)
+result = project(data, policy)
+print("selected:", result.stats["selected_nodes"], "nodes,", result.stats["result_edges"], "edge")
+print("lineage rows:", len(result.payload.derivations), "| policy digest:", result.policy_sha256[:12])
+```
+
+```text
+selected: 2 nodes, 1 edge
+lineage rows: 3 | policy digest: 2b7fbfb0ce34
+```
+
+The policy is a canonical file you can keep next to the graph (`policy.to_ison()`); its digest is recorded in the lineage. `result.result_bytes` is an ordinary ISONGraph, `result.payload` an IGPV/1 lineage payload, and `verify_projection` recomputes both from the source and the policy. The policy never inspects property values: you choose the anchors, IGP/1 does the structural work. Specification: [`21-IGP1-DESIGN.md`](https://github.com/ISON-format/isongraph-ext/blob/main/docs/blueprint/21-IGP1-DESIGN.md).
+
 ## Command line
 
 ```bash
@@ -73,6 +102,8 @@ python -m isongraph_ext.igx   admit  graph.ison graph.igx.ison                  
 python -m isongraph_ext.igpv  verify graph.ison graph.igx.ison graph.igpv.ison [--source SHA256=PATH]
 python -m isongraph_ext.igpv  origins <graph-sha256> graph.igpv.ison --node person ada
 python -m isongraph_ext.igdm  verify graph.ison graph.igx.ison graph.igdm.ison
+python -m isongraph_ext.igp   project graph.ison policy.igp.ison --out out/       # writes result.ison and result.igpv.ison
+python -m isongraph_ext.igp   verify  graph.ison policy.igp.ison result.ison result.igpv.ison
 ```
 
 Output is itself ISON, so receipts can quote it verbatim.
@@ -89,8 +120,8 @@ Output is itself ISON, so receipts can quote it verbatim.
 ## Built to be checked
 
 - **Byte-exact.** Companion files are canonical by construction: one graph, one companion, one set of bytes, one SHA-256.
-- **Specified before coded.** Frozen specifications for IGX/1, IGPV/1 and IGDM/1 live in the [repository](https://github.com/ISON-format/isongraph-ext/tree/main/docs/blueprint); the code follows them, never the reverse.
-- **Conformance vectors.** 217 byte-exact vectors and about 540 tests are replayed in CI on every change.
+- **Specified before coded.** Frozen specifications for IGX/1, IGPV/1, IGDM/1 and IGP/1 live in the [repository](https://github.com/ISON-format/isongraph-ext/tree/main/docs/blueprint); the code follows them, never the reverse.
+- **Conformance vectors.** 217 byte-exact vectors and about 590 tests are replayed in CI on every change.
 - **Pinned to a measured Core.** The package embeds the Core baseline it was verified against, plus Core's conformance receipts, so identity claims are checkable rather than asserted.
 - **Hostile-input safe.** Parsing is bounded by explicit size and row budgets; verification reports the first failing step instead of guessing.
 
@@ -106,7 +137,7 @@ This is an **early-stage (alpha)** release. Know what it does not do:
 - Provenance proves origin and lineage, **not that an extracted statement is true**.
 - The cross-port identity claim and lossy producer-bound admission are reserved. Revision, delta and DAG capabilities are not implemented. Projection is structural only (no property filters) and supports directed simple graphs.
 - IGDM/1 carries presentation **intent only** and renders nothing.
-- Python reference implementation only. Verification is an offline cost: roughly 5 seconds for a 10,000-node graph with a capability.
+- Python reference implementation only. Verification is an offline cost: roughly 2 seconds for a 10,000-node graph with a capability.
 
 ## Links
 

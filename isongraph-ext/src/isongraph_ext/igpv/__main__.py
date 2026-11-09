@@ -13,7 +13,9 @@ from ison_parser import Block, Document, dumps_canonical
 from ..igx.admit import AdmissionPolicy
 from ..igx.binding import ExtensionBinding
 from ..igx.errors import IGXError
+from .._cli import read_capped
 from . import records as R
+from .records import DEFAULT_LIMITS
 from .bind import verify_and_admit
 from .errors import IGPVError
 from .lineage import Lineage
@@ -119,12 +121,13 @@ def main(argv: list[str]) -> int:
 def _verify(ap: _Parser, a) -> int:
     sources: dict[str, bytes] = {}
     try:
-        graph, binding_bytes, payload_bytes = a.graph.read_bytes(), a.binding.read_bytes(), a.payload.read_bytes()
+        graph, binding_bytes = read_capped(a.graph, DEFAULT_LIMITS.max_graph_bytes), a.binding.read_bytes()
+        payload_bytes = read_capped(a.payload, DEFAULT_LIMITS.max_payload_bytes)
         for item in a.source:
             key, sep, path = item.partition("=")
             if not sep or R.HEX64.fullmatch(key) is None:
                 return _usage(ap, f"--source needs SHA256=PATH with lowercase hex: {item!r}")
-            sources[key] = Path(path).read_bytes()
+            sources[key] = read_capped(Path(path), DEFAULT_LIMITS.max_graph_bytes)
     except OSError as e:
         return _usage(ap, str(e))
     try:
@@ -155,6 +158,11 @@ def _origins(ap: _Parser, a) -> int:
     if a.node and a.edge:
         return _usage(ap, "--node and --edge are exclusive")
     try:
+        for part in (a.node or []) + (a.edge or []):
+            try:
+                part.encode("utf-8")
+            except UnicodeEncodeError:
+                return _usage(ap, "arguments must be valid UTF-8 text")
         if a.node:
             obj = R.NodeRef(a.node[0], _id_token(a.node[1]))
         elif a.edge:
@@ -164,7 +172,7 @@ def _origins(ap: _Parser, a) -> int:
             obj = R.EdgeAddress(R.NodeRef(st, _id_token(sid)), rel, R.NodeRef(tt, _id_token(tid)), a.edge[5] if len(a.edge) == 6 else "0")
         else:
             obj = None
-        texts = [p.read_bytes() for p in a.payloads]
+        texts = [read_capped(p, DEFAULT_LIMITS.max_payload_bytes) for p in a.payloads]
     except (OSError, ValueError) as e:
         return _usage(ap, str(e))
     try:

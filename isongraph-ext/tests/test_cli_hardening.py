@@ -1,5 +1,6 @@
 """CLI hardening found by the 0.4.0 audit: undecodable arguments exit 64, input files are read within the byte budgets."""
 import io
+import pytest
 
 from igp_helpers import graph_bytes, pol
 from igpv_helpers import sha
@@ -58,3 +59,24 @@ def test_igpv_origins_with_an_undecodable_argument_exits_64_not_a_traceback(tmp_
     for extra in (["--node", "p", "\udc80"], ["--edge", "p", "1", "knows", "p", "\udc80"]):
         assert igpv_main(["origins", sha(TARGET), str(pl), *extra]) == 64
         assert "UTF-8" in capsys.readouterr().err
+
+
+def test_write_atomic_replaces_whole_file_and_leaves_no_temp(tmp_path):
+    from isongraph_ext._cli import write_atomic
+    target = tmp_path / "out.ison"
+    target.write_bytes(b"old")
+    write_atomic(target, b"new")
+    assert target.read_bytes() == b"new" and [p.name for p in tmp_path.iterdir()] == ["out.ison"]
+
+
+def test_write_atomic_failure_keeps_the_old_file_and_cleans_up(tmp_path, monkeypatch):
+    import os
+    from isongraph_ext._cli import write_atomic
+    target = tmp_path / "out.ison"
+    target.write_bytes(b"old")
+    def boom(*a, **k):
+        raise OSError("disk")
+    monkeypatch.setattr(os, "replace", boom)
+    with pytest.raises(OSError):
+        write_atomic(target, b"new")
+    assert target.read_bytes() == b"old" and [p.name for p in tmp_path.iterdir()] == ["out.ison"]

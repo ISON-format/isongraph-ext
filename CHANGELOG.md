@@ -4,6 +4,7 @@
 
 - CLI input is read within the byte budgets (`igp`, `igpv`, `igdm`): at most the budget plus one byte of a file is read before the library refuses it, instead of loading a whole oversized file first. `igpv origins` with an argument that is not valid UTF-8 now exits 64 instead of raising a traceback. `igp` passes one limits object to both file reading and the library. IGX has no byte budget yet and is unchanged.
 - Tests: 13 new tests pin IGP/1 rules the 0.4.0 audit found unpinned (budget tie-breaks, mandatory-node distance, twin ids across anchors and mandatory, inclusive limits, INT64 maximum, foreign producers in verification). Each was shown to fail against the mutation it targets.
+- `igp project --out` writes each output file atomically (temp file, then rename), so an interrupted run never leaves a half-written `result.ison`. Two more admission reasons are now tested (`SOURCE_UNCLASSIFIED`, `CONSUMER_POSTURE_LOSSY_KNOWN`).
 - Documentation: refreshed timings (about 2 s for a full 10,000-node check), test count, IGP/1 in the PyPI long description, package description and examples guide; corrected vector counts in older CHANGELOG entries.
 
 ## [0.4.0] — 2026-11-09 — E5 IGP/1

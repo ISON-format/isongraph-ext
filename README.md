@@ -221,7 +221,7 @@ The reference runtime pins `ison-graph==1.4.1` and `ison-py==1.2.0`. These check
 
 ## Status and limits
 
-ISONGraphExt is an **early-stage (alpha)** release, published on PyPI as `isongraph-ext` 0.3.0. Know what it does not do:
+ISONGraphExt is an **early-stage (alpha)** release, published on PyPI as `isongraph-ext`. Know what it does not do:
 
 - A verified binding proves **reproducibility and consistency, not authorship**. `producer_port` is a checked claim, not authentication.
 - Provenance proves origin and lineage, **not that an extracted statement is true**; a SHA-256 identifies bytes without authenticating where they came from.

@@ -3,7 +3,7 @@ from isongraph_ext.igx.errors import IGXError
 
 
 def test_version():
-    assert __version__ == "0.4.0"
+    assert __version__ == "0.4.1"
 
 
 def test_igxerror_carries_code_field_detail_step():

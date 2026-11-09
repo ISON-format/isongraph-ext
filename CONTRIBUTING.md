@@ -7,7 +7,7 @@
 
 ## Releasing
 
-Publishing uses PyPI Trusted Publishing (GitHub OIDC): no tokens are stored. The publisher registered on **pypi.org** names owner `ISON-format`, repository `isongraph-ext`, workflow `publish-pypi.yml` and environment `pypi`. There is no TestPyPI step. The workflow job runs in the GitHub environment `pypi`; add required reviewers to it in the repository settings if you want a manual approval before each upload.
+Publishing uses PyPI Trusted Publishing (GitHub OIDC): no tokens are stored. The publisher registered on **pypi.org** names owner `ISON-format`, repository `isongraph-ext`, workflow `publish-pypi.yml` and environment `pypi`. The workflow job runs in the GitHub environment `pypi`; add required reviewers to it in the repository settings if you want a manual approval before each upload.
 
 1. Set the version in `isongraph-ext/pyproject.toml` and `src/isongraph_ext/__init__.py`, add the CHANGELOG entry, merge to `main` with CI green.
 2. Tag the merge commit `vX.Y.Z` and push the tag. The workflow refuses a tag that does not equal `v` + the package version, or a tagged commit that is not on `main`.

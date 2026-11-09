@@ -22,7 +22,7 @@ def _src_hash(rel: str) -> str:
 
 def test_wheel_contains_every_baseline_file_byte_exact(request):
     _needs_built(request)
-    wheel = glob.glob(str(DIST / "isongraph_ext-0.3.0-*.whl"))
+    wheel = glob.glob(str(DIST / "isongraph_ext-0.4.0-*.whl"))
     assert wheel, "no wheel in dist/"
     z = zipfile.ZipFile(wheel[0])
     names = {n[len("isongraph_ext/"):]: n for n in z.namelist() if n.startswith("isongraph_ext/baselines/")}
@@ -41,7 +41,7 @@ def test_wheel_contains_every_baseline_file_byte_exact(request):
 
 def test_sdist_contains_every_baseline_file(request):
     _needs_built(request)
-    sdist = glob.glob(str(DIST / "isongraph_ext-0.3.0.tar.gz"))
+    sdist = glob.glob(str(DIST / "isongraph_ext-0.4.0.tar.gz"))
     assert sdist, "no sdist in dist/"
     with tarfile.open(sdist[0]) as t:
         members = {m.name.split("/src/isongraph_ext/", 1)[1]: m for m in t.getmembers() if "/src/isongraph_ext/baselines/" in m.name and m.isfile()}

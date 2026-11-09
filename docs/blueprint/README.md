@@ -8,6 +8,7 @@ The documents in this directory are the normative texts the code and conformance
 | `17-IGX1-DESIGN.md` | IGX/1: extension binding, capability registry, identity claims, verification and admission |
 | `18-IGPV1-DESIGN.md` | IGPV/1: provenance - source attribution, locators and derivation lineage |
 | `19-IGDM1-DESIGN.md` | IGDM/1: Datamatics - renderer-neutral presentation intent |
+| `21-IGP1-DESIGN.md` | IGP/1: structural projection - a deterministic, verifiable subgraph with IGPV/1 lineage |
 | `13-SEMANTIC-2.md` | Draft graph-identity contract (Semantic/2); not yet frozen |
 | `15-CORE-CONFORMANCE-CORPUS.md` | Specification of the Core conformance corpus the receipts refer to |
 | `02-CORE-COMPATIBILITY-LAWS.md`, `11-ADRS.md` | Compatibility laws and architecture decisions |

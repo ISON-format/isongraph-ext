@@ -1,0 +1,8 @@
+edges.r
+source target w
+:p:1 :p:s1 2
+
+nodes.p
+id label n ok x
+1 "café ☃" 3 true 1.5
+s1 null null null null

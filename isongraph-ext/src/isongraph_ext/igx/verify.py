@@ -9,7 +9,7 @@ from .baselines import BASELINES, Baseline, Receipt, installed_core_runtime
 from .binding import Capability, ExtensionBinding, check_shape
 from .digest import sha256_hex
 from .errors import IGXError
-from .source import as_bytes, classify_eligibility, derive_canonical
+from .source import as_bytes, classify_eligibility, derive_canonical, load_source
 from .registry import DEFAULT_REGISTRY, EMPTY_REGISTRY, CapabilityRegistry  # noqa: F401  (re-exported)
 from .versions import parse_range, parse_version, range_admits
 
@@ -104,10 +104,11 @@ def _v4(b: ExtensionBinding, source: bytes, mode: str) -> tuple[str | None, str 
         raise IGXError("SOURCE_BINDING_MISMATCH", "meta.source.artifact_sha256", f"supplied bytes hash to {actual}", "V4")
     if mode == "limited":
         return None, None, None            # re-derivation needs the pinned runtime, which this install is not (17 §4 V0)
-    canonical = derive_canonical(source, b.serialization_profile, b.producer_port)
+    loaded = load_source(source, b.serialization_profile)       # parse the artifact once for both questions below
+    canonical = derive_canonical(source, b.serialization_profile, b.producer_port, loaded=loaded)
     if canonical != b.source_canonical:
         raise IGXError("SOURCE_WRITER_MISMATCH", "meta.source.source_canonical", f"derived {canonical!r}, stored {b.source_canonical!r}", "V4")
-    eligibility, reason = classify_eligibility(source, b.serialization_profile)
+    eligibility, reason = classify_eligibility(source, b.serialization_profile, loaded=loaded)
     if (eligibility, reason) != (b.source_semantic_eligibility, b.source_semantic_reason):
         raise IGXError("SOURCE_ELIGIBILITY_MISMATCH", "meta.source.source_semantic_eligibility",
                        f"derived ({eligibility}, {reason}), stored ({b.source_semantic_eligibility}, {b.source_semantic_reason})", "V4")

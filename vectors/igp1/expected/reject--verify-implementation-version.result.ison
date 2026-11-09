@@ -1,0 +1,23 @@
+edges.decided_at
+source target
+:decision:D-4 :meeting:2026-03-12
+
+edges.supports
+source target
+:evidence:CM-3 :decision:D-4
+:evidence:CM-3 :decision:D-9
+:evidence:FR-19 :decision:D-4
+
+nodes.decision
+id title
+D-4 "Relocate the archive"
+D-9 null
+
+nodes.evidence
+id
+CM-3
+FR-19
+
+nodes.meeting
+id
+2026-03-12

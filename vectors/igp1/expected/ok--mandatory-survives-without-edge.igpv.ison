@@ -1,0 +1,32 @@
+meta.igpv
+provenance_spec target_artifact_sha256 target_semantic_digest target_semantic_digest_algorithm target_serialization_profile
+IGPV/1 04e6b2a72b18e10b365ee8fd132bbbb7162de315089889f1690857b4964f257e null null ison-v1
+
+table.artifacts
+artifact_id artifact_sha256 kind media_type revision serialization_profile size uri
+src 4b8be88923ae347dc04611c5bd89c68bd04d2617c6cfc0da41f7dd6acbae9189 isongraph null null ison-v1 205 null
+
+table.attributions
+artifact_id attribution_id locator_end locator_start locator_text locator_type object_id producer_id
+
+table.derivations
+derivation_id derived_object_id kind origin_object_id producer_id
+dn0 n0 identity o0 p0
+dn1 n1 identity o1 p0
+dn2 n2 identity o2 p0
+dn3 n3 identity o3 p0
+
+table.objects
+graph kind node_id node_type object_id ordinal relation source_id source_type target_id target_type
+src node a n o1 null null null null null null
+src node b1 n o2 null null null null null null
+src node b2 n o3 null null null null null null
+src node far m o0 null null null null null null
+null node a n n1 null null null null null null
+null node b1 n n2 null null null null null null
+null node b2 n n3 null null null null null null
+null node far m n0 null null null null null null
+
+table.producers
+implementation kind policy_sha256 producer_id spec version
+isongraph-ext-igp transformation 3c72275042bc3366fd082b0bfe98822c5bdea1359969a2d20df2d7022e766cda p0 IGP/1 1.0.0

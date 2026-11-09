@@ -1,0 +1,22 @@
+meta.igp
+depth direction max_edges max_nodes policy_spec
+2 both null 50 IGP/1
+
+table.anchors
+node_id node_type
+D-4 decision
+
+table.mandatory
+node_id node_type
+2026-03-12 meeting
+
+table.node_types
+node_type
+decision
+evidence
+meeting
+
+table.relations
+relation
+decided_at
+supports

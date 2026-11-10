@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+- Documentation: the README no longer claims every input is bounded. IGPV/1, IGDM/1 and IGP/1 enforce input-size and row limits; IGX/1 defines none; byte limits do not bound memory. New `docs/resource-limits.md` records measured peak memory (Core load, IGP/1 project and IGX/1 verify at 30,000 to 250,000 nodes, with versions and method) and recommends process-level memory and time limits for untrusted input. `SECURITY.md` points to it.
+- Specifications: new non-normative `docs/blueprint/ERRATA.md` corrects three published inconsistencies (IGX/1 and IGPV/1 vector tables versus the manifests; the IGDM/1 wire example is not byte-canonical). Frozen texts, behavior and vectors are unchanged.
+- Security maintenance: every GitHub Action in the CI and publish workflows is pinned to a verified full commit SHA (Dependabot keeps them current).
+
 ## [0.4.1] — 2026-11-09 — audit fixes
 
 - CLI input is read within the byte budgets (`igp`, `igpv`, `igdm`): at most the budget plus one byte of a file is read before the library refuses it, instead of loading a whole oversized file first. `igpv origins` with an argument that is not valid UTF-8 now exits 64 instead of raising a traceback. `igp` passes one limits object to both file reading and the library. IGX has no byte budget yet and is unchanged.

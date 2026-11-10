@@ -123,7 +123,7 @@ Output is itself ISON, so receipts can quote it verbatim.
 - **Specified before coded.** Frozen specifications for IGX/1, IGPV/1, IGDM/1 and IGP/1 live in the [repository](https://github.com/ISON-format/isongraph-ext/tree/main/docs/blueprint); the code follows them, never the reverse.
 - **Conformance vectors.** 217 byte-exact vectors and about 590 tests are replayed in CI on every change.
 - **Pinned to a measured Core.** The package embeds the Core baseline it was verified against, plus Core's conformance receipts, so identity claims are checkable rather than asserted.
-- **Hostile-input safe.** Parsing is bounded by explicit size and row budgets; verification reports the first failing step instead of guessing.
+- **Limits stated plainly.** IGPV/1, IGDM/1 and IGP/1 enforce explicit input-size and row limits; IGX/1 does not define equivalent limits. Large or untrusted inputs can use a lot of memory and time, because byte limits do not bound memory. Apply your own process-level resource controls ([measurements and guidance](https://github.com/ISON-format/isongraph-ext/blob/main/docs/resource-limits.md)). Verification reports the first failing step instead of guessing.
 
 ## Examples
 

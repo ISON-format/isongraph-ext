@@ -84,7 +84,7 @@ bcd8ceb12e45cf1e9840edd09551f1823ec2d361677d5dba83a707cf3cab6fd0  hints/reject--
 d13cfc6d4b576d904c675236e0ebc87dc46529b2863b6c81003bf33b3711f7e0  hints/reject--igdc-noncanonical.igdc.ison
 c798644aff8203cb2f04190e9834733a4867c0f30115592eae5ad45d86cb7a31  hints/reject--igdc-not-utf8.igdc.ison
 6a6159ef8f71dcd40a49fff3f51c921f7d01d5aaf50f8c97b81c1b5a92942232  hints/reject--igdc-ordinal-leading-zero.igdc.ison
-fb24004bc685e8b43c785fd5538b3b06948b5877ea9f0c1e91c35690eb1d3371  hints/reject--igdc-oversize.igdc.ison
+c798644aff8203cb2f04190e9834733a4867c0f30115592eae5ad45d86cb7a31  hints/reject--igdc-oversize.igdc.ison
 eb2768af47ed2b6d1f518093525cea603b7d52c9c107145f9138e5096704f907  hints/reject--igdc-payload-digest-mismatch.igdc.ison
 fda134118db228aa904b4248d19935d2a78288ee9e62ce9023ee6718934ea1a7  hints/reject--igdc-reference-cell.igdc.ison
 cc5ea6e26ae5a454aefd01cdeedba2c551021855ac5a603e81123f4bc35bf643  hints/reject--igdc-row-added.igdc.ison
@@ -103,7 +103,7 @@ ff3929798f663ec6c7bea23e78837d7efdc25c2e01a88e8fdf8db8204b180046  hints/reject--
 9b2a94bfea1748443bcbb9f3912283cd58c741dea87834c478a04768da7f1c6a  hints/reject--igdc-wrong-address-scheme.igdc.ison
 57e08437ebaa86b7ac37f4074e99d3e060395bf9af22ae9fb5f0fa341adb1f6a  hints/reject--igdc-wrong-spec.igdc.ison
 a0a0408d40d6d08cea575964e5a0588176f74cc1a8bcdbd849938f4e51e717f3  hints/reject--igdc-x-in-closed-column.igdc.ison
-af191ca1a1504634095b79751745ba9b104bc1a20c3214f8f4cd5dec01bffbe8  hints/reject--igdc-x-token-malformed.igdc.ison
+94af9f8bff2ee209c6af6e20530569c646922955ac7fdef5b32e024dca575948  hints/reject--igdc-x-token-malformed.igdc.ison
 e8cdf92899e21d497663f918bbc3aa98f439d4fe52034afe8166c00d6fc8f526  manifest.ison
 4ad959bae2f405d636b867a4cc94b60e4cc96b3bb9788f4c6948777efd34a14b  payloads/ok--accessibility-fields.igdm.ison
 bd25ab6d94880eede2f582b139bd563e72f8dead74bedad78313641c517f9dc8  payloads/ok--edge-hints.igdm.ison

@@ -23,5 +23,5 @@ region s:s1 order
 
 table.nodes
 a11y_role a11y_role_x a11y_text badge drilldown emphasis expandable focusable label layout_anchor layout_rank lod_min magnitude node_id node_type ring ring_x role role_x selectable shape_role shape_role_x temporal_order temporal_state visibility
-warning null null "3" null medium null null null null null 2 0.1 s:s1 order warning null inactive risk null circle null null null collapsed
+warning null null "3" null medium null null null null null 2 0.1 s:s1 order warning null null risk null circle null null null collapsed
 null null "Order 1 (active)" null null high "true" null "Order #1" "true" 0 0 0.8 i:1 order null null active null "true" document null 3 changed visible

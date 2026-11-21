@@ -144,3 +144,98 @@ def test_twins_table(row):
         guard.see(NodeRef(row["type_b"], lit(row["id_b"])), "b")
     else:
         expect_reject(guard.see, row["expect"].removeprefix("reject:"), NodeRef(row["type_b"], lit(row["id_b"])), "b")
+
+
+# =====================================================================================================================
+# vectors/igdc1: every row runs; `op` (never the presence of a column) selects what is executed.
+# =====================================================================================================================
+from conftest import all_baselines  # noqa: E402
+
+from isongraph_ext.igdc.derive import consume  # noqa: E402
+from isongraph_ext.igdc.verify import verify_derivation, verify_hints  # noqa: E402
+from isongraph_ext.igdm.errors import IGDMError  # noqa: E402
+from isongraph_ext.igdm.records import Limits  # noqa: E402
+from isongraph_ext.igx.binding import ExtensionBinding  # noqa: E402
+from isongraph_ext.igx.errors import IGXError  # noqa: E402
+
+CONS = ROOT / "vectors" / "igdc1"
+CONSUMPTION_COUNTS = {"consume:ok": 19, "consume:reject": 7, "verify:ok": 1, "verify:reject": 53, "derivation:reject": 6}
+
+
+def cons_rows():
+    doc = loads((CONS / "manifest.ison").read_text(encoding="utf-8"))
+    return [r for b in doc.blocks if (b.kind, b.name) == ("table", "vectors") for r in b.rows]
+
+
+def _read(rel):
+    return (CONS / rel).read_bytes() if rel else None
+
+
+def _kw(detail):
+    kw = {}
+    for item in (detail or "").split(";"):
+        k, _, v = item.strip().partition(":")
+        if k == "limits":
+            name, _, num = v.partition("=")
+            kw["limits"] = Limits(**{**Limits().__dict__, name: int(num)})
+        elif k == "baselines":
+            assert v == "all"
+            kw["baselines"] = all_baselines()
+    return kw
+
+
+def _inputs(row):
+    return _read(row["payload"]), ExtensionBinding.from_ison(_read(row["binding"]).decode("utf-8")), _read(row["target"])
+
+
+def test_consumption_manifest_counts_and_checksums():
+    rows = cons_rows()
+    got = {}
+    for r in rows:
+        got[f"{r['op']}:{r['expect']}"] = got.get(f"{r['op']}:{r['expect']}", 0) + 1
+    assert got == CONSUMPTION_COUNTS
+    ids = [r["id"] for r in rows]
+    assert len(ids) == len(set(ids))
+    for line in (CONS / "SHA256SUMS").read_text(encoding="utf-8").splitlines():
+        digest, _, name = line.partition("  ")
+        assert hashlib.sha256((CONS / name).read_bytes()).hexdigest() == digest, name
+
+
+@pytest.mark.parametrize("row", cons_rows(), ids=lambda r: r["id"])
+def test_consumption_vector(row):
+    op, expect, kw = row["op"], row["expect"], _kw(row["detail"])
+    if op == "consume":
+        payload, binding, target = _inputs(row)
+        if expect == "ok":
+            got = consume(payload, binding, target, **kw)
+            assert got.to_ison().encode("utf-8") == _read(row["hints"]), row["id"]            # byte-exact with the INDEPENDENT reference deriver
+            verify_hints(_read(row["hints"]))
+            verify_derivation(_read(row["hints"]), payload, binding, target, **kw)
+            assert got.meta["target_directed"] in ("true", "false")
+        else:
+            with pytest.raises((IGXError, IGDMError, IGDCError)) as e:
+                consume(payload, binding, target, **kw)
+            assert (e.value.code, e.value.step) == (row["code"], row["step"]), e.value
+    elif op == "verify":
+        if expect == "ok":
+            verify_hints(_read(row["hints"]), **kw)
+        else:
+            with pytest.raises(IGDCError) as e:
+                verify_hints(_read(row["hints"]), **kw)
+            assert (e.value.code, e.value.step) == (row["code"], row["step"]), e.value
+    elif op == "derivation":
+        payload, binding, target = _inputs(row)
+        assert expect == "reject"
+        with pytest.raises(IGDCError) as e:
+            verify_derivation(_read(row["hints"]), payload, binding, target, **kw)
+        assert (e.value.code, e.value.step) == (row["code"], row["step"]), e.value
+    else:
+        pytest.fail(f"unknown op {op!r}")
+
+
+def test_int_id_ordering_trap_file_order_differs_from_semantic_order():
+    from isongraph_ext.igdc.hints import HintSet
+    row = next(r for r in cons_rows() if r["id"] == "ok/int-id-ordering-trap")
+    h = HintSet.from_ison(_read(row["hints"]))
+    ids = [(r["node_type"], r["node_id"]) for r in h.nodes]
+    assert ids != sorted(ids, key=lambda x: semantic_key(*x)) and ids.index(("t", "i:10")) < ids.index(("t", "i:2"))

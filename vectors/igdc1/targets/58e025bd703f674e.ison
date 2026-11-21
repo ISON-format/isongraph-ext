@@ -1,0 +1,16 @@
+edges.r
+source target
+:a:7 :b:7
+
+nodes.a
+id
+7
+s
+
+nodes.b
+id
+"7"
+
+nodes.c
+id
+7

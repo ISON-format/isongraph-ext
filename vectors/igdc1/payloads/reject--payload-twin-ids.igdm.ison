@@ -1,0 +1,28 @@
+meta.igdm
+datamatics_spec target_artifact_sha256 target_serialization_profile
+IGDM/1 2b0bd5b0e74e8e92a3e5f47f5b3b92c17ce0f9b0641714c0dc11b8e81d6e89c2 ison-v1
+
+meta.layout
+direction family stability
+LR layered stable
+
+table.edges
+a11y_text direction_display emphasis focusable label lod_min ordinal pattern_role relation role selectable source_id source_type target_id target_type temporal_order temporal_state visibility
+null forward low null null 1 "0" dashed knows neutral null 1 order s1 order null null visible
+
+table.groups
+a11y_text collapsed group_id intent label lod_min parent_group_id role visibility
+null "false" region hull "Region A" 0 null neutral visible
+null "true" cluster collapse Cluster 1 region emphasis-low visible
+
+table.members
+group_id node_id node_type
+cluster 1 order
+region 1 order
+region s1 order
+
+table.nodes
+a11y_role a11y_text badge drilldown emphasis expandable focusable label layout_anchor layout_rank lod_min magnitude node_id node_type ring role selectable shape_role temporal_order temporal_state visibility
+warning null "3" null medium null null null null null 2 0.1 s1 order warning inactive null circle null null collapsed
+null "Order 1 (active)" null null high "true" null "Order #1" "true" 0 0 0.8 1 order null active "true" document 3 changed visible
+null null null null null null null null null null null null "1" order null warning null null null null null

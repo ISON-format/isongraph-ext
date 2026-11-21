@@ -55,6 +55,7 @@ Core works without any of it. Add a companion only when you need the answer it g
 | *Is this really the graph I was promised?* | **IGX/1** binding | Pins the exact bytes, the Core version they were written with, and an identity claim (`none`, `artifact`, `producer_bound`). Unknown capabilities are reported or refused, never silently ignored. |
 | *Where did this come from?* | **IGPV/1** provenance | Attributes nodes and edges to source documents, with byte or line spans you can check against the real bytes, and records derivation lineage: *this node stands for those nodes in an earlier graph*. |
 | *How should a viewer present it?* | **IGDM/1** datamatics | Renderer-neutral presentation **intent**: semantic roles, emphasis, badges, groups, layout hints and accessibility text. Never colours, fonts or coordinates. |
+| *What should a viewer read, with ids that cannot be mistaken?* | **IGDC/1** consumption hints | A canonical hint document derived by a pure function from a verified IGDM/1 payload, with every node and edge address in a typed form (`i:7` is the integer 7, `s:7` the string "7"). A document that passes the consumer checks C0 to C3 is well-formed, **not verified**. |
 | *Which part of this graph do I need?* | **IGP/1** projection | Selects a bounded, deterministic subgraph from explicit anchors, relation and type allow-lists, direction, depth and budgets, and returns an ordinary graph **plus provenance for every node and edge**. Anyone can recompute it from the source and the policy. |
 
 Each is optional and independent. A consumer that knows none of them still has the whole graph.
@@ -149,6 +150,8 @@ Output is itself ISON, so receipts can quote it verbatim. Exit codes are stable:
 ```bash
 python -m isongraph_ext.igx   admit  out/assets.ison out/assets.igx.ison
 python -m isongraph_ext.igdm  verify out/assets.ison out/assets.igx.ison out/assets.igdm.ison
+python -m isongraph_ext.igdc  derive graph.ison graph.igx.ison graph.igdm.ison > graph.igdc.ison
+python -m isongraph_ext.igdc  verify graph.igdc.ison [graph.ison graph.igx.ison graph.igdm.ison]
 python -m isongraph_ext.igpv  verify graph.ison graph.igx.ison graph.igpv.ison [--source SHA256=PATH]
 python -m isongraph_ext.igpv  origins <graph-sha256> graph.igpv.ison --node person ada
 python -m isongraph_ext.igp   project graph.ison policy.igp.ison --out out/       # writes result.ison and result.igpv.ison
@@ -215,9 +218,9 @@ The reference runtime pins `ison-graph==1.4.1` and `ison-py==1.2.0`. These check
 
 - **Byte-exact.** Companion files are canonical by construction: one graph, one companion, one set of bytes, one SHA-256.
 - **Specified before coded.** Each capability has a frozen specification in [`docs/blueprint/`](docs/blueprint/README.md); the code follows it, never the reverse.
-- **Conformance vectors.** 217 byte-exact vectors in [`vectors/`](vectors) (IGX/1 35, IGPV/1 71, IGDM/1 50, IGP/1 61) and about 590 tests, replayed in CI on every change.
+- **Conformance vectors.** 217 byte-exact vectors in [`vectors/`](vectors) (IGX/1 35, IGPV/1 71, IGDM/1 50, IGP/1 61), plus 142 `igs-addr` address rows and 86 IGDC/1 consumption rows, and 1,008 tests, replayed in CI on every change.
 - **Pinned to a measured Core.** The package embeds the Core baseline it was verified against, plus Core's own conformance receipts, so identity claims are checkable rather than asserted.
-- **Limits stated plainly.** IGPV/1, IGDM/1 and IGP/1 enforce explicit input-size and row limits; IGX/1 does not define equivalent limits. Large or untrusted inputs can use a lot of memory and time, because byte limits do not bound memory. Apply your own process-level resource controls ([measurements and guidance](docs/resource-limits.md)). Verification reports the first failing step instead of guessing.
+- **Limits stated plainly.** IGPV/1, IGDM/1, IGDC/1 (which reuses the IGDM/1 limits) and IGP/1 enforce explicit input-size and row limits; IGX/1 does not define equivalent limits. Large or untrusted inputs can use a lot of memory and time, because byte limits do not bound memory. Apply your own process-level resource controls ([measurements and guidance](docs/resource-limits.md)). Verification reports the first failing step instead of guessing.
 
 ## Status and limits
 
@@ -227,6 +230,7 @@ ISONGraphExt is an **early-stage (alpha)** release, published on PyPI as `isongr
 - Provenance proves origin and lineage, **not that an extracted statement is true**; a SHA-256 identifies bytes without authenticating where they came from.
 - The cross-port identity claim and lossy producer-bound admission are reserved. Revision, delta and DAG capabilities are not implemented. Projection is structural only (no property filters) and supports directed simple graphs.
 - IGDM/1 carries presentation **intent only** and renders nothing.
+- IGDC/1 is a hint document for consumers, derived from inputs that were already verified. It is not an input to any verification and carries no verdict: a document that passes C0 to C3 is well-formed, not verified; only C4 (re-derivation from the payload, binding and graph) or a trusted receipt ties it to them. The Python reference is not a browser verifier. Specification: [`26-IGDC1-DESIGN.md`](docs/blueprint/26-IGDC1-DESIGN.md).
 - It is a Python reference implementation. Verification is an offline cost: roughly 2 seconds for a 10,000-node graph with a capability (see [`examples/README.md`](examples/README.md)).
 - The examples were verified on Windows and in Linux CI, not on macOS.
 

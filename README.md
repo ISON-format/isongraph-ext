@@ -158,6 +158,8 @@ python -m isongraph_ext.igp   project graph.ison policy.igp.ison --out out/     
 python -m isongraph_ext.igp   verify  graph.ison policy.igp.ison result.ison result.igpv.ison
 ```
 
+`derive` writes the hint document to standard output as UTF-8 with LF line endings, no byte-order mark and no trailing newline, and C0 accepts only exactly those bytes. Save it with a redirection that does not re-encode it (cmd.exe, Git Bash or POSIX shells). Windows PowerShell 5.1 `>` re-encodes the stream as UTF-16LE with a byte-order mark and CRLF line endings, so a file saved that way fails C0.
+
 ## Examples
 
 Runnable demonstrations that use only the public API. Neither involves software.
@@ -218,7 +220,7 @@ The reference runtime pins `ison-graph==1.4.1` and `ison-py==1.2.0`. These check
 
 - **Byte-exact.** Companion files are canonical by construction: one graph, one companion, one set of bytes, one SHA-256.
 - **Specified before coded.** Each capability has a frozen specification in [`docs/blueprint/`](docs/blueprint/README.md); the code follows it, never the reverse.
-- **Conformance vectors.** 217 byte-exact vectors in [`vectors/`](vectors) (IGX/1 35, IGPV/1 71, IGDM/1 50, IGP/1 61), plus 142 `igs-addr` address rows and 86 IGDC/1 consumption rows, and 1,008 tests, replayed in CI on every change.
+- **Conformance vectors.** 217 byte-exact vectors in [`vectors/`](vectors) (IGX/1 35, IGPV/1 71, IGDM/1 50, IGP/1 61), plus 142 `igs-addr` address rows and 86 IGDC/1 consumption rows, and about 1,000 tests, replayed in CI on every change.
 - **Pinned to a measured Core.** The package embeds the Core baseline it was verified against, plus Core's own conformance receipts, so identity claims are checkable rather than asserted.
 - **Limits stated plainly.** IGPV/1, IGDM/1, IGDC/1 (which reuses the IGDM/1 limits) and IGP/1 enforce explicit input-size and row limits; IGX/1 does not define equivalent limits. Large or untrusted inputs can use a lot of memory and time, because byte limits do not bound memory. Apply your own process-level resource controls ([measurements and guidance](docs/resource-limits.md)). Verification reports the first failing step instead of guessing.
 

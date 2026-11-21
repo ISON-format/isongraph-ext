@@ -215,3 +215,33 @@ def test_int64_hint_values_survive_exactly():
     n = [_row(NODE_COLUMNS, node_type="n", node_id="i:9007199254740993", temporal_order=big, layout_rank=2**63 - 1)]
     h = verify_hints(text(nodes=n, edges=[], members=[]))
     assert h.nodes[0]["temporal_order"] == big and h.nodes[0]["node_id"] == "i:9007199254740993"
+
+
+# ---- C2 diagnostic fields follow the row-key form `table.<block>.<row key>.<column>` (26 section 4) -------------------------
+def _c2_field(**kw):
+    with pytest.raises(IGDCError) as e:
+        verify_hints(text(**kw))
+    assert (e.value.code, e.value.step) == ("INVALID_ADDRESS", "C2"), e.value
+    return e.value.field
+
+
+def test_c2_node_type_field_is_a_row_path():
+    n = [_row(NODE_COLUMNS, node_type="a b", node_id="i:1", role="active")]
+    assert _c2_field(nodes=n, edges=[], members=[]) == "table.nodes.a b:i:1.node_type"
+
+
+def test_c2_edge_fields_are_row_paths():
+    row = "table.edges.n:i:1/r/n:i:2/{}"
+    e = [_row(EDGE_COLUMNS, source_type="n", source_id="i:1", relation="r", target_type="n", target_id="i:2", ordinal="1", role="neutral")]
+    assert _c2_field(edges=e, nodes=[], members=[]) == row.format("1") + ".ordinal"                       # simple graph, ordinal 1
+    bad = [dict(e[0], ordinal="01")]
+    assert _c2_field(edges=bad, nodes=[], members=[], multigraph="true") == row.format("01") + ".ordinal"
+    rel = [dict(e[0], relation="a b", ordinal="0")]
+    assert _c2_field(edges=rel, nodes=[], members=[]) == "table.edges.n:i:1/a b/n:i:2/0.relation"
+    und = [_row(EDGE_COLUMNS, source_type="n", source_id="s:a", relation="r", target_type="n", target_id="i:5", ordinal="0", role="neutral")]
+    assert _c2_field(edges=und, nodes=[], members=[], directed="false") == "table.edges.n:s:a/r/n:i:5/0.source_id"
+
+
+def test_c2_member_node_type_field_is_a_row_path():
+    m = [_row(MEMBER_COLUMNS, group_id="g", node_type="a b", node_id="i:1")]
+    assert _c2_field(nodes=[], edges=[], members=m) == "table.members.g/a b:i:1.node_type"

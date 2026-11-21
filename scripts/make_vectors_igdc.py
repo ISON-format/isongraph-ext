@@ -480,7 +480,7 @@ def build_consumption(out: Path) -> dict[str, int]:
     text_cases = [   # id, code, step, document (str or bytes), detail
         ("reject/igdc-noncanonical", MALFORMED, "C0", base.replace("\n\n", "\n\n\n", 1), None),
         ("reject/igdc-cr", MALFORMED, "C0", base.replace("\n", "\r\n"), None),
-        ("reject/igdc-bom", MALFORMED, "C0", "﻿" + base, None),
+        ("reject/igdc-bom", MALFORMED, "C0", "\ufeff" + base, None),
         ("reject/igdc-not-utf8", MALFORMED, "C0", b"\xff\xfe" + base.encode(), None),
         ("reject/igdc-oversize", "DATAMATICS_LIMIT_EXCEEDED", "C0", b"\xff\xfe" + base.encode(), "limits:max_payload_bytes=64"),
         ("reject/igdc-row-budget", "DATAMATICS_LIMIT_EXCEEDED", "C1", base, "limits:max_rows_per_table=1"),

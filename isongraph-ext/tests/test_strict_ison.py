@@ -42,7 +42,7 @@ def test_budget_is_checked_before_anything_is_parsed():
 def test_non_utf8_cr_bom_and_noncanonical():
     refused(b"\xff\xfe", "bytes", field="document")
     refused(good().replace("\n", "\r\n"), "bytes", field="canonical_form")
-    refused("﻿" + good(), "bytes", field="canonical_form")
+    refused("\ufeff" + good(), "bytes", field="canonical_form")
     refused(good().replace("\n\n", "\n\n\n", 1), "bytes", field="canonical_form")
     refused("table.t\nx y\n1 2 3\n", "bytes", field="document")          # row wider than its header: a parse error
 
@@ -69,6 +69,29 @@ def test_repeated_column_cannot_overwrite_a_value_silently():
     # last-wins in the parsed row: the first cell (1) would be lost; the reader must refuse before anyone can read 3
     refused("table.t\nx y x\n1 2 3\n", "bytes")               # not canonical (fields unsorted) ...
     refused(doc_with(fields=["x", "x", "y"], rows=[{"x": 3, "y": 2}]), "shape", field="table.t.x")   # ... and canonical
+
+
+def test_first_declared_repeated_column_is_the_one_reported():
+    refused(doc_with(fields=["x", "y", "y", "x"], rows=[]), "shape", field="table.t.x")
+    refused(doc_with(fields=["x", "y", "y"], rows=[]), "shape", field="table.t.y")
+
+
+def test_wide_header_is_checked_in_one_pass_and_the_duplicate_keeps_its_field():
+    extras = [f"c{i:05d}" for i in range(5000)]
+    wide = tuple(["x", "y"] + extras)
+    shapes = (BlockShape("table", "t", wide),)
+    fields = ["x", "y"] + extras
+    text = dumps_canonical(Document(blocks=[Block("table", "t", fields, [{c: None for c in fields}])]))
+    _t, blocks = read_canonical(text, shapes, max_bytes=BIG * 4, max_rows=100)     # 5,000 unique columns: accepted
+    assert len(blocks[("table", "t")][0]) == 5002
+    dup = dumps_canonical(Document(blocks=[Block("table", "t", fields + ["c02500"], [{c: None for c in fields}])]))
+    with pytest.raises(StrictError) as e:                                          # the repeated name, same field form as ever
+        read_canonical(dup, shapes, max_bytes=BIG * 4, max_rows=100)
+    assert (e.value.stage, e.value.field) == ("shape", "table.t.c02500"), e.value
+    short = dumps_canonical(Document(blocks=[Block("table", "t", fields[:-1], [{c: None for c in fields[:-1]}])]))
+    with pytest.raises(StrictError) as e:                                          # wide but unique and not the contract
+        read_canonical(short, shapes, max_bytes=BIG * 4, max_rows=100)
+    assert (e.value.stage, e.value.field) == ("shape", "table.t"), e.value
 
 
 @pytest.mark.parametrize("fields", [["x"], ["x", "y", "z"], ["x", "z"]])

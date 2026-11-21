@@ -64,7 +64,7 @@ def read_canonical(data: bytes | str, shapes: Sequence[BlockShape], *, max_bytes
         text = raw.decode("utf-8")
     except UnicodeDecodeError as e:
         raise _bytes_fail("malformed", "document", f"not UTF-8: {e}") from None
-    if text.startswith("﻿"):
+    if text.startswith("\ufeff"):
         raise _bytes_fail("malformed", "canonical_form", "byte-order mark present")
     if "\r" in text:
         raise _bytes_fail("malformed", "canonical_form", "CR bytes present; the canonical writer emits LF only")
@@ -92,9 +92,13 @@ def read_canonical(data: bytes | str, shapes: Sequence[BlockShape], *, max_bytes
         if b is None:
             raise _shape_fail(where, "missing block")
         declared = list(b.fields)
-        for name in declared:
-            if declared.count(name) > 1:
-                raise _shape_fail(f"{where}.{name}", "column declared more than once")
+        seen: set[str] = set()
+        repeated: set[str] = set()
+        for name in declared:                                                   # one O(n) pass; list.count per column was O(n^2)
+            (repeated if name in seen else seen).add(name)
+        if repeated:
+            first = next(name for name in declared if name in repeated)         # first declared name that is repeated, as before
+            raise _shape_fail(f"{where}.{first}", "column declared more than once")
         if set(declared) != set(shape.fields):
             missing, extra = sorted(set(shape.fields) - set(declared)), sorted(set(declared) - set(shape.fields))
             raise _shape_fail(where, f"columns differ from the contract (missing {missing}, unexpected {extra})")

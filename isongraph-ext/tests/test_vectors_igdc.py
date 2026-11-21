@@ -114,7 +114,8 @@ def _groups(rows):
 @pytest.mark.parametrize("vid,rows", _groups(T["order"]).items(), ids=lambda v: v if isinstance(v, str) else "")
 def test_order_table(vid, rows):
     items = [(r["node_type"], tag_id(lit(r["node_id"])), int(r["position"])) for r in rows]
-    by_semantic = sorted(items, key=lambda x: semantic_key(x[0], x[1]))
+    # sort a REVERSED copy: the file already lists rows in text order, so a constant key would otherwise hand back file order
+    by_semantic = sorted(reversed(items), key=lambda x: semantic_key(x[0], x[1]))
     assert [x[2] for x in by_semantic] == list(range(len(items))), vid                   # the stated ranks ARE the semantic order
     trap = {r["trap"] for r in rows}
     assert len(trap) == 1
@@ -133,7 +134,8 @@ def test_edge_order_table(vid, rows):
         return TypedEdge(TypedNode(r["source_type"], tag_id(lit(r["source_id"]))), r["relation"],
                          TypedNode(r["target_type"], tag_id(lit(r["target_id"]))), r["ordinal"])
     items = [(typed(r), int(r["position"])) for r in rows]
-    assert [p for _e, p in sorted(items, key=lambda x: edge_semantic_key(x[0]))] == list(range(len(items))), vid
+    # sort a reversed copy (see test_order_table): a constant key must not be able to pass by returning file order
+    assert [p for _e, p in sorted(reversed(items), key=lambda x: edge_semantic_key(x[0]))] == list(range(len(items))), vid
 
 
 @pytest.mark.parametrize("row", T["twins"], ids=lambda r: r["id"])
@@ -201,6 +203,13 @@ def test_consumption_manifest_counts_and_checksums():
         assert hashlib.sha256((CONS / name).read_bytes()).hexdigest() == digest, name
 
 
+_CONSUME_ERROR = {"V": IGXError, "D": IGDMError, "P": IGDCError}
+
+
+def test_consume_error_types_are_unrelated():
+    assert not any(issubclass(a, b) for a in _CONSUME_ERROR.values() for b in _CONSUME_ERROR.values() if a is not b)
+
+
 @pytest.mark.parametrize("row", cons_rows(), ids=lambda r: r["id"])
 def test_consumption_vector(row):
     op, expect, kw = row["op"], row["expect"], _kw(row["detail"])
@@ -213,8 +222,10 @@ def test_consumption_vector(row):
             verify_derivation(_read(row["hints"]), payload, binding, target, **kw)
             assert got.meta["target_directed"] in ("true", "false")
         else:
-            with pytest.raises((IGXError, IGDMError, IGDCError)) as e:
+            want = _CONSUME_ERROR[row["step"][0]]                                              # V* -> igx, D* -> igdm, P* -> igdc: no other type
+            with pytest.raises(Exception) as e:
                 consume(payload, binding, target, **kw)
+            assert type(e.value) is want, (type(e.value).__name__, want.__name__, e.value)
             assert (e.value.code, e.value.step) == (row["code"], row["step"]), e.value
     elif op == "verify":
         if expect == "ok":

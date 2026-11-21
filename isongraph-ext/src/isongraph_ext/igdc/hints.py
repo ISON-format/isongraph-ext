@@ -169,6 +169,13 @@ class HintSet:
             except IGDCError as e:
                 raise IGDCError(e.code, field, e.detail, "C2") from None
 
+        def addressed(w: str, make, *args, **kw):
+            """Run a typed-address mapper; a bare column name in its error becomes the row-key path `<w>.<column>` (26 section 4)."""
+            try:
+                return make(*args, **kw)
+            except IGDCError as e:
+                raise IGDCError(e.code, f"{w}.{e.field}", e.detail, e.step) from None
+
         def dup(seen: set, key: Any, field: str, what: str) -> None:
             if key in seen:
                 raise IGDCError("INVALID_ADDRESS", field, f"duplicate {what}", "C2")
@@ -178,7 +185,7 @@ class HintSet:
         for r in self.nodes:
             w = f"table.nodes.{r['node_type']}:{r['node_id']}"
             ref = parsed(f"{w}.node_id", r["node_type"], r["node_id"])
-            node_address(ref)
+            addressed(w, node_address, ref)
             dup(seen_n, ref, f"{w}.node_id", "node row")
             twins.see(ref, f"{w}.node_id")
         seen_e: set = set()
@@ -186,7 +193,7 @@ class HintSet:
             w = f"table.edges.{r['source_type']}:{r['source_id']}/{r['relation']}/{r['target_type']}:{r['target_id']}/{r['ordinal']}"
             e = EdgeAddress(parsed(f"{w}.source_id", r["source_type"], r["source_id"]), r["relation"],
                             parsed(f"{w}.target_id", r["target_type"], r["target_id"]), r["ordinal"])
-            edge_address(e, directed=directed, multigraph=multigraph)
+            addressed(w, edge_address, e, directed=directed, multigraph=multigraph)
             dup(seen_e, e, f"{w}.relation", "edge row")
             twins.see(e.source, f"{w}.source_id")
             twins.see(e.target, f"{w}.target_id")
@@ -198,7 +205,7 @@ class HintSet:
         for r in self.members:
             w = f"table.members.{r['group_id']}/{r['node_type']}:{r['node_id']}"
             ref = parsed(f"{w}.node_id", r["node_type"], r["node_id"])
-            node_address(ref)
+            addressed(w, node_address, ref)
             dup(seen_m, (r["group_id"], ref), f"{w}.node_id", "membership")
             twins.see(ref, f"{w}.node_id")
             members.append((r["group_id"], ref))

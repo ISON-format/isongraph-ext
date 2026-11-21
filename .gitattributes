@@ -6,3 +6,9 @@ vectors/** -text
 isongraph-ext/src/isongraph_ext/baselines/** -text
 isongraph-ext/tests/fixtures/** -text
 docs/blueprint/receipts/** -text
+# Frozen IGAR/1 + IGDC/1 rev 2 specs, plans and their digest file (owner freeze 2026-11-21): byte-exact, so recorded SHA-256 digests hold on every checkout.
+docs/blueprint/25-IGAR1-DESIGN.md -text
+docs/blueprint/26-IGDC1-DESIGN.md -text
+docs/blueprint/plans/2026-11-17-ext1-igar1.md -text
+docs/blueprint/plans/2026-11-17-ext2-ext3-igdc1.md -text
+docs/blueprint/FREEZE-DIGESTS-igar1-igdc1.sha256 -text

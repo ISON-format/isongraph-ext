@@ -1,0 +1,6 @@
+# SHA-256 digests of the frozen IGAR/1 and IGDC/1 rev 2 specs and plans.
+# Owner freeze approval: 2026-11-21. Verify with: cd docs/blueprint && sha256sum -c FREEZE-DIGESTS-igar1-igdc1.sha256
+8874258e2a0e7b8d52aac3327101ea8e5a5652bb46d95c67388144d82873ae7f *25-IGAR1-DESIGN.md
+ac47dce8145527072a83167f9357c8e2d4e46004b2ca03fc421a771738ef4108 *26-IGDC1-DESIGN.md
+408a668c572e7e9d826304cb273e6c77c3e36f6f7fd42c11aa5734c3e47e1e3f *plans/2026-11-17-ext1-igar1.md
+a12c36bb5f6beb0e0efa53ef311f275108084c3aea3cec4195f0a76dbb1e55a9 *plans/2026-11-17-ext2-ext3-igdc1.md

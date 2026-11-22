@@ -24,12 +24,12 @@ from .receipt import Receipt, passed
 POLICY_SPEC = "IGAR-POLICY/1"
 _HEX64 = re.compile(r"[0-9a-f]{64}")
 _HEX40 = re.compile(r"[0-9a-f]{40}")
-_SEPARATORS = re.compile("[\x0b\x0c\x1c\x1d\x1e\x85\u2028\u2029]")     # str.splitlines separators other than CR / LF
+_SEPARATORS = re.compile("[\r\x0b\x0c\x1c\x1d\x1e\x85\u2028\u2029]")     # str.splitlines separators plus CR (a CR is valid only as the first half of a CRLF)
 
 
 def _need(v: object, cls: type, name: str) -> None:
     """Trust inputs are checked by exact type: a duck-typed or None stand-in must never reach a membership test."""
-    if not isinstance(v, cls):
+    if type(v) is not cls:
         raise TypeError(f"{name} must be {cls.__name__}, got {type(v).__name__}")
 
 
@@ -157,8 +157,8 @@ class DeliveryPins:
     def from_sha256sums(cls, text: bytes | str, *, names: frozenset[str], limits: Limits = DEFAULT_LIMITS) -> "DeliveryPins":
         """Read `sha256sum` lines (`<64 hex><two spaces><name>`) and pin ONLY the files named in `names`; every name must be present exactly once.
 
-        Byte budget first (before decoding), then strict UTF-8. Lines end at LF, CRLF or a lone CR only: the other Unicode line
-        separators that `str.splitlines` honours (VT, FF, FS, GS, RS, NEL, LS, PS) make the line malformed instead of splitting it,
+        Byte budget first (before decoding), then strict UTF-8. Lines end only at LF or CRLF: a lone CR, and the other Unicode line
+        separators that `str.splitlines` honours (VT, FF, FS, GS, RS, NEL, LS, PS), make the line malformed instead of splitting it,
         so a file name can never smuggle in a second, forged pin line. A name that appears twice, identically or not, is refused.
         """
         _need(limits, Limits, "limits")
@@ -180,7 +180,7 @@ class DeliveryPins:
             data = text
         else:
             raise TypeError(f"text must be bytes or str, got {type(text).__name__}")
-        lines = re.split(r"\r\n|\n|\r", data)
+        lines = re.split(r"\r?\n", data)
         if lines and lines[-1] == "":
             lines.pop()                                                    # the final line terminator, exactly one
         found: dict[str, str] = {}
@@ -222,6 +222,9 @@ class TrustedAdmission:
         if self._mint is not _MINT:
             raise TypeError("TrustedAdmission is issued only by authorize_hints")
         object.__setattr__(self, "_mint", None)                            # single use: dataclasses.replace() re-runs __init__ with None and is refused
+
+    def __init_subclass__(cls, **kw: object) -> None:
+        raise TypeError("TrustedAdmission cannot be subclassed; it is issued only by authorize_hints")
 
     def __copy__(self) -> "TrustedAdmission":
         return self

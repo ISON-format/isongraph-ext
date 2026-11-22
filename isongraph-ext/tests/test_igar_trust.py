@@ -354,3 +354,49 @@ def test_sha256sums_non_utf8_and_budget():
     assert e.value.code == "RECEIPT_LIMIT_EXCEEDED"
     with pytest.raises(TypeError):
         DeliveryPins.from_sha256sums(good, names="r")                       # type: ignore[arg-type]
+
+
+# ---- fix round 2: pin lines end only at LF / CRLF, exact-type trust inputs, no TrustedAdmission subclasses -----------------------
+def test_sha256sums_lone_cr_does_not_end_a_line():
+    forged = f"{H('a')}  a\r{H('b')}  graph.igar.ison\n"                  # a file named "a\r<digest>  graph.igar.ison" must not forge a pin line
+    for names in (frozenset({"graph.igar.ison"}), frozenset()):
+        with pytest.raises(IGARError) as e:
+            DeliveryPins.from_sha256sums(forged, names=names)
+        assert (e.value.code, e.value.field) == ("MALFORMED_PINS", "sha256sums")
+    with pytest.raises(IGARError) as e:
+        DeliveryPins.from_sha256sums(forged + f"{H('a')}  graph.igar.ison\n", names=frozenset({"graph.igar.ison"}))
+    assert e.value.code == "MALFORMED_PINS"
+
+
+@pytest.mark.parametrize("text", ["{a}  r\r", "{a}  r\r\r\n", "{a}  r\r\n\r", "{a}  r\n{a}  s\r"])
+def test_sha256sums_any_cr_that_is_not_part_of_a_crlf_is_malformed(text):
+    with pytest.raises(IGARError) as e:
+        DeliveryPins.from_sha256sums(text.format(a=H("a")), names=frozenset({"r"}))
+    assert e.value.code == "MALFORMED_PINS"
+
+
+def test_subclasses_of_the_trust_types_are_refused_exactly():
+    class AnyPins(DeliveryPins):
+        receipts = property(lambda s: type("All", (), {"__contains__": lambda s, x: True})(), lambda s, v: None)   # type: ignore[assignment]
+    with pytest.raises(TypeError):
+        auth(pins=AnyPins(frozenset()))
+
+    class LoosePolicy(TrustPolicy):
+        pass
+    with pytest.raises(TypeError):
+        auth(policy=LoosePolicy(POLICY.verifiers, POLICY.core_commits, POLICY.profiles))
+    with pytest.raises(TypeError):
+        qualify_policy(verified(), LoosePolicy(OK.verifiers, OK.core_commits, OK.profiles))
+
+    class BigLimits(Limits):
+        pass
+    with pytest.raises(TypeError):
+        auth(limits=BigLimits())
+    assert auth(pins=DeliveryPins(PINS.receipts), policy=TrustPolicy(POLICY.verifiers, POLICY.core_commits, POLICY.profiles), limits=Limits())
+
+
+def test_trusted_admission_cannot_be_subclassed():
+    with pytest.raises(TypeError):
+        class Forged(TrustedAdmission):                                    # noqa: F811
+            def __post_init__(self):
+                pass

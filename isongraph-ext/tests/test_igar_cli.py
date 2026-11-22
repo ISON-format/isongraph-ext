@@ -450,6 +450,42 @@ def test_issue_igdc_out_spelled_differently_is_still_the_input(tmp_path, files):
     assert code == 64 and out == b"" and g.read_bytes() == before
 
 
+def test_issue_igdc_out_whose_temp_file_is_an_input_is_refused_with_64_and_the_input_is_untouched(tmp_path, files):
+    """`write_atomic` writes OUT through `OUT.tmp`: an input named `<OUT>.tmp` would be clobbered (and then renamed over OUT)."""
+    g, bf, pl = files
+    before = {p: p.read_bytes() for p in files}
+    for victim in files:
+        out = tmp_path / (victim.name[: -len(".tmp")] if victim.name.endswith(".tmp") else "x")
+        renamed = tmp_path / (out.name + ".tmp")
+        victim.rename(renamed)
+        args = [renamed if p == victim else p for p in files]
+        code, o, err = run("issue", *args, "--igdc", out)
+        assert code == 64 and o == b"" and b".tmp" in err and b"refusing" in err
+        assert renamed.read_bytes() == before[victim] and not out.exists()
+        renamed.rename(victim)
+
+
+def test_issue_igdc_out_that_is_a_symlink_to_an_input_is_refused_and_one_to_another_file_is_replaced(tmp_path, files):
+    probe = tmp_path / "probe"
+    try:
+        probe.symlink_to(files[0])
+    except (OSError, NotImplementedError) as e:                          # Windows without the symlink privilege; the Linux CI job runs this
+        pytest.skip(f"cannot create symbolic links here: {e}")
+    probe.unlink()
+    g = files[0]
+    before = g.read_bytes()
+    link = tmp_path / "link.igdc.ison"
+    link.symlink_to(g)
+    code, out, err = run("issue", *files, "--igdc", link)
+    assert code == 64 and out == b"" and g.read_bytes() == before and link.is_symlink()
+    other = tmp_path / "other.ison"
+    other.write_bytes(b"keep")
+    link.unlink()
+    link.symlink_to(other)
+    code, out, err = run("issue", *files, "--igdc", link)
+    assert code == 0 and other.read_bytes() == b"keep" and not link.is_symlink() and link.read_bytes() != b"keep"
+
+
 def test_issue_igdc_out_that_is_a_directory_is_refused_with_64(tmp_path, files):
     d = tmp_path / "outdir"
     d.mkdir()

@@ -51,7 +51,7 @@ python -m isongraph_ext.igar authorize receipt.igar.ison --pins SHA256SUMS --tar
     --payload graph.igdm.ison --igdc graph.igdc.ison --trust-policy trust.policy.ison
 ```
 
-`policy` reads the receipt and this file, runs the policy check and nothing else. A success says the policy is satisfied and, in the same output, that this is not an authorization. `authorize` additionally requires that the receipt bytes are pinned in the consumer's own delivery pin file (a strict subset of the `sha256sum` text format: lines `<64 lowercase hex>`, two spaces, `<name>`, ended by LF or CRLF; binary-mode `*name` lines are refused and path-qualified names never match; only the line naming the receipt's file name, its final path component, is used), that the receipt is about exactly the bytes supplied, and that the policy matches. Only then does it print the admitted digests.
+`policy` reads the receipt and this file, runs the policy check and nothing else. A success says the policy is satisfied and, in the same output, that this is not an authorization. `authorize` additionally requires that the receipt bytes are pinned in the consumer's own delivery pin file (a strict subset of the `sha256sum` text format: lines `<64 lowercase hex>`, two spaces, `<name>`, lines separated by LF or CRLF with one optional final terminator, so an unterminated last line is accepted while a lone CR, a blank line or a second trailing terminator is malformed; binary-mode `*name` lines are refused and path-qualified names never match; only the line naming the receipt's file name, its final path component, is used), that the receipt is about exactly the bytes supplied, and that the policy matches. Only then does it print the admitted digests.
 
 ## What this file is and is not
 

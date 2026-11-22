@@ -1,6 +1,8 @@
 # isongraph-ext/tests/test_igar_trust.py
 """Policy qualification (R4), delivery pins (R5) and authorize_hints (rev 2 finding F1): a policy match alone is never trusted admission."""
+import copy
 import dataclasses
+import pickle
 
 import pytest
 from igar_helpers import CORE, H, rejected_d2, verified
@@ -201,3 +203,154 @@ def test_policy_file_uses_the_strict_reader():
     assert codes(TrustPolicy.from_ison, ok + "\n---\nx") == ("MALFORMED_POLICY", "R4")
     assert codes(TrustPolicy.from_ison, ok.replace("IGAR-POLICY/1", "IGAR-POLICY/9")) == ("MALFORMED_POLICY", "R4")
     assert codes(TrustPolicy.from_ison, ok.replace("policy_spec require_admission", "policy_spec policy_spec", 1)) == ("MALFORMED_POLICY", "R4")
+    # a repeated column is caught by the canonical-form layer (the canonical writer sorts and never repeats columns), before the shape layer
+    with pytest.raises(IGARError) as e:
+        TrustPolicy.from_ison(ok.replace("policy_spec require_admission", "policy_spec policy_spec", 1))
+    assert e.value.field == "canonical_form"
+
+
+# ---- fix round 1: single-use mint, no serialization, typed inputs, strict pins reader ---------------------------------------------
+def test_trusted_admission_cannot_be_minted_by_replace_or_copied():
+    a = auth()
+    with pytest.raises(TypeError):
+        dataclasses.replace(a, igdc_sha256="0" * 64)
+    with pytest.raises(TypeError):
+        dataclasses.replace(a)
+    assert copy.copy(a) is a and copy.deepcopy(a) is a
+    assert (a.receipt_sha256, a.igdc_sha256) == (sha(RAW), sha(HINTS))     # untouched and still usable
+
+
+@pytest.mark.parametrize("protocol", range(6))
+def test_trusted_admission_has_no_serialization(protocol):
+    a = auth()
+    with pytest.raises(TypeError):
+        pickle.dumps(a, protocol=protocol)
+    with pytest.raises(TypeError):
+        a.__reduce__()
+
+
+@pytest.mark.parametrize("name", ["pins", "policy", "limits"])
+def test_pins_policy_limits_none_is_a_type_error(name):
+    with pytest.raises(TypeError):
+        auth(**{name: None})
+
+
+def test_duck_typed_pins_policy_limits_are_refused():
+    class AnyPins:
+        receipts = type("All", (), {"__contains__": lambda s, x: True})()
+    with pytest.raises(TypeError):
+        auth(pins=AnyPins())
+    with pytest.raises(TypeError):
+        auth(pins=frozenset({sha(RAW)}))
+    with pytest.raises(TypeError):
+        auth(policy=type("P", (), {})())
+    with pytest.raises(TypeError):
+        auth(limits=object())
+    with pytest.raises(TypeError):
+        qualify_policy(verified(), None)                                   # type: ignore[arg-type]
+    with pytest.raises(TypeError):
+        TrustPolicy.from_ison("", limits=None)                             # type: ignore[arg-type]
+    with pytest.raises(TypeError):
+        DeliveryPins.from_sha256sums("", names=frozenset(), limits=None)   # type: ignore[arg-type]
+
+
+def test_policy_and_pins_do_not_alias_a_mutable_collection():
+    vs, cs, ps, rt = {("isongraph-ext", "test")}, {RD.verifier["core_commit"]}, {Profile.default().digest}, {("1", "2")}
+    pol = TrustPolicy(vs, cs, ps, rt)
+    vs.clear(), cs.clear(), ps.clear(), rt.clear()
+    assert all(isinstance(x, frozenset) and x for x in (pol.verifiers, pol.core_commits, pol.profiles, pol.runtime))
+    assert authorize_hints(receipt=RAW, pins=PINS, target=T, binding=BIND, payload=PAY, igdc=HINTS, policy=dataclasses.replace(pol, runtime=frozenset()))
+    s = {sha(RAW)}
+    dp = DeliveryPins(s)
+    s.add("NOT HEX")
+    assert dp.receipts == frozenset({sha(RAW)}) and isinstance(dp.receipts, frozenset)
+    assert DeliveryPins([sha(RAW)]).receipts == frozenset({sha(RAW)})
+
+
+def test_policy_and_pins_refuse_bare_strings_and_bad_elements():
+    for bad in ("junk" + CORE + "junk", CORE, b"x" * 40, 5, None):
+        with pytest.raises(TypeError):
+            TrustPolicy(OK.verifiers, bad, OK.profiles)                     # type: ignore[arg-type]
+    with pytest.raises(TypeError):
+        TrustPolicy(OK.verifiers, OK.core_commits, PROFILE_D)               # type: ignore[arg-type]
+    with pytest.raises(TypeError):
+        DeliveryPins("a" * 64)                                              # type: ignore[arg-type]
+    with pytest.raises(TypeError):
+        DeliveryPins(None)                                                  # type: ignore[arg-type]
+    for kw in (dict(core_commits=frozenset({CORE.upper()})), dict(core_commits=frozenset({"abc"})), dict(core_commits=frozenset({5})),
+               dict(profiles=frozenset({"A" * 64})), dict(profiles=frozenset({"a" * 63})),
+               dict(verifiers=frozenset({"ab"})), dict(verifiers=frozenset({("a",)})), dict(verifiers=frozenset({("a", "")})), dict(verifiers=frozenset({("a", 1)})),
+               dict(runtime=frozenset({("1", "")})), dict(runtime=frozenset({("1", "2", "3")}))):
+        with pytest.raises(IGARError) as e:
+            dataclasses.replace(OK, **kw)
+        assert (e.value.code, e.value.step) == ("MALFORMED_POLICY", "R4")
+    for flag in ("require_admission", "require_full_resolution"):
+        with pytest.raises(TypeError):
+            dataclasses.replace(OK, **{flag: "false"})
+    with pytest.raises(IGARError) as e:
+        DeliveryPins(frozenset({5}))                                        # type: ignore[arg-type]
+    assert e.value.code == "MALFORMED_PINS"
+
+
+def test_policy_file_hex_failures_name_the_table():
+    base = ('meta.policy\npolicy_spec require_admission require_full_resolution\nIGAR-POLICY/1 "true" "true"\n\n'
+            'table.core_commits\ncore_commit\n{c}\n\ntable.profiles\nprofile_sha256\n{p}\n\ntable.runtime\nruntime_ison_graph runtime_ison_py\n\n'
+            'table.verifiers\nverifier verifier_version')
+    with pytest.raises(IGARError) as e:
+        TrustPolicy.from_ison(base.format(c="a" * 39, p=PROFILE_D))
+    assert (e.value.code, e.value.field) == ("MALFORMED_POLICY", "table.core_commits")
+    with pytest.raises(IGARError) as e:
+        TrustPolicy.from_ison(base.format(c=CORE, p="g" * 64))
+    assert (e.value.code, e.value.field) == ("MALFORMED_POLICY", "table.profiles")
+
+
+def test_qualify_policy_details_quote_receipt_derived_strings():
+    r = mut(verified(), "verifier", verifier="x\nforged", verifier_version="1\ty")
+    with pytest.raises(IGARError) as e:
+        qualify_policy(r, OK)
+    assert "\n" not in e.value.detail and "\t" not in e.value.detail and "'x\\nforged'" in e.value.detail
+
+
+@pytest.mark.parametrize("sep", ["\u2028", "\u2029", "\x85", "\x0b", "\x0c", "\x1c", "\x1d", "\x1e"])
+def test_sha256sums_splits_only_on_newline(sep):
+    forged = f"{H('a')}  x{sep}{H('b')}  graph.igar.ison\n"
+    for names in (frozenset({"graph.igar.ison"}), frozenset()):            # the line itself is malformed, whether or not it is asked for
+        with pytest.raises(IGARError) as e:
+            DeliveryPins.from_sha256sums(forged, names=names)
+        assert (e.value.code, e.value.field) == ("MALFORMED_PINS", "sha256sums")
+        assert "not a sha256sum line" in e.value.detail
+    with pytest.raises(IGARError) as e:
+        DeliveryPins.from_sha256sums(f"{H('a')}  r{sep}\n", names=frozenset({"r"}))
+    assert e.value.code == "MALFORMED_PINS"
+
+
+def test_sha256sums_crlf_and_final_newline_handling_is_unchanged():
+    assert DeliveryPins.from_sha256sums(f"{H('a')}  r\r\n{H('b')}  s\r\n", names=frozenset({"r"})).receipts == frozenset({H("a")})
+    assert DeliveryPins.from_sha256sums(f"{H('a')}  r", names=frozenset({"r"})).receipts == frozenset({H("a")})
+    assert DeliveryPins.from_sha256sums("", names=frozenset()).receipts == frozenset()
+    with pytest.raises(IGARError) as e:
+        DeliveryPins.from_sha256sums(f"{H('a')}  r\n\n", names=frozenset({"r"}))
+    assert e.value.code == "MALFORMED_PINS"
+
+
+def test_sha256sums_refuses_every_repeated_name():
+    for second in (H("a"), H("b")):                                        # identical and conflicting
+        with pytest.raises(IGARError) as e:
+            DeliveryPins.from_sha256sums(f"{H('a')}  r\n{second}  r\n", names=frozenset({"r"}))
+        assert (e.value.code, e.value.step) == ("MALFORMED_PINS", "R5")
+
+
+def test_sha256sums_non_utf8_and_budget():
+    with pytest.raises(IGARError) as e:
+        DeliveryPins.from_sha256sums(b"\xff\xfe", names=frozenset({"r"}))
+    assert (e.value.code, e.value.step) == ("MALFORMED_PINS", "R5")
+    good = f"{H('a')}  r\n".encode()
+    assert DeliveryPins.from_sha256sums(good, names=frozenset({"r"})).receipts == frozenset({H("a")})
+    with pytest.raises(IGARError) as e:
+        DeliveryPins.from_sha256sums(good, names=frozenset({"r"}), limits=Limits(max_payload_bytes=10))
+    assert (e.value.code, e.value.step) == ("RECEIPT_LIMIT_EXCEEDED", "R5")
+    with pytest.raises(IGARError) as e:
+        DeliveryPins.from_sha256sums(b"\xff" * 100, names=frozenset(), limits=Limits(max_payload_bytes=10))   # budget before decoding
+    assert e.value.code == "RECEIPT_LIMIT_EXCEEDED"
+    with pytest.raises(TypeError):
+        DeliveryPins.from_sha256sums(good, names="r")                       # type: ignore[arg-type]

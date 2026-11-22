@@ -58,9 +58,15 @@ def test_manifest_counts_and_checksums():
     assert got == COUNTS
     ids = [r["id"] for r in rows()]
     assert len(ids) == len(set(ids))
+    listed = set()
     for line in (VEC / "SHA256SUMS").read_text(encoding="utf-8").splitlines():
         digest, _, name = line.partition("  ")
         assert hashlib.sha256((VEC / name).read_bytes()).hexdigest() == digest, name
+        listed.add(name)
+    actual = {p.relative_to(VEC).as_posix() for p in VEC.rglob("*") if p.is_file() and p.name != "SHA256SUMS"}
+    assert listed == actual, (sorted(listed - actual), sorted(actual - listed))      # nothing unpinned, nothing pinned that is absent
+    referenced = {r[c] for r in rows() for c in ("binding", "payload", "target", "igdc", "receipt", "profile", "policy") if r[c]}
+    assert referenced <= listed, sorted(referenced - listed)                             # every path the manifest names is pinned
 
 
 def run(row):

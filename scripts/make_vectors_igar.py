@@ -293,9 +293,13 @@ def build(out: Path = OUT) -> dict[str, int]:
 
     # ---- policy: R4 -----------------------------------------------------------------------------------------------------------
     d_default = sha(ptext["default"])
-    gp = lambda **kw: policy_text(commits=(CORE,), profiles=(d_default,), **kw)  # noqa: E731
+    # the shared acceptance policy accepts every dimension of the receipts the admission / resolution rows use (retired-installed profile and
+    # CORE; all-baselines-allow-retired profile and its retired commit), so those rows can only fail at the dimension they name
+    ACC_COMMITS = (CORE, ExtensionBinding.from_ison((IGDM / "bindings" / manifest[LIM]["binding"]).read_text(encoding="utf-8")).core_commit)
+    ACC_PROFILES = tuple(sorted(sha(ptext[n]) for n in ("default", "retired-installed", "all-baselines-allow-retired")))
+    gp = lambda **kw: policy_text(commits=ACC_COMMITS, profiles=ACC_PROFILES, **kw)  # noqa: E731
     POL = {
-        "accept": gp(), "empty": policy_text(), "verifier-other": policy_text(verifiers=(("isongraph-ext", "other"),), commits=(CORE,), profiles=(d_default,)),
+        "accept": gp(), "empty": policy_text(verifiers=()), "verifier-other": policy_text(verifiers=(("isongraph-ext", "other"),), commits=(CORE,), profiles=(d_default,)),
         "profile-other": policy_text(commits=(CORE,), profiles=("e" * 64,)), "commit-other": policy_text(commits=("f" * 40,), profiles=(d_default,)),
         "runtime-other": gp(runtime=(("0.0.1", "0.0.1"),)), "permissive": gp(admission=False, full=False),
     }

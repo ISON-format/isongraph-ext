@@ -128,3 +128,28 @@ def test_recompute_rejects_a_flipped_verdict_only_after_every_precondition_holds
 def test_recompute_other_inputs_mismatch():
     other = real_payload(T, target_artifact_sha256="c0" * 32).to_ison().encode()
     assert code(recompute, R.to_ison(), BIND, other, T, profile=PROFILE, verifier_version="test")[0] == "RECEIPT_RECOMPUTE_MISMATCH"
+
+
+# ---- recompute: preconditions and the hint-derived path, field by field -------------------------------------------------------------
+def field_of(fn, *a, **k):
+    with pytest.raises(IGARError) as e:
+        fn(*a, **k)
+    return e.value.code, e.value.step, e.value.field
+
+
+def test_recompute_mismatch_on_a_hint_derived_receipt_with_another_igdc_digest():
+    forged = dataclasses.replace(RD, subject={**RD.subject, "igdc_sha256": "ab" * 32})
+    forged.check_consistency()                                       # still a well-formed, consistent derived receipt ...
+    assert code(recompute, forged.to_ison(), BIND, PAY, T, profile=PROFILE, verifier_version="test") == ("RECEIPT_RECOMPUTE_MISMATCH", "R6")   # ... that is not what is computed
+
+
+@pytest.mark.parametrize("name", ["runtime_ison_py", "runtime_ison_graph"])
+def test_recompute_with_a_different_runtime_names_the_runtime_field(name):
+    other = dataclasses.replace(R, verifier={**R.verifier, name: "0.0.1"})
+    assert field_of(recompute, other.to_ison(), BIND, PAY, T, profile=PROFILE, verifier_version="test") == ("RECOMPUTE_UNAVAILABLE", "R6", f"meta.verifier.{name}")
+
+
+def test_recompute_with_both_version_and_profile_different_reports_the_profile_first():
+    tight = dataclasses.replace(Profile.default(), limits=Limits(max_group_depth=3)).to_ison().encode()
+    assert field_of(recompute, R.to_ison(), BIND, PAY, T, profile=tight, verifier_version="other") == ("RECOMPUTE_UNAVAILABLE", "R6", "meta.verifier.profile_sha256")
+    assert field_of(recompute, R.to_ison(), BIND, PAY, T, profile=PROFILE, verifier_version="other")[2] == "meta.verifier.verifier_version"     # the version alone

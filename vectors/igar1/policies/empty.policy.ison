@@ -13,4 +13,3 @@ runtime_ison_graph runtime_ison_py
 
 table.verifiers
 verifier verifier_version
-isongraph-ext vectors

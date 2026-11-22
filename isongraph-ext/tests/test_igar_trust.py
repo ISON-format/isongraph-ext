@@ -400,3 +400,15 @@ def test_trusted_admission_cannot_be_subclassed():
         class Forged(TrustedAdmission):                                    # noqa: F811
             def __post_init__(self):
                 pass
+
+
+# ---- the two requiring dimensions, independent of the vectors -----------------------------------------------------------------------
+def test_permissive_policy_accepts_denied_admission_and_limited_resolution_while_the_default_refuses_both():
+    denied = mut(mut(verified(), "result", admission="denied"), "admission", code="STALE_BINDING", step="A1", receipt_posture="INADMISSIBLE")
+    limited = mut(verified(), "verifier", semantic_verification="limited", object_resolution="skipped")
+    permissive = dataclasses.replace(OK, require_admission=False, require_full_resolution=False)
+    assert qualify_policy(denied, permissive) is None and qualify_policy(limited, permissive) is None
+    assert why(denied, OK) == "admission"
+    assert why(limited, OK) == "resolution"
+    assert why(denied, dataclasses.replace(OK, require_full_resolution=False)) == "admission"      # each flag is read on its own
+    assert why(limited, dataclasses.replace(OK, require_admission=False)) == "resolution"

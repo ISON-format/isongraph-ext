@@ -56,6 +56,7 @@ Core works without any of it. Add a companion only when you need the answer it g
 | *Where did this come from?* | **IGPV/1** provenance | Attributes nodes and edges to source documents, with byte or line spans you can check against the real bytes, and records derivation lineage: *this node stands for those nodes in an earlier graph*. |
 | *How should a viewer present it?* | **IGDM/1** datamatics | Renderer-neutral presentation **intent**: semantic roles, emphasis, badges, groups, layout hints and accessibility text. Never colours, fonts or coordinates. |
 | *What should a viewer read, with ids that cannot be mistaken?* | **IGDC/1** consumption hints | A canonical hint document derived by a pure function from a verified IGDM/1 payload, with every node and edge address in a typed form (`i:7` is the integer 7, `s:7` the string "7"). A document that passes the consumer checks C0 to C3 is well-formed, **not verified**. |
+| *What exactly did a verifier compute, and under which configuration?* | **IGAR/1** admission receipt | A canonical, **unsigned** record of what one verifier computed over exact bytes (target, binding, payload and optionally an IGDC/1 hint document) under a named verifier profile. A rejection is recorded as content, not as an error. An unsigned receipt needs a trusted delivery boundary, and a policy match is not trust. |
 | *Which part of this graph do I need?* | **IGP/1** projection | Selects a bounded, deterministic subgraph from explicit anchors, relation and type allow-lists, direction, depth and budgets, and returns an ordinary graph **plus provenance for every node and edge**. Anyone can recompute it from the source and the policy. |
 
 Each is optional and independent. A consumer that knows none of them still has the whole graph.
@@ -152,13 +153,21 @@ python -m isongraph_ext.igx   admit  out/assets.ison out/assets.igx.ison
 python -m isongraph_ext.igdm  verify out/assets.ison out/assets.igx.ison out/assets.igdm.ison
 python -m isongraph_ext.igdc  derive graph.ison graph.igx.ison graph.igdm.ison > graph.igdc.ison
 python -m isongraph_ext.igdc  verify graph.igdc.ison [graph.ison graph.igx.ison graph.igdm.ison]
+python -m isongraph_ext.igar  issue graph.ison graph.igx.ison graph.igdm.ison [--profile profile.ison] [--igdc graph.igdc.ison] > graph.igar.ison
+python -m isongraph_ext.igar  inspect graph.igar.ison
+python -m isongraph_ext.igar  subject graph.igar.ison --target graph.ison --binding graph.igx.ison --payload graph.igdm.ison [--igdc graph.igdc.ison]
+python -m isongraph_ext.igar  policy graph.igar.ison --trust-policy trust.policy.ison
+python -m isongraph_ext.igar  authorize graph.igar.ison --pins SHA256SUMS --target graph.ison --binding graph.igx.ison --payload graph.igdm.ison --igdc graph.igdc.ison --trust-policy trust.policy.ison
+python -m isongraph_ext.igar  recompute graph.igar.ison graph.ison graph.igx.ison graph.igdm.ison --profile profile.ison
 python -m isongraph_ext.igpv  verify graph.ison graph.igx.ison graph.igpv.ison [--source SHA256=PATH]
 python -m isongraph_ext.igpv  origins <graph-sha256> graph.igpv.ison --node person ada
 python -m isongraph_ext.igp   project graph.ison policy.igp.ison --out out/       # writes result.ison and result.igpv.ison
 python -m isongraph_ext.igp   verify  graph.ison policy.igp.ison result.ison result.igpv.ison
 ```
 
-`derive` writes the hint document to standard output as UTF-8 with LF line endings, no byte-order mark and no trailing newline, and C0 accepts only exactly those bytes. Save it with a redirection that does not re-encode it (cmd.exe, Git Bash or POSIX shells). Windows PowerShell 5.1 `>` re-encodes the stream as UTF-16LE with a byte-order mark and CRLF line endings, so a file saved that way fails C0.
+`derive` writes the hint document to standard output as UTF-8 with LF line endings, no byte-order mark and no trailing newline, and C0 accepts only exactly those bytes. Save it with a redirection that does not re-encode it (cmd.exe, Git Bash or POSIX shells). Windows PowerShell 5.1 `>` re-encodes the stream as UTF-16LE with a byte-order mark and CRLF line endings, so a file saved that way fails C0. The same applies to `igar issue`: its receipt is written to standard output as UTF-8 with LF line endings and no trailing newline, and a receipt saved through PowerShell 5.1 `>` (UTF-16LE with a byte-order mark and CRLF) fails the receipt reader (R0). Use `--igdc <out>` to write the hint document the receipt names to a file instead of redirecting it. `<out>` is overwritten if it is an existing unrelated regular file, but `issue` refuses (exit `64`, nothing written) when `<out>` is the graph, binding, payload or profile file of the same invocation, or a directory.
+
+`igar` exits `0` ok, `1` any other `IGARError` (malformed, inconsistent or over-budget input, and `RECEIPT_RECOMPUTE_MISMATCH`, a re-run that completed and did not reproduce the receipt), `2` refused (`RECEIPT_POLICY_UNSATISFIED`, `RECEIPT_NOT_PINNED`, `RECEIPT_SUBJECT_MISMATCH`, or a re-run that cannot be made, `RECOMPUTE_UNAVAILABLE`), `64` usage (including an `issue --igdc OUT` whose `OUT` is one of that invocation's own input files or a directory: nothing is written; a pre-existing unrelated regular file at `OUT` is overwritten). A rejection receipt is content, so `issue` exits `0` for it. Only a successful `authorize` says a receipt was authorized, and it then prints the admitted digests; `inspect`, `subject`, `policy` and `recompute` each state only what they checked, and `policy` says explicitly that a policy match is not an authorization. `--pins` is read fail-closed as a strict subset of the `sha256sum` text format, not the whole format: each line is `<64 lowercase hex>`, two spaces, `<name>`, ended by LF or CRLF, and only the line whose name equals the receipt file's final path component counts. A binary-mode line (`<hex> *name`) makes the pin file malformed (exit `1`), and a path-qualified name never matches (the receipt is not pinned, exit `2`). Abbreviated option names (such as `--pin`) are usage errors. The trust-policy file format is in [`docs/igar-policy-format.md`](docs/igar-policy-format.md).
 
 ## Examples
 
@@ -220,9 +229,9 @@ The reference runtime pins `ison-graph==1.4.1` and `ison-py==1.2.0`. These check
 
 - **Byte-exact.** Companion files are canonical by construction: one graph, one companion, one set of bytes, one SHA-256.
 - **Specified before coded.** Each capability has a frozen specification in [`docs/blueprint/`](docs/blueprint/README.md); the code follows it, never the reverse.
-- **Conformance vectors.** 217 byte-exact vectors in [`vectors/`](vectors) (IGX/1 35, IGPV/1 71, IGDM/1 50, IGP/1 61), plus 142 `igs-addr` address rows and 86 IGDC/1 consumption rows, and about 1,000 tests, replayed in CI on every change.
+- **Conformance vectors.** 217 byte-exact vectors in [`vectors/`](vectors) (IGX/1 35, IGPV/1 71, IGDM/1 50, IGP/1 61), plus 142 `igs-addr` address rows, 86 IGDC/1 consumption rows and 122 IGAR/1 receipt, profile and policy rows, and the test suite, replayed in CI on every change.
 - **Pinned to a measured Core.** The package embeds the Core baseline it was verified against, plus Core's own conformance receipts, so identity claims are checkable rather than asserted.
-- **Limits stated plainly.** IGPV/1, IGDM/1, IGDC/1 (which reuses the IGDM/1 limits) and IGP/1 enforce explicit input-size and row limits; IGX/1 does not define equivalent limits. Large or untrusted inputs can use a lot of memory and time, because byte limits do not bound memory. Apply your own process-level resource controls ([measurements and guidance](docs/resource-limits.md)). Verification reports the first failing step instead of guessing.
+- **Limits stated plainly.** IGPV/1, IGDM/1, IGDC/1 and IGAR/1 (which both reuse the IGDM/1 limits) and IGP/1 enforce explicit input-size and row limits; IGX/1 does not define equivalent limits. Large or untrusted inputs can use a lot of memory and time, because byte limits do not bound memory. Apply your own process-level resource controls ([measurements and guidance](docs/resource-limits.md)). Verification reports the first failing step instead of guessing.
 
 ## Status and limits
 
@@ -232,13 +241,14 @@ ISONGraphExt is an **early-stage (alpha)** release, published on PyPI as `isongr
 - Provenance proves origin and lineage, **not that an extracted statement is true**; a SHA-256 identifies bytes without authenticating where they came from.
 - The cross-port identity claim and lossy producer-bound admission are reserved. Revision, delta and DAG capabilities are not implemented. Projection is structural only (no property filters) and supports directed simple graphs.
 - IGDM/1 carries presentation **intent only** and renders nothing.
+- An IGAR/1 receipt is a **claim** about what a verifier computed. It is unsigned, carries no signature and no freshness, and does not authenticate who made it. An unsigned receipt needs a trusted delivery boundary (a channel the consumer controls, with the receipt bytes pinned by digest), and a policy match is not trust: the only operation that authorizes use of a hint set is `authorize_hints`, which requires the pin, the exact bytes and a policy match together. A rejection receipt is evidence of rejection and never authorizes anything. Re-running a verification (R6) is available only in this Python reference. Specification: [`25-IGAR1-DESIGN.md`](docs/blueprint/25-IGAR1-DESIGN.md).
 - IGDC/1 is a hint document for consumers, derived from inputs that were already verified. It is not an input to any verification and carries no verdict: a document that passes C0 to C3 is well-formed, not verified; only C4 (re-derivation from the payload, binding and graph) or a trusted receipt ties it to them. The Python reference is not a browser verifier. Specification: [`26-IGDC1-DESIGN.md`](docs/blueprint/26-IGDC1-DESIGN.md).
 - It is a Python reference implementation. Verification is an offline cost: roughly 2 seconds for a 10,000-node graph with a capability (see [`examples/README.md`](examples/README.md)).
 - The examples were verified on Windows and in Linux CI, not on macOS.
 
 ## Documentation
 
-[`docs/blueprint/`](docs/blueprint/README.md) holds the normative texts: the Ext/Core contract (`16`), IGX/1 (`17`), IGPV/1 (`18`), IGDM/1 (`19`) and IGP/1 (`21`). [`CHANGELOG.md`](CHANGELOG.md) lists what changed, [`CONTRIBUTING.md`](CONTRIBUTING.md) explains how to work on the project and how releases are made, and [`SECURITY.md`](SECURITY.md) explains how to report a vulnerability privately.
+[`docs/blueprint/`](docs/blueprint/README.md) holds the normative texts: the Ext/Core contract (`16`), IGX/1 (`17`), IGPV/1 (`18`), IGDM/1 (`19`) and IGP/1 (`21`), plus IGDC/1 (`26`) and IGAR/1 (`25`); the IGAR/1 trust-policy file is described in [`docs/igar-policy-format.md`](docs/igar-policy-format.md). [`CHANGELOG.md`](CHANGELOG.md) lists what changed, [`CONTRIBUTING.md`](CONTRIBUTING.md) explains how to work on the project and how releases are made, and [`SECURITY.md`](SECURITY.md) explains how to report a vulnerability privately.
 
 ## License
 

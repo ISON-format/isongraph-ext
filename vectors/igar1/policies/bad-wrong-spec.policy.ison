@@ -1,0 +1,16 @@
+meta.policy
+policy_spec require_admission require_full_resolution
+IGAR-POLICY/9 "true" "true"
+
+table.core_commits
+core_commit
+
+table.profiles
+profile_sha256
+
+table.runtime
+runtime_ison_graph runtime_ison_py
+
+table.verifiers
+verifier verifier_version
+isongraph-ext vectors

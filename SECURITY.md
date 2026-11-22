@@ -8,7 +8,7 @@ Please report suspected vulnerabilities privately through GitHub: **Security** t
 
 ## Scope
 
-In scope: parsing and verification of bindings, provenance and datamatics payloads, resource-limit bypasses, and anything that makes a verification succeed that should fail. A verified binding proves reproducibility and consistency, not authorship (see the README); that is by design and not a vulnerability.
+In scope: parsing and verification of bindings, provenance and datamatics payloads, resource-limit bypasses, and anything that makes a verification succeed that should fail. A verified binding proves reproducibility and consistency, not authorship (see the README); that is by design and not a vulnerability. An IGAR/1 receipt is unsigned: it needs a trusted delivery boundary and a policy match is not trust, so a forged receipt that matches a policy is not a vulnerability of this package; the trust boundary is described in [`docs/blueprint/25-IGAR1-DESIGN.md`](docs/blueprint/25-IGAR1-DESIGN.md) (section 4) and [`docs/igar-policy-format.md`](docs/igar-policy-format.md). Anything that lets `authorize_hints` succeed without a digest-pinned receipt, exact bytes and a policy match is in scope.
 
 ## Supported versions
 

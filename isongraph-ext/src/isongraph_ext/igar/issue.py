@@ -29,9 +29,12 @@ def issue(binding: bytes, payload: bytes, target: bytes, *, igdc: bool = False, 
     """
     for name, v in (("binding", binding), ("payload", payload), ("target", target)):
         if not isinstance(v, (bytes, bytearray)):
-            raise TypeError(f"{name} must be bytes (the verifier hashes exactly what it is given), got {type(v).__name__}")
+            raise TypeError(f"{name} must be bytes or bytearray (the verifier hashes exactly what it is given), got {type(v).__name__}")
     binding, payload, target = bytes(binding), bytes(payload), bytes(target)
-    profile = profile or Profile.default()
+    if profile is None:
+        profile = Profile.default()
+    elif type(profile) is not Profile:
+        raise TypeError(f"profile must be Profile or None, got {type(profile).__name__}")
     parsed = result = dm = adm = None
     failure: tuple[str, str, str] | None = None
     try:

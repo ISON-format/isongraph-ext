@@ -5,12 +5,14 @@ response is one canonical ISON document followed by LF. Only a successful `autho
 the exact digests it admitted; `inspect`, `subject`, `policy` and `recompute` each state only the narrow thing they checked.
 
 Exit 2 means "refused": the input was well-formed but did not earn what was asked (policy, pin, bytes, or a re-run that cannot be made).
-Exit 1 means the input itself is malformed or over budget. A rejection receipt is content, so `issue` exits 0 for it.
+Exit 1 means any other IGARError: the input is malformed or over budget, a receipt is inconsistent, or a re-run completed and did not reproduce the
+receipt (`RECEIPT_RECOMPUTE_MISMATCH`). A rejection receipt is content, so `issue` exits 0 for it.
 """
 
 from __future__ import annotations
 
 import argparse
+import os
 import sys
 from pathlib import Path
 
@@ -29,6 +31,10 @@ from .trust import DeliveryPins, TrustPolicy, authorize_hints, qualify_policy
 
 EX_USAGE = 64   # BSD sysexits: never collides with 1 (malformed input) or 2 (refused)
 REFUSED = frozenset({"RECEIPT_POLICY_UNSATISFIED", "RECEIPT_NOT_PINNED", "RECEIPT_SUBJECT_MISMATCH", "RECOMPUTE_UNAVAILABLE"})
+
+
+class _Usage(Exception):
+    """A command line that is well-formed for argparse but must not be run (exit 64, nothing written)."""
 
 
 class _Parser(argparse.ArgumentParser):
@@ -69,6 +75,28 @@ def _exact(path: Path, budget: int, what: str) -> bytes:
     return data
 
 
+def _same_file(a: Path, b: Path) -> bool:
+    """True when two paths name the same file: identical after realpath and case folding, or the same inode (a hard link) when both exist."""
+    try:
+        if a.exists() and b.exists() and os.path.samefile(a, b):
+            return True
+    except OSError:
+        pass
+    return os.path.normcase(os.path.realpath(a)) == os.path.normcase(os.path.realpath(b))
+
+
+def _guard_igdc_out(a: argparse.Namespace) -> None:
+    """`issue --igdc OUT` writes OUT. Refuse (before reading or writing anything) when OUT is an input of the same invocation or a directory; a pre-existing
+    unrelated regular file is still overwritten."""
+    out = a.igdc
+    for name in ("graph", "binding", "payload", "profile"):
+        src = getattr(a, name)
+        if src is not None and _same_file(out, src):
+            raise _Usage(f"--igdc {out} is the {name} input of this invocation; refusing to overwrite it")
+    if out.is_dir():
+        raise _Usage(f"--igdc {out} is a directory")
+
+
 def _wider(profile_bytes: bytes | None, base: Limits) -> Limits:
     """Read budgets for inputs a profile governs: the larger of the default budget and the profile's own, so a file that is over only the PROFILE's
     limit still reaches the verifier and becomes a rejection receipt, while a file over both is refused here. A profile that does not parse changes nothing."""
@@ -93,28 +121,28 @@ def _pins(text: bytes, name: str, limits: Limits) -> DeliveryPins:
 
 
 def _build() -> argparse.ArgumentParser:
-    ap = _Parser(prog="python -m isongraph_ext.igar")
+    ap = _Parser(prog="python -m isongraph_ext.igar", allow_abbrev=False)
     sub = ap.add_subparsers(dest="cmd", required=True)
-    i = sub.add_parser("issue")
+    i = sub.add_parser("issue", allow_abbrev=False)
     i.add_argument("graph", type=Path)
     i.add_argument("binding", type=Path)
     i.add_argument("payload", type=Path)
     i.add_argument("--profile", type=Path)
     i.add_argument("--igdc", type=Path, metavar="OUT")
-    sub.add_parser("inspect").add_argument("receipt", type=Path)
-    s = sub.add_parser("subject")
+    sub.add_parser("inspect", allow_abbrev=False).add_argument("receipt", type=Path)
+    s = sub.add_parser("subject", allow_abbrev=False)
     s.add_argument("receipt", type=Path)
     for f in ("target", "binding", "payload"):
         s.add_argument(f"--{f}", type=Path, required=True)
     s.add_argument("--igdc", type=Path)
-    p = sub.add_parser("policy")
+    p = sub.add_parser("policy", allow_abbrev=False)
     p.add_argument("receipt", type=Path)
     p.add_argument("--trust-policy", type=Path, required=True)
-    a = sub.add_parser("authorize")
+    a = sub.add_parser("authorize", allow_abbrev=False)
     a.add_argument("receipt", type=Path)
     for f in ("pins", "target", "binding", "payload", "igdc", "trust-policy"):
         a.add_argument(f"--{f}", type=Path, required=True)
-    r = sub.add_parser("recompute")
+    r = sub.add_parser("recompute", allow_abbrev=False)
     for f in ("receipt", "graph", "binding", "payload"):
         r.add_argument(f, type=Path)
     r.add_argument("--profile", type=Path, required=True)
@@ -125,6 +153,8 @@ def _run(a: argparse.Namespace, limits: Limits) -> list[Block] | str:
     """The response: a list of blocks (one canonical document), or the receipt text for `issue`."""
     pay, gra = limits.max_payload_bytes, limits.max_graph_bytes
     if a.cmd == "issue":
+        if a.igdc is not None:
+            _guard_igdc_out(a)
         profile_bytes = read_capped(a.profile, pay) if a.profile else None
         prof = Profile.from_ison(profile_bytes, max_bytes=pay) if profile_bytes is not None else None
         wide = _wider(profile_bytes, limits)
@@ -156,7 +186,7 @@ def _run(a: argparse.Namespace, limits: Limits) -> list[Block] | str:
         r = inspect_receipt(receipt, limits=limits)
         qualify_policy(r, TrustPolicy.from_ison(read_capped(a.trust_policy, pay), limits=limits))
         return [_meta("policy_check", {
-            "receipt_sha256": sha256_hex(receipt), "steps_passed": "R0,R1,R2,R4", "policy_satisfied": True, "authorized": False,
+            "receipt_sha256": sha256_hex(receipt), "steps_passed": "R0,R1,R2,R4", "policy_satisfied": True,
             "note": "policy match only; not an authorization and says nothing about provenance"})]
     if a.cmd == "authorize":
         pins = _pins(read_capped(a.pins, pay), a.receipt.name, limits)
@@ -184,7 +214,7 @@ def main(argv: list[str]) -> int:
     limits = DEFAULT_LIMITS     # one limits object for reading and for the library (as the igp CLI)
     try:
         out = _run(a, limits)
-    except OSError as e:
+    except (OSError, _Usage) as e:
         return _usage(ap, str(e))
     except IGARError as e:
         _emit([_meta("error", {"code": e.code, "field": e.field, "detail": e.detail, "step": e.step})])

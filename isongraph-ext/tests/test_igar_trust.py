@@ -412,3 +412,16 @@ def test_permissive_policy_accepts_denied_admission_and_limited_resolution_while
     assert why(limited, OK) == "resolution"
     assert why(denied, dataclasses.replace(OK, require_full_resolution=False)) == "admission"      # each flag is read on its own
     assert why(limited, dataclasses.replace(OK, require_admission=False)) == "resolution"
+
+
+# ---- gaps found by the whole-branch review ------------------------------------------------------------------------------------------
+def test_an_unpinned_oversize_receipt_is_refused_by_the_size_budget_before_the_pin_check_or_any_parse():
+    big = b"\xff" * 64                                                                     # not a receipt, not pinned: only the budget can answer
+    assert refused(receipt=big, pins=DeliveryPins(frozenset()), limits=Limits(max_payload_bytes=10)) == ("RECEIPT_LIMIT_EXCEEDED", "R0")
+    assert refused(receipt=big, pins=DeliveryPins(frozenset()), limits=Limits(max_payload_bytes=64)) == ("RECEIPT_NOT_PINNED", "R5")   # at the budget: the pin answers
+
+
+def test_full_resolution_policy_reads_object_resolution_on_its_own():
+    skipped = mut(verified(), "verifier", object_resolution="skipped")                      # semantic_verification stays "full"
+    assert why(skipped, OK) == "resolution"
+    qualify_policy(skipped, dataclasses.replace(OK, require_full_resolution=False))

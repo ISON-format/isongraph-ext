@@ -180,4 +180,9 @@ class Receipt:
 
 
 def passed(r: Receipt) -> bool:
+    """True when the receipt RECORDS a passed verification (valid binding, valid payload, verified).
+
+    This is a claim about the receipt's recorded verdict only. It says nothing about whether the receipt was pinned, bound to any bytes, or issued by
+    a trusted verifier, and it is NOT trust: the only authorization is `trust.authorize_hints`.
+    """
     return (r.result["binding_schema"], r.result["payload_schema"], r.result["verification"]) == ("valid", "valid", "verified")

@@ -11,6 +11,8 @@ A canonical ISON document (ison-py `dumps_canonical`; UTF-8, LF, no trailing new
 | `table.profiles` | `profile_sha256` | 64 lowercase hex, the digest of an accepted verifier profile; empty accepts none |
 | `table.runtime` | `runtime_ison_graph`, `runtime_ison_py` | accepted pairs; empty = do not constrain |
 
+The file must be exactly the canonical writer's output: blocks and rows appear in `dumps_canonical` order (blocks sorted as in the example below, which is not the order of the table above; rows sorted by the writer), with no trailing newline. A non-canonical block or row order, or a trailing LF, is `MALFORMED_POLICY`.
+
 A duplicate row, bad hex digit, bare boolean, unexpected block or summary row is `MALFORMED_POLICY`. A policy that names no verifier,
 baseline and profile accepts nothing. A policy match says nothing about provenance: authorization is `authorize_hints` (`25` §4).
 
@@ -49,7 +51,7 @@ python -m isongraph_ext.igar authorize receipt.igar.ison --pins SHA256SUMS --tar
     --payload graph.igdm.ison --igdc graph.igdc.ison --trust-policy trust.policy.ison
 ```
 
-`policy` reads the receipt and this file, runs the policy check and nothing else. A success says the policy is satisfied and, in the same output, that this is not an authorization. `authorize` additionally requires that the receipt bytes are pinned in the consumer's own delivery pin file (a `sha256sum`-format file; only the line naming the receipt's file name is used), that the receipt is about exactly the bytes supplied, and that the policy matches. Only then does it print the admitted digests.
+`policy` reads the receipt and this file, runs the policy check and nothing else. A success says the policy is satisfied and, in the same output, that this is not an authorization. `authorize` additionally requires that the receipt bytes are pinned in the consumer's own delivery pin file (a strict subset of the `sha256sum` text format: lines `<64 lowercase hex>`, two spaces, `<name>`, ended by LF or CRLF; binary-mode `*name` lines are refused and path-qualified names never match; only the line naming the receipt's file name, its final path component, is used), that the receipt is about exactly the bytes supplied, and that the policy matches. Only then does it print the admitted digests.
 
 ## What this file is and is not
 

@@ -40,6 +40,13 @@ def check_subject(receipt: Receipt, *, target: bytes, binding: bytes, payload: b
     `igdc` is `None` only for "I hold no hint document"; then the receipt must name none either. A receipt that names a hint
     document the caller did not supply, or a caller who supplies one the receipt does not name, is a mismatch in both directions.
     """
+    if type(receipt) is not Receipt:
+        raise TypeError(f"receipt must be Receipt, got {type(receipt).__name__}")
+    for name, data in (("target", target), ("binding", binding), ("payload", payload)):      # every input is type-checked before any comparison
+        if not isinstance(data, (bytes, bytearray)):
+            raise TypeError(f"{name} must be bytes, got {type(data).__name__}")
+    if igdc is not None and not isinstance(igdc, (bytes, bytearray)):
+        raise TypeError(f"igdc must be bytes or None, got {type(igdc).__name__}")
     s = receipt.subject
     for field, name, data in (("target_artifact_sha256", "target", target), ("binding_sha256", "binding", binding), ("igdm_payload_sha256", "payload", payload)):
         if _digest_of(name, data) != s[field]:
@@ -68,12 +75,12 @@ def recompute(receipt: bytes | str, binding: bytes, payload: bytes, target: byte
         raise _unavailable("profile", f"the receipt was issued under profile {v['profile_sha256']}; supply that profile document")
     if _digest_of("profile", profile) != v["profile_sha256"]:
         raise _unavailable("meta.verifier.profile_sha256", "the supplied profile is not the one the receipt names")
-    prof = Profile.from_ison(profile)
     if v["verifier_version"] != (verifier_version or __version__):
         raise _unavailable("meta.verifier.verifier_version", f"issued by isongraph-ext {v['verifier_version']}; this is {verifier_version or __version__}")
     for field, dist in (("runtime_ison_graph", "ison-graph"), ("runtime_ison_py", "ison-py")):
         if v[field] != metadata.version(dist):
             raise _unavailable(f"meta.verifier.{field}", f"issued under {dist} {v[field]}; installed {metadata.version(dist)}")
+    prof = Profile.from_ison(profile)       # only now: a profile this reader refuses cannot make a receipt from another verifier or runtime anything but unavailable
     again = issue(binding, payload, target, igdc=(r.subject["igdc_sha256"] is not None or r.consumption["code"] is not None), profile=prof,
                   verifier_version=v["verifier_version"])
     if again.to_ison() != r.to_ison():

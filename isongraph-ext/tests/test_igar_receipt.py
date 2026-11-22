@@ -128,3 +128,43 @@ def test_denied_and_derived_receipts_are_consistent():
     v1 = _with(_with(rejected_d2(), "failure", check="V1", code="MALFORMED_BINDING", field="document"), "result",
                binding_schema="invalid", payload_schema="not_evaluated", verification="not_evaluated")
     v1 = _with(v1, "verifier", core_commit=None); v1.check_consistency()
+
+
+# ---- R2 rules that each name one field: a consistent receipt with exactly one field changed ----------------------------------------
+def _field(r):
+    with pytest.raises(IGARError) as e:
+        r.check_consistency()
+    return e.value.code, e.value.step, e.value.field
+
+
+def _denied():
+    return dataclasses.replace(_with(_with(verified(), "result", admission="denied"), "admission", code="STALE_BINDING", step="A1", receipt_posture="INADMISSIBLE"),
+                               reasons=("BASELINE_RETIRED",))
+
+
+def test_the_consistent_bases_of_the_field_rules_below_are_consistent():
+    _denied().check_consistency()
+    _with(_with(verified(), "result", consumption="derived"), "subject", igdc_sha256=H("e")).check_consistency()
+    _with(_with(verified(), "result", consumption="failed"), "consumption", code="RESOLUTION_REQUIRED", step="P0", field="object_resolution").check_consistency()
+
+
+@pytest.mark.parametrize("make", [
+    lambda: _with(_with(rejected_d2(), "result", consumption="failed"), "consumption", code="RESOLUTION_REQUIRED", step="P0", field="object_resolution"),
+    lambda: _with(_with(rejected_d2(), "result", consumption="derived"), "subject", igdc_sha256=H("e")),
+])
+def test_consumption_needs_a_verified_run(make):
+    assert _field(make()) == ("INCONSISTENT_RECEIPT", "R2", "meta.result.consumption")
+
+
+def test_derived_hints_need_full_object_resolution():
+    r = _with(_with(_with(verified(), "result", consumption="derived"), "subject", igdc_sha256=H("e")), "verifier", object_resolution="skipped")
+    assert _field(r) == ("INCONSISTENT_RECEIPT", "R2", "meta.verifier.object_resolution")
+
+
+@pytest.mark.parametrize("make", [
+    lambda: _with(_denied(), "admission", receipt_posture="OK"),                    # denied but not INADMISSIBLE
+    lambda: _with(verified(), "admission", receipt_posture="INADMISSIBLE"),         # INADMISSIBLE but admitted
+    lambda: _with(verified(), "admission", receipt_posture=None),                   # a verified run always records a posture
+])
+def test_inadmissible_posture_exactly_when_admission_denied(make):
+    assert _field(make()) == ("INCONSISTENT_RECEIPT", "R2", "meta.admission.receipt_posture")

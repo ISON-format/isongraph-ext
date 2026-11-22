@@ -126,3 +126,18 @@ def test_igdc_digest_recorded_when_requested_and_failure_recorded_when_not_deriv
     lim = run(p=p, binding=retired, igdc=True, profile=prof(baselines=B, policy=AdmissionPolicy(allow_retired_baselines=True)))
     lim.check_consistency()
     assert (lim.result["consumption"], lim.consumption["code"], lim.consumption["step"]) == ("failed", "RESOLUTION_REQUIRED", "P0")
+
+
+@pytest.mark.parametrize("bad", [0, b"", {}, "x", [], False, Profile.default().to_ison()])
+def test_a_non_profile_profile_is_a_type_error_and_never_silently_defaulted(bad):
+    p = real_payload(T)
+    with pytest.raises(TypeError, match="profile must be Profile or None"):
+        issue(bound(p, T).to_ison().encode(), p.to_ison().encode(), T, profile=bad)           # falsy values used to fall back to the default profile
+
+
+def test_an_explicit_none_profile_is_the_default_profile_and_a_bytearray_input_is_accepted():
+    p = real_payload(T)
+    b, pl = bound(p, T).to_ison().encode(), p.to_ison().encode()
+    assert issue(b, pl, T, profile=None, verifier_version="t").to_ison() == issue(bytearray(b), bytearray(pl), bytearray(T), verifier_version="t").to_ison()
+    with pytest.raises(TypeError, match="bytes or bytearray"):
+        issue("text", pl, T)

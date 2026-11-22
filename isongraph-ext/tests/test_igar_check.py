@@ -153,3 +153,61 @@ def test_recompute_with_both_version_and_profile_different_reports_the_profile_f
     tight = dataclasses.replace(Profile.default(), limits=Limits(max_group_depth=3)).to_ison().encode()
     assert field_of(recompute, R.to_ison(), BIND, PAY, T, profile=tight, verifier_version="other") == ("RECOMPUTE_UNAVAILABLE", "R6", "meta.verifier.profile_sha256")
     assert field_of(recompute, R.to_ison(), BIND, PAY, T, profile=PROFILE, verifier_version="other")[2] == "meta.verifier.verifier_version"     # the version alone
+
+
+# ---- check_subject: every input is type-checked before any comparison --------------------------------------------------------------
+@pytest.mark.parametrize("name", ["target", "binding", "payload", "igdc"])
+@pytest.mark.parametrize("bad", ["text", 0, [b"x"], object()])
+def test_a_wrong_typed_input_is_a_type_error_even_when_the_inputs_also_mismatch(name, bad):
+    kw = dict(target=T + b" ", binding=BIND + b" ", payload=PAY + b" ", igdc=None)           # target (checked first) already mismatches
+    kw[name] = bad
+    with pytest.raises(TypeError):
+        check_subject(R, **kw)
+    kw = dict(target=T, binding=BIND, payload=PAY, igdc=HINTS)                                 # and: igdc supplied to a receipt that names none
+    kw[name] = bad
+    with pytest.raises(TypeError):
+        check_subject(R, **kw)
+
+
+def test_a_non_bytes_igdc_on_a_receipt_naming_none_is_a_type_error_not_a_mismatch():
+    with pytest.raises(TypeError):
+        check_subject(R, target=T, binding=BIND, payload=PAY, igdc="not bytes")
+    check_subject(R, target=T, binding=BIND, payload=PAY, igdc=None)                           # None stays the documented "no hint document held"
+
+
+def test_binding_none_with_a_wrong_target_is_a_type_error_not_a_mismatch():
+    with pytest.raises(TypeError):
+        check_subject(R, target=T + b" ", binding=None, payload=PAY, igdc=None)
+
+
+@pytest.mark.parametrize("bad", [None, "receipt", R.to_ison(), R.to_ison().encode(), {"subject": R.subject}])
+def test_a_non_receipt_is_a_type_error(bad):
+    with pytest.raises(TypeError):
+        check_subject(bad, target=T, binding=BIND, payload=PAY, igdc=None)
+
+
+def test_a_receipt_subclass_is_refused_exactly():
+    class Sub(type(R)):
+        pass
+    with pytest.raises(TypeError):
+        check_subject(Sub(**{f.name: getattr(R, f.name) for f in dataclasses.fields(R)}), target=T, binding=BIND, payload=PAY, igdc=None)
+
+
+def test_bytearray_inputs_are_still_accepted():
+    check_subject(R, target=bytearray(T), binding=bytearray(BIND), payload=bytearray(PAY), igdc=None)
+    check_subject(RD, target=T, binding=BIND, payload=PAY, igdc=bytearray(HINTS))
+
+
+# ---- recompute: the profile is READ only after the version and runtime preconditions --------------------------------------------------
+def test_an_unreadable_profile_whose_digest_matches_is_unavailable_when_the_verifier_version_differs():
+    bad = Profile.default().to_ison() + "\n---\nx"                                             # today's reader refuses this text
+    with pytest.raises(IGARError):
+        Profile.from_ison(bad)
+    named = dataclasses.replace(R, verifier={**R.verifier, "profile_sha256": sha(bad.encode())})
+    named.check_consistency()
+    assert field_of(recompute, named.to_ison(), BIND, PAY, T, profile=bad.encode(), verifier_version="other") == (
+        "RECOMPUTE_UNAVAILABLE", "R6", "meta.verifier.verifier_version")
+    other_rt = dataclasses.replace(named, verifier={**named.verifier, "runtime_ison_py": "0.0.1"})
+    assert field_of(recompute, other_rt.to_ison(), BIND, PAY, T, profile=bad.encode(), verifier_version="test") == (
+        "RECOMPUTE_UNAVAILABLE", "R6", "meta.verifier.runtime_ison_py")
+    assert field_of(recompute, named.to_ison(), BIND, PAY, T, profile=bad.encode(), verifier_version="test")[:2] == ("MALFORMED_PROFILE", "R6")   # all else equal: unreadable

@@ -195,7 +195,7 @@ def test_policy_success_says_satisfied_and_that_it_is_not_an_authorization(tmp_p
     pol.write_bytes(_policy_bytes())
     code, o, err = run("policy", rc, "--trust-policy", pol)
     row = _row(o, "policy_check")
-    assert code == 0 and err == b"" and row["policy_satisfied"] is True and row["authorized"] is False and row["steps_passed"] == "R0,R1,R2,R4"
+    assert code == 0 and err == b"" and row["policy_satisfied"] is True and "authorized" not in row and row["steps_passed"] == "R0,R1,R2,R4"
     assert "not an authorization" in row["note"] and "provenance" in row["note"]
     assert b"trusted" not in o.lower() and b"authenticat" not in o.lower()
 
@@ -349,7 +349,7 @@ def test_only_a_successful_authorize_ever_says_authorized_and_nothing_else_says_
     for o in others:
         assert b"trusted" not in o.lower() and b"authenticat" not in o.lower() and b"authoriz" not in o.lower()
     pol_out = run("policy", rc, "--trust-policy", pol)[1]
-    assert _row(pol_out, "policy_check")["authorized"] is False and b"trusted" not in pol_out.lower() and b"authenticat" not in pol_out.lower()
+    assert "authorized" not in _row(pol_out, "policy_check") and b"trusted" not in pol_out.lower() and b"authenticat" not in pol_out.lower()
     assert _row(run(*_auth_args(tmp_path, files, hints))[1], "authorization")["authorized"] is True
 
 
@@ -420,3 +420,85 @@ def test_the_cli_never_reads_more_than_budget_plus_one_byte(tmp_path, monkeypatc
     real = _cli.read_capped
     monkeypatch.setattr(m, "read_capped", lambda p, n: (lambda d: (lens.append(len(d)), d)[1])(real(p, n)))
     assert igar_main(["inspect", str(big)]) == 1 and lens == [8]
+
+
+# ---- issue --igdc OUT never overwrites an input of the same invocation (or a directory) ------------------------------------------------
+def _issue_args(files, tmp_path, out, *, with_profile=True):
+    g, bf, pl = files
+    pf = tmp_path / "p.profile.ison"
+    pf.write_bytes(Profile.default().to_ison().encode("utf-8"))
+    return ["issue", g, bf, pl, *(["--profile", pf] if with_profile else []), "--igdc", out], {"graph": g, "binding": bf, "payload": pl, "profile": pf}
+
+
+@pytest.mark.parametrize("which", ["graph", "binding", "payload", "profile"])
+def test_issue_igdc_out_equal_to_an_input_is_refused_with_64_and_the_input_is_untouched(tmp_path, files, which):
+    _, inputs = _issue_args(files, tmp_path, "unused")
+    before = {k: v.read_bytes() for k, v in inputs.items()}
+    args, _ = _issue_args(files, tmp_path, inputs[which])
+    code, out, err = run(*args)
+    assert code == 64 and out == b"" and which.encode() in err and b"refusing" in err
+    assert {k: v.read_bytes() for k, v in inputs.items()} == before
+    assert sorted(p.name for p in tmp_path.iterdir()) == sorted(["g.ison", "g.igx.ison", "g.igdm.ison", "p.profile.ison"])      # no temp file left behind
+
+
+def test_issue_igdc_out_spelled_differently_is_still_the_input(tmp_path, files):
+    g = files[0]
+    before = g.read_bytes()
+    code, out, err = run("issue", g, files[1], files[2], "--igdc", tmp_path / "." / "g.ison")
+    assert code == 64 and out == b"" and g.read_bytes() == before
+    code, out, err = run("issue", g, files[1], files[2], "--igdc", tmp_path / "sub" / ".." / "g.ison")
+    assert code == 64 and out == b"" and g.read_bytes() == before
+
+
+def test_issue_igdc_out_that_is_a_directory_is_refused_with_64(tmp_path, files):
+    d = tmp_path / "outdir"
+    d.mkdir()
+    code, out, err = run("issue", *files, "--igdc", d)
+    assert code == 64 and out == b"" and b"directory" in err and list(d.iterdir()) == []
+
+
+def test_issue_igdc_still_overwrites_an_existing_unrelated_regular_file(tmp_path, files):
+    hints = tmp_path / "old.igdc.ison"
+    hints.write_bytes(b"stale")
+    code, out, err = run("issue", *files, "--igdc", hints)
+    assert code == 0 and err == b"" and hints.read_bytes() != b"stale" and _row(out, "subject")["igdc_sha256"] == sha(hints.read_bytes())
+
+
+# ---- strict flags, pin-file shape ---------------------------------------------------------------------------------------------------
+def test_the_root_parser_does_not_abbreviate_options():
+    assert run("--help")[0] == 0
+    code, out, err = run("--he")
+    assert code == 64 and out == b"" and b"error:" in err
+
+
+@pytest.mark.parametrize("flag, short", [("--profile", "--prof"), ("--igdc", "--igd"), ("--trust-policy", "--trust"), ("--pins", "--pin"), ("--target", "--tar")])
+def test_abbreviated_options_are_usage_errors_in_every_subcommand_that_has_them(tmp_path, files, flag, short):
+    rc, out, hints = _with_hints(tmp_path, files)
+    g, bf, pl = files
+    pf = tmp_path / "p.profile.ison"
+    pf.write_bytes(Profile.default().to_ison().encode("utf-8"))
+    auth = _auth_args(tmp_path, files, hints)
+    pol = auth[auth.index("--trust-policy") + 1]
+    pins = auth[auth.index("--pins") + 1]
+    cases = {"issue": ["issue", g, bf, pl, "--profile", pf, "--igdc", tmp_path / "o.igdc.ison"],
+             "subject": ["subject", rc, "--target", g, "--binding", bf, "--payload", pl, "--igdc", hints],
+             "policy": ["policy", rc, "--trust-policy", pol], "authorize": auth, "recompute": ["recompute", rc, g, bf, pl, "--profile", pf]}
+    tried = 0
+    for cmd, args in cases.items():
+        if flag not in args:
+            continue
+        assert run(*args)[0] != 64, (cmd, flag)                                              # the full spelling works ...
+        short_args = [short if x == flag else x for x in args]
+        code, o, err = run(*short_args)
+        assert code == 64 and o == b"" and b"error:" in err, (cmd, short)                    # ... the abbreviation is a usage error
+        tried += 1
+    assert tried >= 1
+
+
+def test_authorize_pin_file_path_qualified_name_never_matches(tmp_path, files):
+    rc, out, hints = _with_hints(tmp_path, files)
+    for name in ("sub/g.igar.ison", "./g.igar.ison", "sub\\g.igar.ison"):
+        code, o, _ = run(*_auth_args(tmp_path, files, hints, pins_text=f"{sha(out)}  {name}\n"))
+        assert code == 2 and _row(o, "error")["code"] == "RECEIPT_NOT_PINNED", name
+    code, o, _ = run(*_auth_args(tmp_path, files, hints, pins_text=f"{sha(out).upper()}  g.igar.ison\n"))
+    assert code == 1 and _row(o, "error")["code"] == "MALFORMED_PINS"                  # uppercase hex is not accepted either

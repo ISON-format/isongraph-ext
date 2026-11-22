@@ -1,0 +1,18 @@
+meta.policy
+policy_spec require_admission require_full_resolution
+IGAR-POLICY/1 "false" "false"
+
+table.core_commits
+core_commit
+ce9d3b78afd79cbdffdd67546bcb5278dc38be70
+
+table.profiles
+profile_sha256
+437145940b1b0836d357c28ed107e4bfcee91d06f7a74480b638e681a4495b93
+
+table.runtime
+runtime_ison_graph runtime_ison_py
+
+table.verifiers
+verifier verifier_version
+isongraph-ext vectors

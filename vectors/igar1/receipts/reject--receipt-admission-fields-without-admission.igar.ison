@@ -1,0 +1,33 @@
+meta.admission
+code receipt_posture step
+null OK null
+
+meta.consumption
+code field step
+null null null
+
+meta.failure
+check code field
+D2 TARGET_BINDING_MISMATCH meta.igdm.target_artifact_sha256
+
+meta.igar
+receipt_spec
+IGAR/1
+
+meta.result
+admission binding_schema consumption payload_schema verification
+not_evaluated valid absent valid rejected
+
+meta.subject
+binding_sha256 igdc_sha256 igdm_payload_sha256 target_artifact_sha256
+9f97f8499e79c040bb08e02119a9a96ef8d2f9dbad4ba56afd7b2f5775bc1c96 null b9519190a2e73e4e82d7dab309ed4d446f33138cab25b799e9eb04966a0e7053 2b0bd5b0e74e8e92a3e5f47f5b3b92c17ce0f9b0641714c0dc11b8e81d6e89c2
+
+meta.verifier
+core_commit igdc_spec igdm_spec igx_spec object_resolution profile_sha256 runtime_ison_graph runtime_ison_py semantic_verification verifier verifier_version
+ce9d3b78afd79cbdffdd67546bcb5278dc38be70 IGDC/1 IGDM/1 IGX/1 null 437145940b1b0836d357c28ed107e4bfcee91d06f7a74480b638e681a4495b93 1.4.1 1.2.0 null isongraph-ext vectors
+
+table.reasons
+reason
+
+table.unrecognized
+entry

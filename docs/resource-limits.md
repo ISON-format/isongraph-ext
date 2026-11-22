@@ -9,9 +9,12 @@
 | IGPV/1 | Explicit byte and row budgets (`Limits`): graph, payload and per-table rows. |
 | IGDM/1 | Explicit byte and row budgets (`Limits`). |
 | IGP/1 | Explicit byte and row budgets for source, policy, result and lineage payload; node and edge budgets bound the *result*, not the work done to read the source. |
+| IGDC/1 | Reuses the IGDM/1 `Limits` (nothing new). The hint document's byte size is checked against `max_payload_bytes` before any decoding or parsing, and its row count against `max_rows_per_table` after the parse; the derived document is refused (`DATAMATICS_LIMIT_EXCEEDED`, step P1) if it exceeds `max_payload_bytes`. |
 | IGX/1 | **None.** IGX/1 does not define equivalent limits. It is frozen, and no limits are planned. |
 
 The byte budgets cap how many bytes of a file are accepted. They do **not** cap memory. The graph is parsed by ISONGraph Core into an in-memory property graph, and that representation is many times larger than the file. An input that is within every budget can still use a great deal of memory and time. A 256 MB source limit does not prevent an out-of-memory condition.
+
+IGDC/1 adds no budget of its own. As above, its byte budget bounds the *file*, not memory. `consume` first runs IGDM/1 verification (which includes IGX/1 verification and a Core load of the target), then loads the target through Core once more to read its direction and multigraph flags, so deriving costs about one further Core load of the target on top of verification (see the Core load column below). Checking a hint document on its own (`verify_hints`, C0 to C3) loads no graph. Memory and time for IGDC/1 are **not measured**; do not infer them from the table below. The byte budget does not bound time either: parse time grows superlinearly with the number of columns in a table header (this is ison-py's own header handling; the reader's duplicate-column scan in this package is linear), so a small document with a very wide header can still take long to check. Measured on one development machine, reading a table header of 20,000 extra columns (about 229 KB) through the strict reader took about 3 s after the reader's own scan was made linear, against about 5 s before; the remaining time is inside ison-py and is not changed by this package.
 
 ## Measured memory use
 

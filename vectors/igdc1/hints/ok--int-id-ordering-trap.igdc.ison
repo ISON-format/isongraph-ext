@@ -1,0 +1,27 @@
+meta.igdc
+address_scheme consumption_spec igdm_payload_sha256 target_artifact_sha256 target_directed target_multigraph target_serialization_profile
+igs-addr/1 IGDC/1 371e2627f4bdd97965e5e42dc6952bb51a33f551a200668bf1a618c3d12ad16f ce14adf732145aab91a019ecb402a70aca8a48e95dee345da498c98e83031543 "true" "false" ison-v1
+
+meta.layout
+direction family family_x stability
+null null null null
+
+table.edges
+a11y_text direction_display emphasis focusable label lod_min ordinal pattern_role pattern_role_x relation role role_x selectable source_id source_type target_id target_type temporal_order temporal_state visibility
+null null null null null null "0" null null r neutral null null i:10 t i:2 t null null null
+null null null null null null "0" null null r neutral null null i:2 t i:-1 t null null null
+
+table.groups
+a11y_text collapsed group_id intent label lod_min parent_group_id role role_x visibility
+
+table.members
+group_id node_id node_type
+
+table.nodes
+a11y_role a11y_role_x a11y_text badge drilldown emphasis expandable focusable label layout_anchor layout_rank lod_min magnitude node_id node_type ring ring_x role role_x selectable shape_role shape_role_x temporal_order temporal_state visibility
+null null null null null null null null null null null null null i:-1 t null null info null null null null null null null
+null null null null null null null null null null null null null i:0 t null null info null null null null null null null
+null null null null null null null null null null null null null i:10 t null null info null null null null null null null
+null null null null null null null null null null null null null i:2 t null null info null null null null null null null
+null null null null null null null null null null null null null s:a t null null info null null null null null null null
+null null null null null null null null null null null null null s:é t null null info null null null null null null null

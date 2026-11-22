@@ -1,0 +1,92 @@
+meta.corpus
+consumption_spec version
+IGDC/1 1
+
+table.vectors
+id binding code detail expect hints op payload step target
+ok/accessibility-fields bindings/ok--accessibility-fields.igx.ison null null ok hints/ok--accessibility-fields.igdc.ison consume payloads/ok--accessibility-fields.igdm.ison null targets/a4f312b4a1433485.ison
+ok/edge-hints bindings/ok--edge-hints.igx.ison null null ok hints/ok--edge-hints.igdc.ison consume payloads/ok--edge-hints.igdm.ison null targets/2b0bd5b0e74e8e92.ison
+ok/empty-datamatics bindings/ok--empty-datamatics.igx.ison null null ok hints/ok--empty-datamatics.igdc.ison consume payloads/ok--empty-datamatics.igdm.ison null targets/2b0bd5b0e74e8e92.ison
+ok/empty-hull-group bindings/ok--empty-hull-group.igx.ison null null ok hints/ok--empty-hull-group.igdc.ison consume payloads/ok--empty-hull-group.igdm.ison null targets/2b0bd5b0e74e8e92.ison
+ok/groups-members-resolved bindings/ok--groups-members-resolved.igx.ison null null ok hints/ok--groups-members-resolved.igdc.ison consume payloads/ok--groups-members-resolved.igdm.ison null targets/2b0bd5b0e74e8e92.ison
+ok/hierarchy-chain bindings/ok--hierarchy-chain.igx.ison null null ok hints/ok--hierarchy-chain.igdc.ison consume payloads/ok--hierarchy-chain.igdm.ison null targets/2b0bd5b0e74e8e92.ison
+ok/id-types-distinct bindings/ok--id-types-distinct.igx.ison null null ok hints/ok--id-types-distinct.igdc.ison consume payloads/ok--id-types-distinct.igdm.ison null targets/58e025bd703f674e.ison
+ok/igdc-wellformed-not-verified null null "C0-C3 pass; only C4 or a trusted receipt ties a document to a payload" ok hints/ok--igdc-wellformed-not-verified.igdc.ison verify null null null
+ok/int-id-ordering-trap bindings/ok--int-id-ordering-trap.igx.ison null "file row order is NOT semantic order: i:10 precedes i:2 as text" ok hints/ok--int-id-ordering-trap.igdc.ison consume payloads/ok--int-id-ordering-trap.igdm.ison null targets/ce14adf732145aab.ison
+ok/int64-extremes bindings/ok--int64-extremes.igx.ison null null ok hints/ok--int64-extremes.igdc.ison consume payloads/ok--int64-extremes.igdm.ison null targets/9fb532a1c1cca37d.ison
+ok/int64-hint-values bindings/ok--int64-hint-values.igx.ison null "2**53+1 and INT64 max in numeric columns: a JavaScript Number cannot hold them" ok hints/ok--int64-hint-values.igdc.ison consume payloads/ok--int64-hint-values.igdm.ison null targets/a4f312b4a1433485.ison
+ok/isonl-profile-carried bindings/ok--isonl-profile-carried.igx.ison null "isonl-v1 is carried; IGS/1's ison-v1-only rule belongs to the adapter" ok hints/ok--isonl-profile-carried.igdc.ison consume payloads/ok--isonl-profile-carried.igdm.ison null targets/aa979cb95d4555fc.ison
+ok/layout-intent bindings/ok--layout-intent.igx.ison null null ok hints/ok--layout-intent.igdc.ison consume payloads/ok--layout-intent.igdm.ison null targets/a4f312b4a1433485.ison
+ok/layout-only bindings/ok--layout-only.igx.ison null null ok hints/ok--layout-only.igdc.ison consume payloads/ok--layout-only.igdm.ison null targets/2b0bd5b0e74e8e92.ison
+ok/multigraph-ordinals bindings/ok--multigraph-ordinals.igx.ison null null ok hints/ok--multigraph-ordinals.igdc.ison consume payloads/ok--multigraph-ordinals.igdm.ison null targets/9facbb42cea37a78.ison
+ok/node-hints-full-row bindings/ok--node-hints-full-row.igx.ison null null ok hints/ok--node-hints-full-row.igdc.ison consume payloads/ok--node-hints-full-row.igdm.ison null targets/2b0bd5b0e74e8e92.ison
+ok/string-ids-digit-like-and-unicode bindings/ok--string-ids-digit-like-and-unicode.igx.ison null null ok hints/ok--string-ids-digit-like-and-unicode.igdc.ison consume payloads/ok--string-ids-digit-like-and-unicode.igdm.ison null targets/95022dd01e7e4483.ison
+ok/undirected-canonical-endpoints bindings/ok--undirected-canonical-endpoints.igx.ison null null ok hints/ok--undirected-canonical-endpoints.igdc.ison consume payloads/ok--undirected-canonical-endpoints.igdm.ison null targets/4d7c3927c9bdabb9.ison
+ok/x-roles-all-columns bindings/ok--x-roles-all-columns.igx.ison null "all six x-capable columns carry one x- token and one closed value" ok hints/ok--x-roles-all-columns.igdc.ison consume payloads/ok--x-roles-all-columns.igdm.ison null targets/a4f312b4a1433485.ison
+ok/x-roles-preserved bindings/ok--x-roles-preserved.igx.ison null null ok hints/ok--x-roles-preserved.igdc.ison consume payloads/ok--x-roles-preserved.igdm.ison null targets/2b0bd5b0e74e8e92.ison
+reject/binding-artifact-mismatch bindings/reject--binding-artifact-mismatch.igx.ison SOURCE_BINDING_MISMATCH null reject null consume payloads/reject--binding-artifact-mismatch.igdm.ison V4 targets/2b0bd5b0e74e8e92.ison
+reject/igdc-bad-hex null MALFORMED_CONSUMPTION null reject hints/reject--igdc-bad-hex.igdc.ison verify null C1 null
+reject/igdc-bad-node-type null INVALID_ADDRESS null reject hints/reject--igdc-bad-node-type.igdc.ison verify null C2 null
+reject/igdc-bad-profile null MALFORMED_CONSUMPTION null reject hints/reject--igdc-bad-profile.igdc.ison verify null C1 null
+reject/igdc-bare-boolean null MALFORMED_CONSUMPTION null reject hints/reject--igdc-bare-boolean.igdc.ison verify null C1 null
+reject/igdc-bom null MALFORMED_CONSUMPTION null reject hints/reject--igdc-bom.igdc.ison verify null C0 null
+reject/igdc-closed-and-x-both null MALFORMED_CONSUMPTION null reject hints/reject--igdc-closed-and-x-both.igdc.ison verify null C1 null
+reject/igdc-closed-outside-vocab null MALFORMED_CONSUMPTION null reject hints/reject--igdc-closed-outside-vocab.igdc.ison verify null C1 null
+reject/igdc-computed-column null MALFORMED_CONSUMPTION null reject hints/reject--igdc-computed-column.igdc.ison verify null C1 null
+reject/igdc-cr null MALFORMED_CONSUMPTION null reject hints/reject--igdc-cr.igdc.ison verify null C0 null
+reject/igdc-derivation-mismatch bindings/ok--node-hints-full-row.igx.ison DERIVATION_MISMATCH null reject hints/reject--igdc-derivation-mismatch.igdc.ison derivation payloads/ok--node-hints-full-row.igdm.ison C4 targets/2b0bd5b0e74e8e92.ison
+reject/igdc-directed-bare-boolean null MALFORMED_CONSUMPTION null reject hints/reject--igdc-directed-bare-boolean.igdc.ison verify null C1 null
+reject/igdc-directed-fact-wrong bindings/ok--node-hints-full-row.igx.ison DERIVATION_MISMATCH "the target is directed; the document claims otherwise" reject hints/reject--igdc-directed-fact-wrong.igdc.ison derivation payloads/ok--node-hints-full-row.igdm.ison C4 targets/2b0bd5b0e74e8e92.ison
+reject/igdc-duplicate-block null MALFORMED_CONSUMPTION null reject hints/reject--igdc-duplicate-block.igdc.ison verify null C1 null
+reject/igdc-duplicate-column-edges null MALFORMED_CONSUMPTION null reject hints/reject--igdc-duplicate-column-edges.igdc.ison verify null C1 null
+reject/igdc-duplicate-column-groups null MALFORMED_CONSUMPTION null reject hints/reject--igdc-duplicate-column-groups.igdc.ison verify null C1 null
+reject/igdc-duplicate-column-igdc null MALFORMED_CONSUMPTION null reject hints/reject--igdc-duplicate-column-igdc.igdc.ison verify null C1 null
+reject/igdc-duplicate-column-layout null MALFORMED_CONSUMPTION null reject hints/reject--igdc-duplicate-column-layout.igdc.ison verify null C1 null
+reject/igdc-duplicate-column-members null MALFORMED_CONSUMPTION null reject hints/reject--igdc-duplicate-column-members.igdc.ison verify null C1 null
+reject/igdc-duplicate-column-nodes null MALFORMED_CONSUMPTION null reject hints/reject--igdc-duplicate-column-nodes.igdc.ison verify null C1 null
+reject/igdc-duplicate-edge-row null INVALID_ADDRESS null reject hints/reject--igdc-duplicate-edge-row.igdc.ison verify null C2 null
+reject/igdc-duplicate-group null INVALID_ADDRESS null reject hints/reject--igdc-duplicate-group.igdc.ison verify null C2 null
+reject/igdc-duplicate-member null INVALID_ADDRESS null reject hints/reject--igdc-duplicate-member.igdc.ison verify null C2 null
+reject/igdc-duplicate-node-row null INVALID_ADDRESS null reject hints/reject--igdc-duplicate-node-row.igdc.ison verify null C2 null
+reject/igdc-group-cycle null GROUP_CYCLE null reject hints/reject--igdc-group-cycle.igdc.ison verify null C3 null
+reject/igdc-group-depth null DATAMATICS_LIMIT_EXCEEDED limits:max_group_depth=0 reject hints/reject--igdc-group-depth.igdc.ison verify null C3 null
+reject/igdc-id-empty-int null INVALID_ADDRESS null reject hints/reject--igdc-id-empty-int.igdc.ison verify null C2 null
+reject/igdc-id-leading-zero null INVALID_ADDRESS null reject hints/reject--igdc-id-leading-zero.igdc.ison verify null C2 null
+reject/igdc-id-minus-zero null INVALID_ADDRESS null reject hints/reject--igdc-id-minus-zero.igdc.ison verify null C2 null
+reject/igdc-id-out-of-int64 null INVALID_ADDRESS null reject hints/reject--igdc-id-out-of-int64.igdc.ison verify null C2 null
+reject/igdc-lod-out-of-range null MALFORMED_CONSUMPTION null reject hints/reject--igdc-lod-out-of-range.igdc.ison verify null C1 null
+reject/igdc-magnitude-out-of-range null MALFORMED_CONSUMPTION null reject hints/reject--igdc-magnitude-out-of-range.igdc.ison verify null C1 null
+reject/igdc-member-unknown-group null UNRESOLVED_REFERENCE null reject hints/reject--igdc-member-unknown-group.igdc.ison verify null C3 null
+reject/igdc-meta-extra-row null MALFORMED_CONSUMPTION null reject hints/reject--igdc-meta-extra-row.igdc.ison verify null C1 null
+reject/igdc-missing-block null MALFORMED_CONSUMPTION null reject hints/reject--igdc-missing-block.igdc.ison verify null C1 null
+reject/igdc-missing-column null MALFORMED_CONSUMPTION null reject hints/reject--igdc-missing-column.igdc.ison verify null C1 null
+reject/igdc-multigraph-fact-wrong bindings/ok--node-hints-full-row.igx.ison DERIVATION_MISMATCH "the target is a simple graph" reject hints/reject--igdc-multigraph-fact-wrong.igdc.ison derivation payloads/ok--node-hints-full-row.igdm.ison C4 targets/2b0bd5b0e74e8e92.ison
+reject/igdc-noncanonical null MALFORMED_CONSUMPTION null reject hints/reject--igdc-noncanonical.igdc.ison verify null C0 null
+reject/igdc-not-utf8 null MALFORMED_CONSUMPTION null reject hints/reject--igdc-not-utf8.igdc.ison verify null C0 null
+reject/igdc-ordinal-leading-zero null INVALID_ADDRESS null reject hints/reject--igdc-ordinal-leading-zero.igdc.ison verify null C2 null
+reject/igdc-oversize null DATAMATICS_LIMIT_EXCEEDED limits:max_payload_bytes=64 reject hints/reject--igdc-oversize.igdc.ison verify null C0 null
+reject/igdc-payload-digest-mismatch bindings/ok--node-hints-full-row.igx.ison DERIVATION_MISMATCH null reject hints/reject--igdc-payload-digest-mismatch.igdc.ison derivation payloads/ok--node-hints-full-row.igdm.ison C4 targets/2b0bd5b0e74e8e92.ison
+reject/igdc-reference-cell null MALFORMED_CONSUMPTION null reject hints/reject--igdc-reference-cell.igdc.ison verify null C1 null
+reject/igdc-row-added bindings/ok--node-hints-full-row.igx.ison DERIVATION_MISMATCH "a well-formed row for a node the payload does not mention" reject hints/reject--igdc-row-added.igdc.ison derivation payloads/ok--node-hints-full-row.igdm.ison C4 targets/2b0bd5b0e74e8e92.ison
+reject/igdc-row-budget null DATAMATICS_LIMIT_EXCEEDED limits:max_rows_per_table=1 reject hints/reject--igdc-row-budget.igdc.ison verify null C1 null
+reject/igdc-row-dropped bindings/ok--node-hints-full-row.igx.ison DERIVATION_MISMATCH null reject hints/reject--igdc-row-dropped.igdc.ison derivation payloads/ok--node-hints-full-row.igdm.ison C4 targets/2b0bd5b0e74e8e92.ison
+reject/igdc-simple-ordinal-1 null INVALID_ADDRESS null reject hints/reject--igdc-simple-ordinal-1.igdc.ison verify null C2 null
+reject/igdc-summary-row null MALFORMED_CONSUMPTION null reject hints/reject--igdc-summary-row.igdc.ison verify null C1 null
+reject/igdc-twin-ids null TWIN_IDS null reject hints/reject--igdc-twin-ids.igdc.ison verify null C2 null
+reject/igdc-typed-column null MALFORMED_CONSUMPTION null reject hints/reject--igdc-typed-column.igdc.ison verify null C1 null
+reject/igdc-undirected-noncanonical null INVALID_ADDRESS null reject hints/reject--igdc-undirected-noncanonical.igdc.ison verify null C2 null
+reject/igdc-unexpected-block null MALFORMED_CONSUMPTION null reject hints/reject--igdc-unexpected-block.igdc.ison verify null C1 null
+reject/igdc-unexpected-column null MALFORMED_CONSUMPTION null reject hints/reject--igdc-unexpected-column.igdc.ison verify null C1 null
+reject/igdc-unknown-parent null UNRESOLVED_REFERENCE null reject hints/reject--igdc-unknown-parent.igdc.ison verify null C3 null
+reject/igdc-unknown-tag null INVALID_ADDRESS null reject hints/reject--igdc-unknown-tag.igdc.ison verify null C2 null
+reject/igdc-untagged-id null INVALID_ADDRESS null reject hints/reject--igdc-untagged-id.igdc.ison verify null C2 null
+reject/igdc-wrong-address-scheme null MALFORMED_CONSUMPTION null reject hints/reject--igdc-wrong-address-scheme.igdc.ison verify null C1 null
+reject/igdc-wrong-spec null MALFORMED_CONSUMPTION null reject hints/reject--igdc-wrong-spec.igdc.ison verify null C1 null
+reject/igdc-x-in-closed-column null MALFORMED_CONSUMPTION null reject hints/reject--igdc-x-in-closed-column.igdc.ison verify null C1 null
+reject/igdc-x-token-malformed null MALFORMED_CONSUMPTION null reject hints/reject--igdc-x-token-malformed.igdc.ison verify null C1 null
+reject/payload-digest-mismatch bindings/reject--payload-digest-mismatch.igx.ison PAYLOAD_DIGEST_MISMATCH null reject null consume payloads/reject--payload-digest-mismatch.igdm.ison D0 targets/2b0bd5b0e74e8e92.ison
+reject/payload-oversize bindings/reject--payload-oversize.igx.ison DATAMATICS_LIMIT_EXCEEDED limits:max_payload_bytes=16 reject null consume payloads/reject--payload-oversize.igdm.ison D1 targets/2b0bd5b0e74e8e92.ison
+reject/payload-twin-ids bindings/reject--payload-twin-ids.igx.ison MALFORMED_DATAMATICS null reject null consume payloads/reject--payload-twin-ids.igdm.ison D1 targets/2b0bd5b0e74e8e92.ison
+reject/resolution-limited bindings/reject--resolution-limited.igx.ison RESOLUTION_REQUIRED baselines:all reject null consume payloads/reject--resolution-limited.igdm.ison P0 targets/2b0bd5b0e74e8e92.ison
+reject/target-sha-mismatch bindings/reject--target-sha-mismatch.igx.ison TARGET_BINDING_MISMATCH null reject null consume payloads/reject--target-sha-mismatch.igdm.ison D2 targets/2b0bd5b0e74e8e92.ison
+reject/unresolved-node bindings/reject--unresolved-node.igx.ison UNRESOLVED_OBJECT null reject null consume payloads/reject--unresolved-node.igdm.ison D4 targets/2b0bd5b0e74e8e92.ison

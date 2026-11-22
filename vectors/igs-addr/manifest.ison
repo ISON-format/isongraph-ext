@@ -1,0 +1,156 @@
+table.edge_order
+id ordinal position relation source_id source_type target_id target_type
+ok/edge-order-ordinal-bytes "0" 0 r int:1 t int:2 t
+ok/edge-order-ordinal-bytes "1" 1 r int:1 t int:2 t
+ok/edge-order-ordinal-bytes "10" 2 r int:1 t int:2 t
+ok/edge-order-ordinal-bytes "2" 3 r int:1 t int:2 t
+ok/edge-order-relation-bytes "0" 0 a int:1 t int:2 t
+ok/edge-order-relation-bytes "0" 1 b int:1 t int:2 t
+ok/edge-order-relation-bytes "0" 2 c int:1 t int:2 t
+ok/edge-order-source-then-relation "0" 0 z int:1 t int:9 t
+ok/edge-order-source-then-relation "0" 1 a int:2 t int:9 t
+ok/edge-order-source-then-relation "0" 2 b int:2 t int:9 t
+ok/edge-order-source-then-relation "0" 3 a str:a t int:9 t
+
+table.edges
+id directed expect expect_source expect_target multigraph ordinal relation source_id source_type target_id target_type
+ok/directed-as-written "true" ok i:9 i:1 "false" "0" r int:9 a int:1 a
+ok/directed-string-to-int "true" ok s:x i:1 "false" "0" r str:x a int:1 a
+ok/multigraph-ordinal-0 "true" ok i:1 i:2 "true" "0" r int:1 a int:2 a
+ok/multigraph-ordinal-1 "true" ok i:1 i:2 "true" "1" r int:1 a int:2 a
+ok/multigraph-ordinal-10 "true" ok i:1 i:2 "true" "10" r int:1 a int:2 a
+ok/undirected-canonical-int-before-string "false" ok i:5 s:a "false" "0" r int:5 a str:a a
+ok/undirected-canonical-ints-numeric "false" ok i:3 i:5 "false" "0" r int:3 a int:5 a
+ok/undirected-canonical-negative-first "false" ok i:-1 i:0 "false" "0" r int:-1 a int:0 a
+ok/undirected-canonical-type-bytes "false" ok i:9 i:1 "false" "0" r int:9 a int:1 b
+ok/undirected-self-loop "false" ok i:3 i:3 "false" "0" r int:3 a int:3 a
+reject/ordinal-double-zero "true" reject:INVALID_ADDRESS "" "" "true" "00" r int:1 a int:2 a
+reject/ordinal-empty "true" reject:INVALID_ADDRESS "" "" "true" "" r int:1 a int:2 a
+reject/ordinal-leading-zero "true" reject:INVALID_ADDRESS "" "" "true" "01" r int:1 a int:2 a
+reject/ordinal-negative "true" reject:INVALID_ADDRESS "" "" "true" "-1" r int:1 a int:2 a
+reject/ordinal-not-ascii-digit "true" reject:INVALID_ADDRESS "" "" "true" "٣" r int:1 a int:2 a
+reject/simple-graph-ordinal-1 "true" reject:INVALID_ADDRESS "" "" "false" "1" r int:1 a int:2 a
+reject/undirected-ints-out-of-order "false" reject:INVALID_ADDRESS "" "" "false" "0" r int:5 a int:3 a
+reject/undirected-string-before-int "false" reject:INVALID_ADDRESS "" "" "false" "0" r str:a a int:5 a
+reject/undirected-type-bytes-out-of-order "false" reject:INVALID_ADDRESS "" "" "false" "0" r int:1 b int:9 a
+
+table.order
+id node_id node_type position trap
+ok/order-every-int-before-every-string int:9223372036854775807 t 0 none
+ok/order-every-int-before-every-string str: t 1 none
+ok/order-every-int-before-every-string str:0 t 2 none
+ok/order-int64-extremes int:-1 t 1 text
+ok/order-int64-extremes int:-9223372036854775808 t 0 text
+ok/order-int64-extremes int:0 t 2 text
+ok/order-int64-extremes int:9223372036854775807 t 3 text
+ok/order-ints-numeric-not-text int:-10 t 0 text
+ok/order-ints-numeric-not-text int:-2 t 1 text
+ok/order-ints-numeric-not-text int:0 t 2 text
+ok/order-ints-numeric-not-text int:10 t 4 text
+ok/order-ints-numeric-not-text int:100 t 5 text
+ok/order-ints-numeric-not-text int:2 t 3 text
+ok/order-mixed int:-1 a 0 text
+ok/order-mixed int:0 a 1 text
+ok/order-mixed int:1 b 8 text
+ok/order-mixed int:10 a 3 text
+ok/order-mixed int:2 a 2 text
+ok/order-mixed str:a a 4 text
+ok/order-mixed str:a b 9 text
+ok/order-mixed str:~ a 5 text
+ok/order-mixed str:é a 6 text
+ok/order-mixed str:😀 a 7 text
+ok/order-string-bytes-not-case-folded str:A t 0 none
+ok/order-string-bytes-not-case-folded str:B t 1 none
+ok/order-string-bytes-not-case-folded str:a t 2 none
+ok/order-string-bytes-not-case-folded str:b t 3 none
+ok/order-type-bytes-first int:0 é 3 none
+ok/order-type-bytes-first int:1 b 2 none
+ok/order-type-bytes-first int:9 a 0 none
+ok/order-type-bytes-first str:z a 1 none
+ok/order-utf8-not-utf16 str:～ t 0 utf16
+ok/order-utf8-not-utf16 str:😀 t 1 utf16
+
+table.twins
+id expect id_a id_b type_a type_b
+ok/twin-not-across-types ok int:7 str:7 a b
+ok/twin-not-s-minus0-vs-i0 ok int:0 str:-0 a a
+ok/twin-not-s007-vs-i7 ok int:7 str:007 a a
+ok/twin-not-two-ints ok int:7 int:8 a a
+reject/twin-i0-s0 reject:TWIN_IDS int:0 str:0 a a
+reject/twin-i7-s7 reject:TWIN_IDS int:7 str:7 a a
+reject/twin-negative reject:TWIN_IDS int:-7 str:-7 a a
+reject/twin-s7-i7-reversed reject:TWIN_IDS str:7 int:7 a a
+
+table.vectors
+id expect input kind
+ok/int-7 i:7 int:7 tag
+ok/int-negative-one i:-1 int:-1 tag
+ok/int-zero i:0 int:0 tag
+ok/int64-max i:9223372036854775807 int:9223372036854775807 tag
+ok/int64-min i:-9223372036854775808 int:-9223372036854775808 tag
+ok/node_type-plain ok str:order node_type
+ok/node_type-punctuation ok str:a-b_c.d node_type
+ok/node_type-unicode ok str:étude node_type
+ok/parse-i-7 int:7 tagged:i:7 parse
+ok/parse-i-max int:9223372036854775807 tagged:i:9223372036854775807 parse
+ok/parse-i-min int:-9223372036854775808 tagged:i:-9223372036854775808 parse
+ok/parse-s-007 str:007 tagged:s:007 parse
+ok/parse-s-7 str:7 tagged:s:7 parse
+ok/parse-s-empty str: tagged:s: parse
+ok/parse-s-looks-tagged str:i:7 tagged:s:i:7 parse
+ok/relation-plain ok str:order relation
+ok/relation-punctuation ok str:a-b_c.d relation
+ok/relation-unicode ok str:étude relation
+ok/string-007 s:007 str:007 tag
+ok/string-1e3 s:1e3 str:1e3 tag
+ok/string-7 s:7 str:7 tag
+ok/string-arabic-indic-digit s:٣ str:٣ tag
+ok/string-astral s:😀 str:😀 tag
+ok/string-beyond-int64 s:9223372036854775808 str:9223372036854775808 tag
+ok/string-empty-is-valid-syntax s: str: tag
+ok/string-fullwidth-tilde s:～ str:～ tag
+ok/string-leading-plus s:+5 str:+5 tag
+ok/string-looks-tagged-i s:i:7 str:i:7 tag
+ok/string-looks-tagged-s s:s:7 str:s:7 tag
+ok/string-minus0 s:-0 str:-0 tag
+ok/string-nfc s:é str:é tag
+ok/string-nfd s:é str:é tag
+ok/string-with-quote "s:q\"q" "str:q\"q" tag
+reject/bool-false-id reject:INVALID_ADDRESS bool:false tag
+reject/bool-true-id reject:INVALID_ADDRESS bool:true tag
+reject/float-id reject:INVALID_ADDRESS float:1.5 tag
+reject/float-integral-id reject:INVALID_ADDRESS float:7.0 tag
+reject/int64-overflow reject:INVALID_ADDRESS int:9223372036854775808 tag
+reject/int64-underflow reject:INVALID_ADDRESS int:-9223372036854775809 tag
+reject/lone-surrogate-id reject:INVALID_ADDRESS surrogate:d800 tag
+reject/node_type-backslash reject:INVALID_ADDRESS "str:a\\b" node_type
+reject/node_type-colon reject:INVALID_ADDRESS str:a:b node_type
+reject/node_type-empty reject:INVALID_ADDRESS str: node_type
+reject/node_type-pipe reject:INVALID_ADDRESS str:a|b node_type
+reject/node_type-quote reject:INVALID_ADDRESS "str:a\"b" node_type
+reject/node_type-space reject:INVALID_ADDRESS "str:a b" node_type
+reject/node_type-tab reject:INVALID_ADDRESS "str:a\tb" node_type
+reject/null-id reject:INVALID_ADDRESS null: tag
+reject/parse-bare-7 reject:INVALID_ADDRESS tagged:7 parse
+reject/parse-empty reject:INVALID_ADDRESS tagged: parse
+reject/parse-i-arabic-indic-digit reject:INVALID_ADDRESS tagged:i:٣ parse
+reject/parse-i-decimal-point reject:INVALID_ADDRESS tagged:i:1.0 parse
+reject/parse-i-empty reject:INVALID_ADDRESS tagged:i: parse
+reject/parse-i-leading-zero reject:INVALID_ADDRESS tagged:i:007 parse
+reject/parse-i-minus-zero reject:INVALID_ADDRESS tagged:i:-0 parse
+reject/parse-i-overflow reject:INVALID_ADDRESS tagged:i:9223372036854775808 parse
+reject/parse-i-plus reject:INVALID_ADDRESS tagged:i:+5 parse
+reject/parse-i-space reject:INVALID_ADDRESS "tagged:i: 7" parse
+reject/parse-i-trailing-space reject:INVALID_ADDRESS "tagged:i:7 " parse
+reject/parse-i-underflow reject:INVALID_ADDRESS tagged:i:-9223372036854775809 parse
+reject/parse-s-lone-surrogate reject:INVALID_ADDRESS tagged-lone:d800 parse
+reject/parse-tag-without-colon reject:INVALID_ADDRESS tagged:i parse
+reject/parse-unknown-tag reject:INVALID_ADDRESS tagged:x:7 parse
+reject/parse-uppercase-tag reject:INVALID_ADDRESS tagged:I:7 parse
+reject/relation-backslash reject:INVALID_ADDRESS "str:a\\b" relation
+reject/relation-colon reject:INVALID_ADDRESS str:a:b relation
+reject/relation-empty reject:INVALID_ADDRESS str: relation
+reject/relation-pipe reject:INVALID_ADDRESS str:a|b relation
+reject/relation-quote reject:INVALID_ADDRESS "str:a\"b" relation
+reject/relation-space reject:INVALID_ADDRESS "str:a b" relation
+reject/relation-tab reject:INVALID_ADDRESS "str:a\tb" relation

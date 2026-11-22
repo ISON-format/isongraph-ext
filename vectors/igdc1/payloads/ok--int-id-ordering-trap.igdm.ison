@@ -1,0 +1,27 @@
+meta.igdm
+datamatics_spec target_artifact_sha256 target_serialization_profile
+IGDM/1 ce14adf732145aab91a019ecb402a70aca8a48e95dee345da498c98e83031543 ison-v1
+
+meta.layout
+direction family stability
+null null null
+
+table.edges
+a11y_text direction_display emphasis focusable label lod_min ordinal pattern_role relation role selectable source_id source_type target_id target_type temporal_order temporal_state visibility
+null null null null null null "0" null r neutral null 10 t 2 t null null null
+null null null null null null "0" null r neutral null 2 t -1 t null null null
+
+table.groups
+a11y_text collapsed group_id intent label lod_min parent_group_id role visibility
+
+table.members
+group_id node_id node_type
+
+table.nodes
+a11y_role a11y_text badge drilldown emphasis expandable focusable label layout_anchor layout_rank lod_min magnitude node_id node_type ring role selectable shape_role temporal_order temporal_state visibility
+null null null null null null null null null null null null -1 t null info null null null null null
+null null null null null null null null null null null null 0 t null info null null null null null
+null null null null null null null null null null null null 10 t null info null null null null null
+null null null null null null null null null null null null 2 t null info null null null null null
+null null null null null null null null null null null null a t null info null null null null null
+null null null null null null null null null null null null é t null info null null null null null

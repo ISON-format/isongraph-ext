@@ -86,13 +86,19 @@ def _same_file(a: Path, b: Path) -> bool:
 
 
 def _guard_igdc_out(a: argparse.Namespace) -> None:
-    """`issue --igdc OUT` writes OUT. Refuse (before reading or writing anything) when OUT is an input of the same invocation or a directory; a pre-existing
-    unrelated regular file is still overwritten."""
+    """`issue --igdc OUT` writes OUT through the sibling temp file `OUT.tmp` (`write_atomic`). Refuse (before reading or writing anything) when OUT or that
+    temp file is an input of the same invocation, or when OUT is a directory; a pre-existing unrelated regular file is still overwritten. An OUT that is
+    a symbolic link to an input is the input (realpath); an OUT that is a link to anything else is replaced by the new file and its target is not written."""
     out = a.igdc
+    temp = out.with_name(out.name + ".tmp")
     for name in ("graph", "binding", "payload", "profile"):
         src = getattr(a, name)
-        if src is not None and _same_file(out, src):
+        if src is None:
+            continue
+        if _same_file(out, src):
             raise _Usage(f"--igdc {out} is the {name} input of this invocation; refusing to overwrite it")
+        if _same_file(temp, src):
+            raise _Usage(f"--igdc {out} would be written through {temp}, which is the {name} input of this invocation; refusing to overwrite it")
     if out.is_dir():
         raise _Usage(f"--igdc {out} is a directory")
 

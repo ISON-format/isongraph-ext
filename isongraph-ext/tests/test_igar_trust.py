@@ -333,6 +333,14 @@ def test_sha256sums_crlf_and_final_newline_handling_is_unchanged():
     assert e.value.code == "MALFORMED_PINS"
 
 
+@pytest.mark.parametrize("text", [f"{H('a')}  r\n\n{H('b')}  s\n", f"{H('a')}  r\r", f"{H('a')}  r\r\n\r\n", f"\n{H('a')}  r\n"])
+def test_sha256sums_blank_lines_and_a_lone_cr_are_malformed_as_the_docs_say(text):
+    """README and docs/igar-policy-format.md: LF or CRLF separate lines, one final terminator is optional, a blank line or a lone CR is malformed."""
+    with pytest.raises(IGARError) as e:
+        DeliveryPins.from_sha256sums(text, names=frozenset({"r"}))
+    assert (e.value.code, e.value.field) == ("MALFORMED_PINS", "sha256sums")
+
+
 def test_sha256sums_refuses_every_repeated_name():
     for second in (H("a"), H("b")):                                        # identical and conflicting
         with pytest.raises(IGARError) as e:

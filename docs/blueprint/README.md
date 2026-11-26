@@ -9,6 +9,7 @@ The documents in this directory are the normative texts the code and conformance
 | `18-IGPV1-DESIGN.md` | IGPV/1: provenance - source attribution, locators and derivation lineage |
 | `19-IGDM1-DESIGN.md` | IGDM/1: Datamatics - renderer-neutral presentation intent |
 | `21-IGP1-DESIGN.md` | IGP/1: structural projection - a deterministic, verifiable subgraph with IGPV/1 lineage |
+| `27-IGRV1-IGD1-DESIGN.md` | IGRV/1 revision identity and IGD/1 delta: a DRAFT proposal (rev 0), **not frozen**, blocked on the Semantic/2 freeze |
 | `ERRATA.md` | Non-normative errata: places where a published table or example differs from the vectors or the writer |
 | `13-SEMANTIC-2.md` | Draft graph-identity contract (Semantic/2); not yet frozen |
 | `15-CORE-CONFORMANCE-CORPUS.md` | Specification of the Core conformance corpus the receipts refer to |

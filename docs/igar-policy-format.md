@@ -18,7 +18,7 @@ baseline and profile accepts nothing. A policy match says nothing about provenan
 
 ## Example
 
-This file is accepted by the reader and says: any `isongraph-ext` 0.4.1 receipt, issued under exactly one verifier profile, against one Core baseline, whose verification and admission passed with full object resolution. The empty `table.runtime` block does not constrain the runtime versions.
+This file is accepted by the reader and says: any `isongraph-ext` 0.5.0 receipt, issued under exactly one verifier profile, against one Core baseline, whose verification and admission passed with full object resolution. The empty `table.runtime` block does not constrain the runtime versions.
 
 ```text
 meta.policy
@@ -38,7 +38,7 @@ runtime_ison_graph runtime_ison_py
 
 table.verifiers
 verifier verifier_version
-isongraph-ext 0.4.1
+isongraph-ext 0.5.0
 ```
 
 The profile digest above is the digest of the default verifier profile of this release (`Profile.default().digest`). Take the digest from the profile you actually accept: it is recorded in every receipt as `meta.verifier.profile_sha256`.

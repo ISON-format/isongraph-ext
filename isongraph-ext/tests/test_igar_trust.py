@@ -16,7 +16,7 @@ from isongraph_ext.igdc.derive import consume
 from isongraph_ext.igdm.records import Limits
 
 PROFILE_D = H("d")
-OK = TrustPolicy(verifiers=frozenset({("isongraph-ext", "0.4.1")}), core_commits=frozenset({CORE}), profiles=frozenset({PROFILE_D}))
+OK = TrustPolicy(verifiers=frozenset({("isongraph-ext", "0.5.0")}), core_commits=frozenset({CORE}), profiles=frozenset({PROFILE_D}))
 
 
 def why(r, policy, step="R4", code_="RECEIPT_POLICY_UNSATISFIED"):
@@ -183,7 +183,7 @@ def test_trusted_admission_cannot_be_constructed_directly():
 def test_policy_file_round_trip():
     text = (f'meta.policy\npolicy_spec require_admission require_full_resolution\nIGAR-POLICY/1 "true" "false"\n\n'
             f'table.core_commits\ncore_commit\n{CORE}\n\ntable.profiles\nprofile_sha256\n{PROFILE_D}\n\n'
-            f'table.runtime\nruntime_ison_graph runtime_ison_py\n1.4.1 1.2.0\n\ntable.verifiers\nverifier verifier_version\nisongraph-ext 0.4.1')
+            f'table.runtime\nruntime_ison_graph runtime_ison_py\n1.4.1 1.2.0\n\ntable.verifiers\nverifier verifier_version\nisongraph-ext 0.5.0')
     p = TrustPolicy.from_ison(text)
     assert p == dataclasses.replace(OK, runtime=frozenset({("1.4.1", "1.2.0")}), require_full_resolution=False)
 

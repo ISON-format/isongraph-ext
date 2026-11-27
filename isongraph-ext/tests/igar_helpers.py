@@ -10,7 +10,7 @@ CORE = "ce9d3b78afd79cbdffdd67546bcb5278dc38be70"
 def verified(**over) -> Receipt:
     d = dict(
         subject={"binding_sha256": H("a"), "igdc_sha256": None, "igdm_payload_sha256": H("b"), "target_artifact_sha256": H("c")},
-        verifier={"verifier": "isongraph-ext", "verifier_version": "0.4.1", "igx_spec": "IGX/1", "igdm_spec": "IGDM/1", "igdc_spec": "IGDC/1", "profile_sha256": H("d"),
+        verifier={"verifier": "isongraph-ext", "verifier_version": "0.5.0", "igx_spec": "IGX/1", "igdm_spec": "IGDM/1", "igdc_spec": "IGDC/1", "profile_sha256": H("d"),
                   "core_commit": CORE, "runtime_ison_graph": "1.4.1", "runtime_ison_py": "1.2.0", "semantic_verification": "full", "object_resolution": "full"},
         result={"binding_schema": "valid", "payload_schema": "valid", "verification": "verified", "admission": "admitted", "consumption": "absent"},
         failure={"check": None, "code": None, "field": None},

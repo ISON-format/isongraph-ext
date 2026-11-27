@@ -21,7 +21,9 @@
 graph.ison          the ordinary ISONGraph; Core reads it exactly as before
   |-- graph.igx.ison    IGX/1   binding      "is this the graph I was promised?"
   |-- graph.igpv.ison  IGPV/1  provenance   "where did this come from?"
-  `-- graph.igdm.ison  IGDM/1  datamatics   "how should a viewer present it?"
+  |-- graph.igdm.ison  IGDM/1  datamatics   "how should a viewer present it?"
+  |-- graph.igdc.ison  IGDC/1  hints        "what should a viewer read, with typed ids?"
+  `-- graph.igar.ison  IGAR/1  receipt      "what exactly did a verifier compute?"
 ```
 
 Each companion is optional and independent. A consumer that knows none of them still has the whole graph.
@@ -102,6 +104,10 @@ python -m isongraph_ext.igx   admit  graph.ison graph.igx.ison                  
 python -m isongraph_ext.igpv  verify graph.ison graph.igx.ison graph.igpv.ison [--source SHA256=PATH]
 python -m isongraph_ext.igpv  origins <graph-sha256> graph.igpv.ison --node person ada
 python -m isongraph_ext.igdm  verify graph.ison graph.igx.ison graph.igdm.ison
+python -m isongraph_ext.igdc  derive graph.ison graph.igx.ison graph.igdm.ison > graph.igdc.ison
+python -m isongraph_ext.igdc  verify graph.igdc.ison [graph.ison graph.igx.ison graph.igdm.ison]
+python -m isongraph_ext.igar  issue graph.ison graph.igx.ison graph.igdm.ison [--profile profile.ison] [--igdc graph.igdc.ison] > graph.igar.ison
+python -m isongraph_ext.igar  authorize graph.igar.ison --pins SHA256SUMS --target graph.ison --binding graph.igx.ison --payload graph.igdm.ison --igdc graph.igdc.ison --trust-policy trust.policy.ison
 python -m isongraph_ext.igp   project graph.ison policy.igp.ison --out out/       # writes result.ison and result.igpv.ison
 python -m isongraph_ext.igp   verify  graph.ison policy.igp.ison result.ison result.igpv.ison
 ```
@@ -116,14 +122,16 @@ Output is itself ISON, so receipts can quote it verbatim.
 | **IGPV/1** provenance | Attributes nodes and edges to source documents, with byte or line spans checked against the real bytes, and records derivation lineage: *this node stands for those nodes in an earlier graph*. |
 | **IGP/1** projection | Selects a bounded, deterministic subgraph from explicit anchors, allow-lists, direction, depth and budgets, and returns an ordinary graph plus IGPV/1 provenance for every node and edge; recomputable from the source and the policy. |
 | **IGDM/1** datamatics | Renderer-neutral presentation **intent**: semantic roles, emphasis, badges, groups, layout hints and accessibility text. Never colours, fonts or coordinates. |
+| **IGDC/1** consumption hints | A canonical hint document derived by a pure function from a verified IGDM/1 payload, with every node and edge address in a typed form (`i:7` is the integer 7, `s:7` the string "7"). A document that passes the consumer checks C0 to C3 is well-formed, **not verified**. |
+| **IGAR/1** admission receipt | A canonical, **unsigned** record of what one verifier computed over exact bytes (target, binding, payload and optionally an IGDC/1 hint document) under a named verifier profile. A rejection is recorded as content, not as an error. An unsigned receipt needs a trusted delivery boundary, and a policy match is not trust. |
 
 ## Built to be checked
 
 - **Byte-exact.** Companion files are canonical by construction: one graph, one companion, one set of bytes, one SHA-256.
-- **Specified before coded.** Frozen specifications for IGX/1, IGPV/1, IGDM/1 and IGP/1 live in the [repository](https://github.com/ISON-format/isongraph-ext/tree/main/docs/blueprint); the code follows them, never the reverse.
-- **Conformance vectors.** 217 byte-exact vectors and about 590 tests are replayed in CI on every change.
+- **Specified before coded.** Frozen specifications for IGX/1, IGPV/1, IGDM/1, IGP/1, IGDC/1 and IGAR/1 live in the [repository](https://github.com/ISON-format/isongraph-ext/tree/main/docs/blueprint); the code follows them, never the reverse.
+- **Conformance vectors.** 217 byte-exact vectors (IGX/1 35, IGPV/1 71, IGDM/1 50, IGP/1 61), plus 142 `igs-addr` address rows, 86 IGDC/1 consumption rows and 122 IGAR/1 receipt, profile and policy rows, and the test suite, are replayed in CI on every change.
 - **Pinned to a measured Core.** The package embeds the Core baseline it was verified against, plus Core's conformance receipts, so identity claims are checkable rather than asserted.
-- **Limits stated plainly.** IGPV/1, IGDM/1 and IGP/1 enforce explicit input-size and row limits; IGX/1 does not define equivalent limits. Large or untrusted inputs can use a lot of memory and time, because byte limits do not bound memory. Apply your own process-level resource controls ([measurements and guidance](https://github.com/ISON-format/isongraph-ext/blob/main/docs/resource-limits.md)). Verification reports the first failing step instead of guessing.
+- **Limits stated plainly.** IGPV/1, IGDM/1, IGDC/1 and IGAR/1 (which both reuse the IGDM/1 limits) and IGP/1 enforce explicit input-size and row limits; IGX/1 does not define equivalent limits. Large or untrusted inputs can use a lot of memory and time, because byte limits do not bound memory. Apply your own process-level resource controls ([measurements and guidance](https://github.com/ISON-format/isongraph-ext/blob/main/docs/resource-limits.md)). Verification reports the first failing step instead of guessing.
 
 ## Examples
 
@@ -137,6 +145,8 @@ This is an **early-stage (alpha)** release. Know what it does not do:
 - Provenance proves origin and lineage, **not that an extracted statement is true**.
 - The cross-port identity claim and lossy producer-bound admission are reserved. Revision, delta and DAG capabilities are not implemented. Projection is structural only (no property filters) and supports directed simple graphs.
 - IGDM/1 carries presentation **intent only** and renders nothing.
+- An IGAR/1 receipt is a **claim** about what a verifier computed. It is unsigned, carries no signature and no freshness, and does not authenticate who made it. It needs a trusted delivery boundary (a channel the consumer controls, with the receipt bytes pinned by digest), and a policy match is not trust. Re-running a verification (R6) is available only in this Python reference.
+- IGDC/1 is a hint document for consumers, derived from inputs that were already verified. It carries no verdict; a document that passes C0 to C3 is well-formed, not verified. The Python reference is not a browser verifier.
 - Python reference implementation only. Verification is an offline cost: roughly 2 seconds for a 10,000-node graph with a capability.
 
 ## Links

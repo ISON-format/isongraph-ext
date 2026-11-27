@@ -4,8 +4,8 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "isongraph-ext"
-version = "0.4.1"
-description = "ISONGraphExt - IGX/1 extension bindings, IGPV/1 provenance, IGDM/1 datamatics and IGP/1 structural projection with verifiable identity claims over ISONGraph Core"
+version = "0.5.0"
+description = "ISONGraphExt - IGX/1 extension bindings, IGPV/1 provenance, IGDM/1 datamatics, IGP/1 structural projection, IGDC/1 consumption hints and IGAR/1 admission receipts with verifiable identity claims over ISONGraph Core"
 readme = "README.md"
 license = "MIT"
 license-files = ["LICENSE"]

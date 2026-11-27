@@ -37,7 +37,7 @@ def _row(out: bytes, name: str) -> dict:
     return _blocks(out)[name].rows[0]
 
 
-def _policy_bytes(*, verifier="isongraph-ext", version="0.4.1", profile=None, require_admission=True) -> bytes:
+def _policy_bytes(*, verifier="isongraph-ext", version="0.5.0", profile=None, require_admission=True) -> bytes:
     prof = profile or Profile.default().digest
     doc = Document(blocks=[
         Block("meta", "policy", ["policy_spec", "require_admission", "require_full_resolution"],
